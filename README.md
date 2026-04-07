@@ -76,36 +76,41 @@ const App = () => {
 
 ### PromptEditor Props
 
-| 参数 | 说明 | 类型 | 默认值 |
-|------|------|------|--------|
-| initialValue | 初始数据（非受控模式） | `TaskNode[]` | `[]` |
-| value | 受控模式下的数据 | `TaskNode[]` | - |
-| onChange | 数据变化回调（非受控模式） | `(data: TaskNode[]) => void` | - |
-| runAPI | 节点运行 API | `(req: RunTaskRequest) => Promise<RunTaskResponse>` | - |
-| optimizeAPI | AI 优化 API | `(req: OptimizeRequest) => Promise<OptimizeResponse>` | - |
-| onNodeRun | 节点运行完成回调 | `(nodeId: string, result: RunTaskResponse) => void` | - |
-| onNodeOptimize | 节点优化完成回调 | `(nodeId: string, result: OptimizeResponse) => void` | - |
-| onNodeLock | 节点锁定状态变化回调 | `(nodeId: string, isLocked: boolean) => void` | - |
-| onTreeChange | 树结构变化回调 | `(tree: TaskNode[]) => void` | - |
-| theme | 主题 | `'default' \| 'ant-design'` | `'default'` |
-| className | 自定义类名 | `string` | - |
-| style | 自定义样式 | `CSSProperties` | - |
-| renderToolbar | 自定义顶部工具栏 | `(actions) => ReactNode` | - |
+| 参数           | 说明                       | 类型                                                  | 默认值      |
+| -------------- | -------------------------- | ----------------------------------------------------- | ----------- |
+| initialValue   | 初始数据（非受控模式）     | `TaskNode[]`                                          | `[]`        |
+| value          | 受控模式下的数据           | `TaskNode[]`                                          | -           |
+| onChange       | 数据变化回调（非受控模式） | `(data: TaskNode[]) => void`                          | -           |
+| runAPI         | 节点运行 API               | `(req: RunTaskRequest) => Promise<RunTaskResponse>`   | -           |
+| optimizeAPI    | AI 优化 API                | `(req: OptimizeRequest) => Promise<OptimizeResponse>` | -           |
+| onNodeRun      | 节点运行完成回调           | `(nodeId: string, result: RunTaskResponse) => void`   | -           |
+| onNodeOptimize | 节点优化完成回调           | `(nodeId: string, result: OptimizeResponse) => void`  | -           |
+| onNodeLock     | 节点锁定状态变化回调       | `(nodeId: string, isLocked: boolean) => void`         | -           |
+| onTreeChange   | 树结构变化回调             | `(tree: TaskNode[]) => void`                          | -           |
+| theme          | 主题                       | `'default' \| 'ant-design'`                           | `'default'` |
+| className      | 自定义类名                 | `string`                                              | -           |
+| style          | 自定义样式                 | `CSSProperties`                                       | -           |
+| renderToolbar  | 自定义顶部工具栏           | `(actions) => ReactNode`                              | -           |
 
 ### TaskNode 数据结构
 
 ```typescript
 interface TaskNode {
-  id: string;              // 节点唯一标识
-  title: string;           // 节点标题
-  content: string;         // Markdown 内容
-  parentId?: string;       // 父节点 ID
-  children?: TaskNode[];   // 子节点数组
-  isLocked: boolean;       // 是否已锁定
-  hasRun: boolean;         // 是否已运行
+  id: string; // 节点唯一标识（根节点：root-uuid，子节点：uuid）
+  title: string; // 节点标题
+  content: string; // Markdown 内容
+  parentId?: string; // 父节点 ID
+  children?: TaskNode[]; // 子节点数组
+  isLocked: boolean; // 是否已锁定
+  hasRun: boolean; // 是否已运行
   dependencies?: string[]; // 依赖节点 ID 数组
 }
 ```
+
+**ID 生成策略：**
+- **根节点**：`root-${uuidv4()}` - 例如 `"root-550e8400-e29b-41d4-a716-446655440000"`
+- **子节点**：`${uuidv4()}` - 例如 `"6ba7b810-9dad-11d1-80b4-00c04fd430c8"`
+- **优势**：使用 UUID v4 确保全局唯一性，避免时间戳冲突，支持分布式场景
 
 ### RunTaskRequest / Response
 
@@ -134,15 +139,15 @@ interface RunTaskResponse {
 
 ```typescript
 interface OptimizeRequest {
-  content: string;         // 原始内容
-  selectedText?: string;   // 选中的文本（如果有）
-  instruction?: string;    // 优化指令
+  content: string; // 原始内容
+  selectedText?: string; // 选中的文本（如果有）
+  instruction?: string; // 优化指令
   meta?: Record<string, unknown>;
 }
 
 interface OptimizeResponse {
-  optimizedContent: string;   // 优化后的内容
-  thinkingProcess?: string;   // 思考过程
+  optimizedContent: string; // 优化后的内容
+  thinkingProcess?: string; // 思考过程
   meta?: Record<string, unknown>;
 }
 ```
@@ -212,12 +217,7 @@ import { PromptEditor } from 'react-prompt-editor';
 const ControlledExample = () => {
   const [data, setData] = useState([]);
 
-  return (
-    <PromptEditor
-      value={data}
-      onChange={setData}
-    />
-  );
+  return <PromptEditor value={data} onChange={setData} />;
 };
 ```
 
@@ -252,13 +252,9 @@ const CustomToolbar = () => {
     <PromptEditor
       renderToolbar={(actions) => (
         <div>
-          <Button onClick={actions.addRootNode}>
-            添加新标题
-          </Button>
+          <Button onClick={actions.addRootNode}>添加新标题</Button>
           {/* 添加自定义按钮 */}
-          <Button onClick={() => console.log('自定义操作')}>
-            自定义操作
-          </Button>
+          <Button onClick={() => console.log('自定义操作')}>自定义操作</Button>
         </div>
       )}
     />

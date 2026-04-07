@@ -45,7 +45,8 @@ export function useTreeState(
       const parentNode = next.get(parentId);
       if (!parentNode) return prev;
 
-      // 使用 UUID 确保唯一性
+      // 使用 UUID v4 生成唯一 ID，确保全局唯一性和分布式场景稳定性
+      // 示例："6ba7b810-9dad-11d1-80b4-00c04fd430c8"
       newNodeId = uuidv4();
       const newNode: TaskNodeMinimal = {
         id: newNodeId,
@@ -71,6 +72,7 @@ export function useTreeState(
     setStore((prev) => {
       const next = new Map(prev);
       // 使用 root-uuid 格式，便于区分根节点且保证唯一性
+      // 示例："root-550e8400-e29b-41d4-a716-446655440000"
       newNodeId = `root-${uuidv4()}`;
       const newNode: TaskNodeMinimal = {
         id: newNodeId,

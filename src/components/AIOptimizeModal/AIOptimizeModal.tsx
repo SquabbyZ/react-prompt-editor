@@ -79,7 +79,7 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
         streamTimerRef.current = null;
         setCurrentResponse('');
         const assistantMessage: ChatMessage = {
-          id: uuidv4(),
+          id: uuidv4(), // 使用 UUID v4 确保消息 ID 唯一性
           role: 'assistant',
           content: fullText,
           timestamp: Date.now(),
@@ -108,7 +108,7 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
 
     if (currentResponse) {
       const assistantMessage: ChatMessage = {
-        id: uuidv4(),
+        id: uuidv4(), // 使用 UUID v4 确保消息 ID 唯一性
         role: 'assistant',
         content: currentResponse,
         timestamp: Date.now(),
@@ -198,7 +198,7 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
     if (!inputValue.trim() || isGenerating) return;
 
     const userMessage: ChatMessage = {
-      id: uuidv4(),
+      id: uuidv4(), // 使用 UUID v4 确保消息 ID 唯一性
       role: 'user',
       content: selectedContent
         ? `请输入优化指令：\n\n${inputValue.trim()}\n\n选中的内容：\n\n${selectedContent}`
