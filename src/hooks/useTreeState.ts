@@ -70,8 +70,8 @@ export function useTreeState(
     let newNodeId = '';
     setStore((prev) => {
       const next = new Map(prev);
-      // 保持 root- 前缀格式，便于区分根节点
-      newNodeId = `root-${Date.now()}`;
+      // 使用 root-uuid 格式，便于区分根节点且保证唯一性
+      newNodeId = `root-${uuidv4()}`;
       const newNode: TaskNodeMinimal = {
         id: newNodeId,
         title: '新标题',
