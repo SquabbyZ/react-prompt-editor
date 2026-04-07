@@ -1,0 +1,29 @@
+:root {
+  /* 颜色 */
+  --pe-color-primary: #667eea;
+  --pe-color-success: #11998e;
+  --pe-color-warning: #f57c00;
+  --pe-color-error: #c62828;
+  --pe-color-text: #333;
+  --pe-color-text-secondary: #666;
+  --pe-color-border: #e0e0e0;
+  --pe-color-bg: #fff;
+  --pe-color-bg-secondary: #f5f5f5;
+  
+  /* 间距 */
+  --pe-spacing-xs: 4px;
+  --pe-spacing-sm: 8px;
+  --pe-spacing-md: 16px;
+  --pe-spacing-lg: 24px;
+  --pe-spacing-xl: 32px;
+  
+  /* 圆角 */
+  --pe-radius-sm: 4px;
+  --pe-radius-md: 8px;
+  --pe-radius-lg: 12px;
+  
+  /* 阴影 */
+  --pe-shadow-sm: 0 1px 3px rgba(0, 0, 0, 10%);
+  --pe-shadow-md: 0 4px 6px rgba(0, 0, 0, 10%);
+  --pe-shadow-lg: 0 10px 15px rgba(0, 0, 0, 10%);
+}

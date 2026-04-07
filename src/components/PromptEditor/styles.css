@@ -1,0 +1,12 @@
+/* Arborist Row - 关键：设置 overflow 为 visible 以允许内容溢出 */
+.arborist-row {
+  overflow: visible !important;
+  position: relative !important;
+}
+
+/* 响应式设计 - 移动端显示按钮 */
+@media (max-width: 640px) {
+  .arborist-node > div > div:last-child {
+    opacity: 1 !important;
+  }
+}

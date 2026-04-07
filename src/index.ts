@@ -1,1 +1,2 @@
-export { default as Foo } from './Foo';
+export * from './types';
+export { PromptEditor } from './components/PromptEditor';
