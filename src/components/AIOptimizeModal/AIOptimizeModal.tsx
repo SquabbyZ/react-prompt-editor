@@ -4,16 +4,14 @@ import {
   DislikeOutlined,
   FileTextOutlined,
   LikeOutlined,
-  MessageOutlined,
   ReloadOutlined,
-  SendOutlined,
-  StopOutlined,
   ThunderboltOutlined,
 } from '@ant-design/icons';
-import { Button, Input, message } from 'antd';
-import React, { useEffect, useRef, useState } from 'react';
+import { Bubble, Sender } from '@ant-design/x';
+import { Button, message } from 'antd';
+import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { v4 as uuidv4 } from 'uuid';
+import { createOptimizeStore, OptimizeStoreType } from '../../stores';
 import { OptimizeRequest, OptimizeResponse } from '../../types';
 
 interface AIOptimizeModalProps {
@@ -25,17 +23,20 @@ interface AIOptimizeModalProps {
   originalContent: string;
   /** 选中的内容（如果有） */
   selectedContent?: string;
-  /** AI 优化 API */
-  optimizeAPI?: (req: OptimizeRequest) => Promise<OptimizeResponse>;
+  /** AI 优化请求回调 */
+  onOptimizeRequest?: (
+    request: OptimizeRequest,
+    callbacks: {
+      onResponse: (response: OptimizeResponse) => void;
+      onError: (error: Error) => void;
+    },
+  ) => void;
   /** 应用优化结果回调 */
   onApply: (optimizedContent: string) => void;
-}
-
-interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: number;
+  /** 点赞回调 */
+  onLike?: (messageId: string) => void;
+  /** 点踩回调 */
+  onDislike?: (messageId: string) => void;
 }
 
 export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
@@ -43,109 +44,173 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
   onClose,
   originalContent,
   selectedContent,
-  optimizeAPI,
+  onOptimizeRequest,
   onApply,
+  onLike,
+  onDislike,
 }) => {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [inputValue, setInputValue] = useState('');
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [currentResponse, setCurrentResponse] = useState('');
+  // 为每个弹窗实例创建独立的 store
+  const storeRef = useRef<OptimizeStoreType | null>(null);
+  if (!storeRef.current) {
+    storeRef.current = createOptimizeStore();
+  }
+  const store = storeRef.current;
+
+  // 订阅 Zustand store
+  const messages = store((state) => state.messages);
+  const inputValue = store((state) => state.inputValue);
+  const isStreaming = store((state) => state.isStreaming);
+  const isGenerating = store((state) => state.isGenerating);
+  const currentResponse = store((state) => state.currentResponse);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const streamTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 组件卸载时清理
+  // 初始化 store
   useEffect(() => {
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      if (streamTimerRef.current) {
-        clearInterval(streamTimerRef.current);
-      }
-    };
-  }, []);
+    if (open) {
+      store.getState().initialize(originalContent, selectedContent);
+    }
+  }, [open, originalContent, selectedContent, store]);
 
-  // 模拟流式输出
+  // 流式输出状态追踪
+  const streamingStateRef = useRef({
+    isStarted: false,
+    mode: 'auto' as 'auto' | 'direct' | 'simulate', // auto=自动判断, direct=直接更新, simulate=模拟流式
+    timer: null as NodeJS.Timeout | null,
+  });
+
+  // 取消模拟流式
+  const cancelSimulation = () => {
+    if (streamingStateRef.current.timer) {
+      clearTimeout(streamingStateRef.current.timer);
+      streamingStateRef.current.timer = null;
+    }
+  };
+
+  // 模拟流式输出（仅用于单次完整响应）
   const simulateStreaming = (fullText: string) => {
     let index = 0;
-    const chunkSize = 3;
-    const interval = 20;
+    const chunkSize = 5;
+    const interval = 30;
 
-    const timer = setInterval(() => {
-      if (index >= fullText.length) {
-        clearInterval(timer);
-        streamTimerRef.current = null;
-        setCurrentResponse('');
-        const assistantMessage: ChatMessage = {
-          id: uuidv4(), // 使用 UUID v4 确保消息 ID 唯一性
-          role: 'assistant',
-          content: fullText,
-          timestamp: Date.now(),
-        };
-        setMessages((prev) => [...prev, assistantMessage]);
-        setIsStreaming(false);
-        setIsGenerating(false);
+    const tick = () => {
+      if (
+        !streamingStateRef.current.isStarted ||
+        streamingStateRef.current.mode !== 'simulate'
+      ) {
+        streamingStateRef.current.timer = null;
         return;
       }
-      const chunk = fullText.slice(index, index + chunkSize);
-      setCurrentResponse((prev) => prev + chunk);
-      index += chunkSize;
-    }, interval);
 
-    streamTimerRef.current = timer;
+      if (index >= fullText.length) {
+        streamingStateRef.current.timer = null;
+        streamingStateRef.current.isStarted = false;
+        store.getState().finishStreaming(fullText);
+        return;
+      }
+
+      const chunk = fullText.slice(index, index + chunkSize);
+      const currentResponse = store.getState().currentResponse;
+      store.getState().updateCurrentResponse(currentResponse + chunk);
+      index += chunkSize;
+
+      streamingStateRef.current.timer = setTimeout(tick, interval);
+    };
+
+    tick();
+  };
+
+  // 处理流式响应
+  const handleStreamingResponse = (response: OptimizeResponse) => {
+    const newText = response.optimizedContent || '';
+
+    // 处理完成信号
+    if (response.done) {
+      if (streamingStateRef.current.mode === 'simulate') {
+        cancelSimulation();
+      }
+      streamingStateRef.current.isStarted = false;
+      store
+        .getState()
+        .finishStreaming(newText || store.getState().currentResponse);
+      return;
+    }
+
+    if (!newText) return;
+
+    // 首次响应
+    if (!streamingStateRef.current.isStarted) {
+      streamingStateRef.current.isStarted = true;
+      store.getState().startStreaming();
+
+      // 自动判断模式：如果内容较长（> 200 字符），认为是单次完整响应，启用模拟流式
+      if (newText.length > 200) {
+        streamingStateRef.current.mode = 'simulate';
+        simulateStreaming(newText);
+      } else {
+        // 短内容或流式 API 的首个分片，使用直接更新模式
+        streamingStateRef.current.mode = 'direct';
+        store.getState().updateCurrentResponse(newText);
+      }
+      return;
+    }
+
+    // 非首次响应
+    if (streamingStateRef.current.mode === 'simulate') {
+      // 如果当前是模拟模式，但收到了新响应，说明是流式 API，切换到直接模式
+      cancelSimulation();
+      streamingStateRef.current.mode = 'direct';
+    }
+
+    // 直接更新为最新内容
+    store.getState().updateCurrentResponse(newText);
   };
 
   const handleStopResponse = () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-    if (streamTimerRef.current) {
-      clearInterval(streamTimerRef.current);
-      streamTimerRef.current = null;
+    if (streamingStateRef.current.timer) {
+      clearInterval(streamingStateRef.current.timer);
+      streamingStateRef.current.timer = null;
     }
 
-    if (currentResponse) {
-      const assistantMessage: ChatMessage = {
-        id: uuidv4(), // 使用 UUID v4 确保消息 ID 唯一性
-        role: 'assistant',
-        content: currentResponse,
-        timestamp: Date.now(),
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
-      setCurrentResponse('');
-    }
-
-    setIsStreaming(false);
-    setIsGenerating(false);
+    streamingStateRef.current.isStarted = false;
+    store.getState().stopStreaming();
   };
 
-  const handleSendMessageFromContent = async (content: string) => {
-    if (!optimizeAPI) return;
+  const handleSendMessageFromContent = (content: string) => {
+    if (!onOptimizeRequest) {
+      message.error('请提供 onOptimizeRequest 回调');
+      store.getState().stopStreaming();
+      return;
+    }
 
-    try {
-      abortControllerRef.current = new AbortController();
+    abortControllerRef.current = new AbortController();
 
-      const conversationHistory = messages
-        .map((msg) => `${msg.role === 'user' ? '用户' : 'AI'}: ${msg.content}`)
-        .join('\n\n');
+    const conversationHistory = messages
+      .map((msg) => `${msg.role === 'user' ? '用户' : 'AI'}: ${msg.content}`)
+      .join('\n\n');
 
-      const response = await optimizeAPI({
+    // 触发优化请求回调，用户通过 onResponse 返回结果
+    onOptimizeRequest(
+      {
         content: originalContent,
         instruction: `${conversationHistory}\n\n用户: ${content}`,
-      });
-
-      const fullText = response.optimizedContent || '';
-      simulateStreaming(fullText);
-    } catch (error: any) {
-      if (error.name !== 'AbortError') {
-        console.error('Regenerate failed:', error);
-        message.error('重新生成失败，请重试');
-      }
-      setIsGenerating(false);
-      setIsStreaming(false);
-    }
+      },
+      {
+        onResponse: (response) => {
+          handleStreamingResponse(response);
+        },
+        onError: (error) => {
+          console.error('Optimize failed:', error);
+          message.error('优化失败，请重试');
+          store.getState().stopStreaming();
+          streamingStateRef.current.isStarted = false;
+        },
+      },
+    );
   };
 
   const handleCopy = (content: string) => {
@@ -161,22 +226,9 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
 
       if (lastUserMessage) {
         // 移除最后一条 AI 回复
-        setMessages((prev) => {
-          const newMessages = [...prev];
-          const lastIndex = newMessages
-            .map((msg, idx) => ({ msg, idx }))
-            .reverse()
-            .find((item) => item.msg.role === 'assistant')?.idx;
+        store.getState().removeLastAssistantMessage();
 
-          if (lastIndex !== undefined) {
-            newMessages.splice(lastIndex, 1);
-          }
-          return newMessages;
-        });
-
-        setIsGenerating(true);
-        setIsStreaming(true);
-        setCurrentResponse('');
+        store.getState().startStreaming();
 
         // 重新发送最后一条用户消息
         setTimeout(() => {
@@ -188,31 +240,32 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
 
   const handleClose = () => {
     handleStopResponse();
-    setMessages([]);
-    setCurrentResponse('');
-    setInputValue('');
+    store.getState().clearMessages();
+    store.getState().clearInput();
     onClose();
   };
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isGenerating) return;
 
-    const userMessage: ChatMessage = {
-      id: uuidv4(), // 使用 UUID v4 确保消息 ID 唯一性
-      role: 'user',
-      content: selectedContent
-        ? `请输入优化指令：\n\n${inputValue.trim()}\n\n选中的内容：\n\n${selectedContent}`
-        : inputValue.trim(),
+    const userMessageContent = inputValue.trim();
+    const userMessage = {
+      id: `user-${Date.now()}`,
+      role: 'user' as const,
+      content: userMessageContent,
       timestamp: Date.now(),
     };
-    setMessages((prev) => [...prev, userMessage]);
-    setInputValue('');
+    store.getState().addMessage(userMessage);
+    store.getState().clearInput();
 
-    setIsGenerating(true);
-    setIsStreaming(true);
-    setCurrentResponse('');
+    store.getState().startStreaming();
 
-    await handleSendMessageFromContent(userMessage.content);
+    // 构建发送给 AI 的完整内容（包含上下文）
+    const fullContent = selectedContent
+      ? `${userMessageContent}\n\n选中的内容：\n\n${selectedContent}`
+      : userMessageContent;
+
+    await handleSendMessageFromContent(fullContent);
   };
 
   const handleApply = () => {
@@ -230,17 +283,10 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
     }
   };
 
-  // 自动滚动到底部
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, currentResponse]);
-
-  // 弹窗打开时，不自动发送请求，等待用户输入
-
+  // 消息内容渲染
   const renderMessageContent = (content: string) => {
-    // 简单的 Markdown 渲染
     return (
-      <div className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+      <div className="whitespace-pre-wrap text-sm leading-relaxed">
         {content.split('\n').map((line, index) => {
           // 处理标题
           if (line.startsWith('### ')) {
@@ -307,6 +353,94 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
     );
   };
 
+  // 角色配置 - 使用对象定义样式，通过 item.role 映射
+  const roleConfig: Record<string, any> = {
+    user: {
+      placement: 'end',
+      variant: 'filled',
+      // 移除了自定义的 backgroundColor 和 color，让组件自己处理
+    },
+    assistant: {
+      placement: 'start',
+      variant: 'outlined',
+      typing: isStreaming ? { step: 5, interval: 20 } : false,
+      messageRender: (content: React.ReactNode) =>
+        renderMessageContent(content as string),
+      footer: (content: React.ReactNode, key: React.Key) => (
+        <div className="mt-2 flex items-center gap-1 border-t border-gray-100 pt-2">
+          <Button
+            type="text"
+            size="small"
+            icon={<CopyOutlined />}
+            onClick={() => handleCopy(content as string)}
+            className="h-6 text-gray-500 hover:text-indigo-500"
+          />
+          <Button
+            type="text"
+            size="small"
+            icon={<ReloadOutlined />}
+            onClick={handleRegenerate}
+            className="h-6 text-gray-500 hover:text-indigo-500"
+          />
+          <div className="flex-1" />
+          <Button
+            type="text"
+            size="small"
+            icon={<LikeOutlined />}
+            onClick={() => onLike?.(key as string)}
+            className="h-6 text-gray-500 hover:text-green-500"
+          />
+          <Button
+            type="text"
+            size="small"
+            icon={<DislikeOutlined />}
+            onClick={() => onDislike?.(key as string)}
+            className="h-6 text-gray-500 hover:text-red-500"
+          />
+        </div>
+      ),
+    },
+  };
+
+  // 将消息转换为 Bubble.List 的 items 格式，并应用角色配置
+  const bubbleItems = messages.map((msg) => {
+    const config = roleConfig[msg.role] || {};
+    return {
+      key: msg.id,
+      content: msg.content,
+      role: msg.role,
+      ...config,
+    };
+  });
+
+  // 当前流式响应也添加到 items 中
+  if (currentResponse && isStreaming) {
+    const assistantConfig = roleConfig['assistant'] || {};
+    bubbleItems.push({
+      key: 'streaming-response',
+      content: currentResponse,
+      role: 'assistant',
+      ...assistantConfig,
+    });
+  }
+
+  // 组件卸载时清理
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      if (streamingStateRef.current.timer) {
+        clearInterval(streamingStateRef.current.timer);
+      }
+    };
+  }, []);
+
+  // 自动滚动到底部
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, currentResponse]);
+
   return createPortal(
     <div
       className={`fixed inset-0 z-[9999] transition-opacity ${
@@ -346,106 +480,44 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
             />
           </div>
 
-          {/* 消息列表 */}
-          <div className="flex-1 space-y-4 overflow-y-auto bg-gray-50 px-6 py-4">
+          {/* 消息列表 - 使用 Bubble.List */}
+          <div
+            className="flex-1 overflow-y-auto bg-gray-50"
+            ref={messagesEndRef}
+          >
             {/* 如果有选中的内容，显示在顶部作为参考 */}
             {selectedContent && (
-              <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-3">
-                <div className="mb-2 flex items-center gap-1 text-xs font-medium text-indigo-600">
+              <div className="border-b border-gray-200 bg-white px-6 py-3">
+                <div className="flex items-center gap-1 text-xs font-medium text-indigo-600">
                   <FileTextOutlined />
                   选中的内容（{selectedContent.length} 字）
                 </div>
-                <div className="max-h-40 overflow-y-auto whitespace-pre-wrap text-sm text-gray-700">
+                <div className="mt-1 max-h-32 overflow-y-auto whitespace-pre-wrap text-sm text-gray-700">
                   {selectedContent}
                 </div>
               </div>
             )}
 
+            <div className="p-4">
+              <Bubble.List
+                items={bubbleItems}
+                style={{ maxHeight: 'calc(100vh - 300px)' }}
+              />
+            </div>
+
             {messages.length === 0 && !isGenerating && !selectedContent && (
-              <div className="flex h-full flex-col items-center justify-center text-gray-400">
-                <MessageOutlined className="mb-3 text-5xl opacity-30" />
+              <div className="flex h-64 flex-col items-center justify-center text-gray-400">
+                <ThunderboltOutlined className="mb-3 text-5xl opacity-30" />
                 <p className="text-sm">输入优化指令，AI 将为您优化提示词</p>
               </div>
             )}
-
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`max-w-[80%] rounded-2xl px-5 py-3 ${
-                    msg.role === 'user'
-                      ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white'
-                      : 'bg-white text-gray-900 shadow-sm'
-                  }`}
-                >
-                  {msg.role === 'assistant' ? (
-                    <div className="space-y-3">
-                      <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                        {renderMessageContent(msg.content)}
-                      </div>
-
-                      {/* 消息操作按钮 */}
-                      <div className="flex items-center gap-1 border-t border-gray-100 pt-3">
-                        <Button
-                          type="text"
-                          size="small"
-                          icon={<CopyOutlined />}
-                          onClick={() => handleCopy(msg.content)}
-                          className="text-gray-500 hover:text-indigo-500"
-                        />
-                        <Button
-                          type="text"
-                          size="small"
-                          icon={<ReloadOutlined />}
-                          onClick={handleRegenerate}
-                          className="text-gray-500 hover:text-indigo-500"
-                        />
-                        <div className="flex-1" />
-                        <Button
-                          type="text"
-                          size="small"
-                          icon={<LikeOutlined />}
-                          className="text-gray-500 hover:text-green-500"
-                        />
-                        <Button
-                          type="text"
-                          size="small"
-                          icon={<DislikeOutlined />}
-                          className="text-gray-500 hover:text-red-500"
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="whitespace-pre-wrap text-sm">
-                      {msg.content}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-
-            {/* 当前流式输出 */}
-            {currentResponse && (
-              <div className="flex justify-start">
-                <div className="max-w-[80%] rounded-2xl bg-white px-5 py-3 text-gray-900 shadow-sm">
-                  <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                    {renderMessageContent(currentResponse)}
-                  </div>
-                  <span className="mt-1 inline-block h-4 w-2 animate-pulse bg-indigo-500" />
-                </div>
-              </div>
-            )}
-
-            <div ref={messagesEndRef} />
           </div>
 
-          {/* 底部操作区 */}
-          <div className="flex-shrink-0 space-y-3 border-t border-gray-200 bg-white px-6 py-4">
+          {/* 底部操作区 - 使用 Sender */}
+          <div className="flex-shrink-0 border-t border-gray-200 bg-white px-6 py-4">
             {/* 操作按钮 */}
             {!isGenerating && messages.length > 0 && (
-              <div className="flex items-center justify-start gap-3">
+              <div className="mb-3 flex items-center justify-start gap-3">
                 <Button
                   type="primary"
                   size="large"
@@ -460,56 +532,24 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
               </div>
             )}
 
-            {/* 输入框 */}
-            <div className="relative flex items-center gap-3 rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3 transition-all focus-within:border-purple-500 focus-within:bg-white focus-within:shadow-lg focus-within:shadow-purple-100/50 hover:border-purple-300 hover:bg-white">
-              <ThunderboltOutlined className="flex-shrink-0 text-lg text-purple-400" />
-              <Input.TextArea
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    if (isStreaming) {
-                      handleStopResponse();
-                    } else if (inputValue.trim()) {
-                      handleSendMessage();
-                    }
-                  }
-                }}
-                placeholder={
-                  selectedContent
-                    ? `请输入优化指令（已选中 ${selectedContent.length} 字内容）`
-                    : '请输入优化指令...'
-                }
-                autoSize={{ minRows: 1, maxRows: 4 }}
-                className="resize-none border-none bg-transparent p-0 text-sm focus:shadow-none"
-                disabled={isGenerating && isStreaming}
-              />
-              {isStreaming ? (
-                <Button
-                  type="primary"
-                  danger
-                  size="small"
-                  icon={<StopOutlined />}
-                  onClick={handleStopResponse}
-                  className="flex-shrink-0"
-                >
-                  停止
-                </Button>
-              ) : (
-                <Button
-                  type="primary"
-                  size="small"
-                  icon={<SendOutlined />}
-                  onClick={handleSendMessage}
-                  disabled={!inputValue.trim() || isGenerating}
-                  className="flex-shrink-0 border-none bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700"
-                />
-              )}
-            </div>
+            {/* 输入框 - 使用 Sender 组件 */}
+            <Sender
+              value={inputValue}
+              onChange={(value) => store.getState().setInputValue(value)}
+              onSubmit={handleSendMessage}
+              onCancel={isStreaming ? handleStopResponse : undefined}
+              loading={isStreaming}
+              placeholder={
+                selectedContent
+                  ? `请输入优化指令（已选中 ${selectedContent.length} 字内容）`
+                  : '请输入优化指令...'
+              }
+              allowSpeech={false}
+              disabled={isGenerating}
+            />
 
             {/* 免责声明 */}
-            <p className="text-center text-xs text-gray-400">
+            <p className="mt-3 text-center text-xs text-gray-400">
               内容由AI生成，无法确保真实准确，仅供参考。
             </p>
           </div>

@@ -1,9 +1,14 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { Button, message } from 'antd';
-import React, { useCallback, useRef } from 'react';
-import { useTreeState } from '../../hooks/useTreeState';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { createEditorStore, EditorStoreType } from '../../stores';
 import '../../styles/tailwind.css';
-import { mapToArray } from '../../utils/tree-utils';
 import { Node } from './Node';
 import { PromptEditorProps } from './PromptEditor.types';
 
@@ -11,60 +16,85 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   initialValue = [],
   value,
   onChange,
-  runAPI,
-  optimizeAPI,
+  onRunRequest,
+  onOptimizeRequest,
   onNodeRun,
+  onNodeOptimize,
   onNodeLock,
-  onTreeChange,
   theme = 'default',
   className,
   style,
   renderToolbar,
+  onLike,
+  onDislike,
 }) => {
   const isControlled = value !== undefined;
-  const {
-    store,
-    updateNode,
-    removeNode,
-    addChild,
-    addRootNode,
-    getNodeNumber,
-    tree,
-  } = useTreeState(isControlled ? value : initialValue);
+
+  // 为每个 PromptEditor 实例创建独立的 store
+  const storeRef = useRef<EditorStoreType | null>(null);
+  if (!storeRef.current) {
+    storeRef.current = createEditorStore(isControlled ? value : initialValue);
+  }
+  const store = storeRef.current;
+
+  // 订阅 Zustand store（只订阅 store 引用，避免无限循环）
+  const storeMapRef = store((state) => state.store);
+  const updateNode = store((state) => state.updateNode);
+  const removeNode = store((state) => state.removeNode);
+  const addChild = store((state) => state.addChild);
+  const addRootNode = store((state) => state.addRootNode);
+  const getNodeNumber = store((state) => state.getNodeNumber);
+
+  // 在渲染时生成树（避免 Selector 每次都返回新引用）
+  const tree = useMemo(() => {
+    return store.getState().getTree();
+  }, [storeMapRef]);
+
+  // 当受控模式下 value 变化时，同步到 store
+  useEffect(() => {
+    if (isControlled && value) {
+      store.getState().initialize(value);
+    }
+  }, [isControlled, value, store]);
 
   const treeRef = useRef<any>(null);
   // 互斥展开：同时只能展开一个编辑器
-  const [expandedEditorId, setExpandedEditorId] = React.useState<string | null>(
-    null,
-  );
+  const [expandedEditorId, setExpandedEditorId] = useState<string | null>(null);
   // 子节点展开状态：可以多节点同时展开
-  const [expandedNodes, setExpandedNodes] = React.useState<Set<string>>(
-    new Set(),
-  );
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
 
   const handleContentChange = useCallback(
     (nodeId: string, content: string) => {
       updateNode(nodeId, { content });
-      if (!isControlled) {
-        onTreeChange?.(mapToArray(store));
-      }
+      onChange?.(store.getState().getTree());
     },
-    [updateNode, isControlled, onTreeChange, store],
+    [updateNode, onChange, store],
+  );
+
+  // 处理节点运行结果
+  const handleNodeRunCallback = useCallback(
+    (nodeId: string, result: any) => {
+      updateNode(nodeId, { hasRun: true });
+      onNodeRun?.(nodeId, result);
+      onChange?.(store.getState().getTree());
+    },
+    [updateNode, onNodeRun, onChange, store],
   );
 
   const handleNodeRun = useCallback(
-    async (nodeId: string) => {
-      if (!runAPI) {
-        message.error('Please provide runAPI prop');
+    (nodeId: string) => {
+      if (!onRunRequest) {
+        message.warning('请提供 onRunRequest 回调');
         return;
       }
 
-      const node = store.get(nodeId);
+      // 直接从 store 获取最新数据，避免闭包问题
+      const node = store.getState().getNode(nodeId);
       if (!node) return;
 
       // 构建依赖节点详细信息
       const dependenciesContent = node.dependencies.map((depId) => {
-        const depNode = store.get(depId);
+        const depNode = store.getState().getNode(depId);
         return {
           nodeId: depId,
           title: depNode?.title || '',
@@ -73,55 +103,40 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
         };
       });
 
-      message.loading({ content: '正在运行...', key: 'run' });
-      try {
-        const response = await runAPI({
-          nodeId,
-          content: node.content,
-          dependenciesContent,
-        });
-
-        updateNode(nodeId, { hasRun: true });
-        onNodeRun?.(nodeId, response);
-        message.success({ content: '运行成功', key: 'run' });
-
-        if (!isControlled) {
-          onTreeChange?.(mapToArray(store));
-        }
-      } catch (error) {
-        console.error('Run failed:', error);
-        message.error({ content: '运行失败，请重试', key: 'run' });
-      }
+      // 触发运行请求回调，由用户自行处理异步请求
+      onRunRequest({
+        nodeId,
+        content: node.content,
+        dependenciesContent,
+        meta: {
+          onNodeRun: handleNodeRunCallback,
+        },
+      });
     },
-    [runAPI, store, updateNode, onNodeRun, isControlled, onTreeChange],
+    [onRunRequest, store, handleNodeRunCallback],
   );
 
   const handleNodeLock = useCallback(
     (nodeId: string) => {
-      const node = store.get(nodeId);
+      const node = store.getState().getNode(nodeId);
       if (!node) return;
 
       const newLocked = !node.isLocked;
       updateNode(nodeId, { isLocked: newLocked });
       message.success(newLocked ? '节点已锁定' : '节点已解锁');
       onNodeLock?.(nodeId, newLocked);
-
-      if (!isControlled) {
-        onTreeChange?.(mapToArray(store));
-      }
+      onChange?.(store.getState().getTree());
     },
-    [store, updateNode, onNodeLock, isControlled, onTreeChange],
+    [updateNode, onNodeLock, onChange, store],
   );
 
   const handleDelete = useCallback(
     (nodeId: string) => {
       removeNode(nodeId);
       message.success('节点已删除');
-      if (!isControlled) {
-        onTreeChange?.(mapToArray(store));
-      }
+      onChange?.(store.getState().getTree());
     },
-    [removeNode, isControlled, onTreeChange, store],
+    [removeNode, onChange, store],
   );
 
   const handleAddChild = useCallback(
@@ -136,11 +151,9 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
         return next;
       });
       message.success('子节点添加成功');
-      if (!isControlled) {
-        onTreeChange?.(mapToArray(store));
-      }
+      onChange?.(store.getState().getTree());
     },
-    [addChild, isControlled, onTreeChange, store],
+    [addChild, onChange, store],
   );
 
   const handleAddRootNode = useCallback(() => {
@@ -148,40 +161,36 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
     // 自动展开新节点的编辑器
     setExpandedEditorId(newNodeId);
     message.success('一级标题添加成功');
-    if (!isControlled) {
-      onTreeChange?.(mapToArray(store));
-    }
-  }, [addRootNode, isControlled, onTreeChange, store]);
+    onChange?.(store.getState().getTree());
+  }, [addRootNode, onChange, store]);
 
   const handleUpdateTitle = useCallback(
     (nodeId: string, title: string) => {
       updateNode(nodeId, { title });
-      if (!isControlled) {
-        onTreeChange?.(mapToArray(store));
-      }
+      onChange?.(store.getState().getTree());
     },
-    [updateNode, isControlled, onTreeChange, store],
+    [updateNode, onChange, store],
   );
 
   const handleUpdateDependencies = useCallback(
     (nodeId: string, dependencies: string[]) => {
-      const prevCount = store.get(nodeId)?.dependencies.length || 0;
+      const prevCount =
+        store.getState().getNode(nodeId)?.dependencies.length || 0;
       updateNode(nodeId, { dependencies });
       if (dependencies.length > prevCount) {
         message.success('依赖添加成功');
       } else if (dependencies.length < prevCount) {
         message.info('依赖已移除');
       }
-      if (!isControlled) {
-        onTreeChange?.(mapToArray(store));
-      }
+      onChange?.(store.getState().getTree());
     },
-    [updateNode, isControlled, onTreeChange, store],
+    [updateNode, onChange, store],
   );
 
   // 获取所有可用节点列表（用于依赖选择）
   const getAvailableNodes = useCallback(() => {
-    return Array.from(store.values()).map((node) => ({
+    const allNodes = store.getState().getAllNodes();
+    return allNodes.map((node) => ({
       id: node.id,
       title: node.title,
       number: getNodeNumber(node.id),
@@ -190,14 +199,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       children: node.children,
     }));
   }, [store, getNodeNumber]);
-  // const handleMove = useCallback(({ dragIds, parentId, index }: { dragIds: string[], parentId: string | null, index: number }) => {
-  //   console.log('Move nodes:', dragIds, parentId, index);
-  //   if (!isControlled) {
-  //     onTreeChange?.(mapToArray(store));
-  //   }
-  // }, [isControlled, onTreeChange, store]);
 
-  // 处理编辑器展开/折叠（互斥）
   const handleToggleEditor = useCallback((nodeId: string) => {
     setExpandedEditorId((prev) => {
       // 如果当前节点已展开，则折叠它
@@ -252,7 +254,10 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
             expandedNodes={expandedNodes}
             onToggleChildren={handleToggleChildren}
             availableNodes={getAvailableNodes()}
-            optimizeAPI={optimizeAPI}
+            onOptimizeRequest={onOptimizeRequest}
+            onNodeOptimize={onNodeOptimize}
+            onLike={onLike}
+            onDislike={onDislike}
           />
           {/* 递归渲染子节点 - 根据 expandedNodes 判断是否显示 */}
           {node.children &&

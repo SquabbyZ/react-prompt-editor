@@ -14,24 +14,33 @@ demo:
 
 <code src="./examples/basic.tsx" title="基础示例"></code>
 
+## 流式输出示例
+
+展示如何实现真正的流式 AI 优化（模拟 OpenAI、通义千问等 API 的 SSE 响应）：
+
+<code src="./examples/streaming.tsx" title="流式输出示例"></code>
+
 ## API
 
 ### PromptEditor Props
 
-| 参数 | 说明 | 类型 | 默认值 | 版本 |
-| --- | --- | --- | --- | --- |
-| initialValue | 初始树形数据（非受控模式） | `TaskNode[]` | `[]` | - |
-| value | 树形数据（受控模式） | `TaskNode[]` | - | - |
-| onChange | 数据变化回调 | `(data: TaskNode[]) => void` | - | - |
-| runAPI | 运行 API 函数 | `(req: RunTaskRequest) => Promise<RunTaskResponse>` | - | - |
-| optimizeAPI | AI 优化 API 函数 | `(req: OptimizeRequest) => Promise<OptimizeResponse>` | - | - |
-| onNodeRun | 节点运行回调 | `(nodeId: string, result: RunTaskResponse) => void` | - | - |
-| onNodeOptimize | 节点优化回调 | `(nodeId: string, result: OptimizeResponse) => void` | - | - |
-| onNodeLock | 节点锁定回调 | `(nodeId: string, isLocked: boolean) => void` | - | - |
-| onTreeChange | 树变化回调 | `(tree: TaskNode[]) => void` | - | - |
-| theme | 主题 | `'default' \| 'ant-design'` | `'default'` | - |
-| className | 自定义类名 | `string` | - | - |
-| style | 自定义样式 | `React.CSSProperties` | - | - |
+| 参数              | 说明                                                           | 类型                                                                     | 默认值      | 版本 |
+| ----------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------ | ----------- | ---- |
+| initialValue      | 初始树形数据（非受控模式）                                     | `TaskNode[]`                                                             | `[]`        | -    |
+| value             | 树形数据（受控模式）                                           | `TaskNode[]`                                                             | -           | -    |
+| onChange          | 数据变化回调                                                   | `(data: TaskNode[]) => void`                                             | -           | -    |
+| onRunRequest      | 运行请求回调（触发运行时调用，用户自行处理异步请求）           | `(request: RunTaskRequest) => void`                                      | -           | -    |
+| onOptimizeRequest | 优化请求回调（触发优化时调用，用户通过 onResponse 返回结果）   | `(request: OptimizeRequest, callbacks: { onResponse, onError }) => void` | -           | -    |
+| onNodeRun         | 节点运行完成回调（用户执行完运行请求后调用，通知组件更新状态） | `(nodeId: string, result: RunTaskResponse) => void`                      | -           | -    |
+| onNodeOptimize    | 节点优化完成回调（用户执行完优化请求后调用，通知组件）         | `(nodeId: string, result: OptimizeResponse) => void`                     | -           | -    |
+| onNodeLock        | 节点锁定回调                                                   | `(nodeId: string, isLocked: boolean) => void`                            | -           | -    |
+| onTreeChange      | 树变化回调                                                     | `(tree: TaskNode[]) => void`                                             | -           | -    |
+| theme             | 主题                                                           | `'default' \| 'ant-design'`                                              | `'default'` | -    |
+| className         | 自定义类名                                                     | `string`                                                                 | -           | -    |
+| style             | 自定义样式                                                     | `React.CSSProperties`                                                    | -           | -    |
+| renderToolbar     | 自定义顶部工具栏                                               | `(actions) => ReactNode`                                                 | -           | -    |
+| onLike            | AI 优化消息点赞回调                                            | `(messageId: string) => void`                                            | -           | -    |
+| onDislike         | AI 优化消息点踩回调                                            | `(messageId: string) => void`                                            | -           | -    |
 
 ## 数据类型
 
@@ -75,80 +84,116 @@ interface OptimizeRequest {
 
 ## 使用指南
 
-### 1. 安装依赖
+### 纯回调模式
 
-```bash
-pnpm add @uiw/react-codemirror @codemirror/lang-markdown @codemirror/theme-one-dark react-arborist
-```
+组件采用**纯回调模式**设计，将异步请求的控制权交给用户：
 
-### 2. 特性
+- **onRunRequest**: 当用户点击运行按钮时触发，你需要自行执行异步请求，然后通过 `onNodeRun` 通知组件结果
+- **onOptimizeRequest**: 当用户点击 AI 优化时触发，通过 `callbacks.onResponse()` 返回结果（支持多次调用实现流式输出）
 
-- ✅ **虚拟化渲染** - 基于 react-arborist，支持 2000+ 节点高性能渲染
-- ✅ **拖拽排序** - 支持节点拖拽重新排序
-- ✅ **层级管理** - 支持父子节点层级结构
-- ✅ **懒加载编辑器** - CodeMirror 编辑器按需加载，提升性能
-- ✅ **运行与锁定** - 节点运行后支持锁定，防止误编辑
-- ✅ **AI 优化** - 集成 AI 优化功能，提升提示词质量
+这种设计的优势：
 
-### 3. 基础使用
+- ✅ 完全控制异步请求（自定义错误处理、loading 状态等）
+- ✅ 灵活集成任意后端 API
+- ✅ 支持流式输出（多次调用 `onResponse`）
 
-```tsx
-import { PromptEditor } from '../../src';
-import { TaskNode } from '../../src/types';
+#### 流式输出示例
 
-const App = () => {
-  const initialValue: TaskNode[] = [
-    {
-      id: '1',
-      title: '第一步',
-      content: '# 提示词内容',
-      children: [],
-      isLocked: false,
-      hasRun: false,
-    },
-  ];
+```typescript
+const handleOptimizeRequest = (
+  request: OptimizeRequest,
+  callbacks: { onResponse; onError },
+) => {
+  // 调用你的 AI API（如 OpenAI、通义千问等）
+  fetch('/api/optimize', {
+    method: 'POST',
+    body: JSON.stringify(request),
+  })
+    .then((response) => {
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let fullText = '';
 
-  const runAPI = async (req: any) => {
-    const response = await fetch('/api/run', {
-      method: 'POST',
-      body: JSON.stringify(req),
-    });
-    return response.json();
-  };
+      // 读取 SSE 流
+      function readStream() {
+        return reader.read().then(({ done, value }) => {
+          if (done) return;
 
-  return (
-    <PromptEditor
-      initialValue={initialValue}
-      runAPI={runAPI}
-    />
-  );
+          const chunk = decoder.decode(value);
+          fullText += chunk;
+
+          // 每次收到新数据就调用 onResponse
+          callbacks.onResponse({
+            optimizedContent: fullText,
+            thinkingProcess: '正在生成...',
+          });
+
+          return readStream();
+        });
+      }
+
+      return readStream();
+    })
+    .catch((error) => callbacks.onError(error));
 };
 ```
 
-### 4. 受控模式
+### Zustand 状态管理
 
-```tsx
-import React, { useState } from 'react';
-import { PromptEditor } from '../../src';
-import { TaskNode } from '../../src/types';
+组件内部使用 **Zustand** 进行状态管理，具有以下特点：
 
-const App = () => {
-  const [value, setValue] = useState<TaskNode[]>([
-    {
-      id: '1',
-      title: '第一步',
-      content: '# 提示词内容',
-      children: [],
-      isLocked: false,
-      hasRun: false,
-    },
-  ]);
+#### 多实例支持
 
-  return (
-    <PromptEditor
-      value={value}
-      onChange={setValue}
-    />
-  );
+每个 `<PromptEditor />` 实例都有独立的 store，互不干扰：
+
+```typescript
+// 多个编辑器实例可以安全共存
+const Editor1 = () => <PromptEditor initialValue={tree1} />;
+const Editor2 = () => <PromptEditor initialValue={tree2} />;
+```
+
+#### 性能优化
+
+使用 Selector 模式订阅特定状态，避免不必要的重渲染：
+
+```typescript
+// ✅ 只订阅需要的状态
+const tree = store((state) => state.getTree());
+const updateNode = store((state) => state.updateNode);
+```
+
+#### 避免闭包问题
+
+在回调函数中直接使用 `store.getState()` 获取最新数据：
+
+```typescript
+const handleNodeRun = useCallback(
+  (nodeId: string) => {
+    // ✅ 直接获取最新节点数据，避免闭包陷阱
+    const node = store.getState().getNode(nodeId);
+    if (!node) return;
+
+    onRunRequest({ nodeId, content: node.content });
+  },
+  [onRunRequest, store],
+);
+```
+
+### 受控/非受控模式
+
+**非受控模式**（推荐简单场景）：
+
+```typescript
+const NonControlled = () => <PromptEditor initialValue={initialData} />;
+```
+
+**受控模式**（需要外部控制状态）：
+
+```typescript
+const Controlled = () => {
+  const [value, setValue] = useState<TaskNode[]>([]);
+  return <PromptEditor value={value} onChange={setValue} />;
 };
 ```
+
+详细的代码示例请查看上方的基础示例。

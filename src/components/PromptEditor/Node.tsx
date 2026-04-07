@@ -22,6 +22,8 @@ import { TaskNodeMinimal } from '../../types';
 import { AIOptimizeModal } from '../AIOptimizeModal/AIOptimizeModal';
 import { CodeMirrorEditor } from '../CodeMirrorEditor';
 
+import { OptimizeRequest, OptimizeResponse } from '../../types';
+
 // 依赖配置组件
 interface DependencyConfigSectionProps {
   nodeId: string;
@@ -97,15 +99,10 @@ const DependencyConfigSection: React.FC<DependencyConfigSectionProps> = ({
         return {
           title: (
             <span>
-              <span style={{ fontWeight: 600, marginRight: 4 }}>
-                [{childNode.number}]
-              </span>
+              <span className="mr-1 font-bold">[{childNode.number}]</span>
               {childNode.title}
               {childNode.hasRun && (
-                <Tag
-                  color="green"
-                  style={{ marginLeft: 8, fontSize: 10, padding: '0 4px' }}
-                >
+                <Tag color="green" className="px-2 py-1 text-xs font-bold">
                   已锁定
                 </Tag>
               )}
@@ -137,15 +134,10 @@ const DependencyConfigSection: React.FC<DependencyConfigSectionProps> = ({
       .map((rootNode) => ({
         title: (
           <span>
-            <span style={{ fontWeight: 600, marginRight: 4 }}>
-              [{rootNode.number}]
-            </span>
+            <span className="mr-1 font-bold">[{rootNode.number}]</span>
             {rootNode.title}
             {rootNode.hasRun && (
-              <Tag
-                color="green"
-                style={{ marginLeft: 8, fontSize: 10, padding: '0 4px' }}
-              >
+              <Tag color="green" className="px-2 py-1 text-xs font-bold">
                 已锁定
               </Tag>
             )}
@@ -183,11 +175,11 @@ const DependencyConfigSection: React.FC<DependencyConfigSectionProps> = ({
               closable
               onClose={() => handleRemoveDependency(dep.id)}
               color="blue"
-              style={{ maxWidth: 200 }}
+              className="max-w-50"
             >
-              <span style={{ fontWeight: 600, fontFamily: 'monospace' }}>
+              <span className="font-bold" style={{ fontFamily: 'monospace' }}>
                 [{dep.number}]
-              </span>{' '}
+              </span>
               <span title={dep.title}>
                 {dep.title.length > 15
                   ? `${dep.title.slice(0, 15)}...`
@@ -204,7 +196,7 @@ const DependencyConfigSection: React.FC<DependencyConfigSectionProps> = ({
 
       {/* 添加依赖 */}
       <TreeSelect
-        style={{ width: '100%' }}
+        className="w-full"
         treeData={treeData}
         placeholder="选择依赖节点（只能选择已锁定的节点）"
         allowClear
@@ -253,8 +245,20 @@ interface CustomNodeProps {
     parentId?: string;
     children: string[];
   }>;
-  // AI 优化 API
-  optimizeAPI?: (req: any) => Promise<any>;
+  // AI 优化请求回调
+  onOptimizeRequest?: (
+    request: OptimizeRequest,
+    callbacks: {
+      onResponse: (response: OptimizeResponse) => void;
+      onError: (error: Error) => void;
+    },
+  ) => void;
+  // AI 优化完成回调
+  onNodeOptimize?: (nodeId: string, result: OptimizeResponse) => void;
+  // AI 优化点赞回调
+  onLike?: (messageId: string) => void;
+  // AI 优化点踩回调
+  onDislike?: (messageId: string) => void;
 }
 
 export const Node: React.FC<CustomNodeProps> = ({
@@ -274,7 +278,10 @@ export const Node: React.FC<CustomNodeProps> = ({
   expandedNodes,
   onToggleChildren,
   availableNodes,
-  optimizeAPI,
+  onOptimizeRequest,
+  onNodeOptimize,
+  onLike,
+  onDislike,
 }) => {
   const nodeData = node.data;
   // 判断是否是内部节点（有子节点）
@@ -292,6 +299,8 @@ export const Node: React.FC<CustomNodeProps> = ({
     from: number;
     to: number;
   } | null>(null);
+  // 存储优化请求，用于完成时调用 onNodeOptimize
+  const optimizeRequestRef = React.useRef<OptimizeRequest | null>(null);
 
   // 处理展开/折叠编辑器（互斥）
   const handleToggleEditor = (e: React.MouseEvent) => {
@@ -347,6 +356,12 @@ export const Node: React.FC<CustomNodeProps> = ({
       setSelectedContent(nodeData.content);
       setSelectedRange({ from: 0, to: nodeData.content.length });
     }
+
+    // 保存优化请求信息
+    optimizeRequestRef.current = {
+      content: nodeData.content,
+      selectedText: selectedContent,
+    };
 
     setOptimizeModalOpen(true);
   };
@@ -478,10 +493,10 @@ export const Node: React.FC<CustomNodeProps> = ({
 
               {/* 节点序号和标题 */}
               <span
-                className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-medium text-gray-900 dark:text-gray-100"
+                className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100"
                 title={!isEditingTitle ? nodeData.title : undefined}
               >
-                <Tag color="default" style={{ fontSize: 11, padding: '0 4px' }}>
+                <Tag color="default" className="px-1 text-xs">
                   {getNodeNumber(nodeData.id)}
                 </Tag>
                 {isEditingTitle ? (
@@ -644,10 +659,11 @@ export const Node: React.FC<CustomNodeProps> = ({
                     setOptimizeModalOpen(false);
                     setSelectedContent(undefined);
                     setSelectedRange(null);
+                    optimizeRequestRef.current = null;
                   }}
                   originalContent={nodeData.content}
                   selectedContent={selectedContent}
-                  optimizeAPI={optimizeAPI}
+                  onOptimizeRequest={onOptimizeRequest}
                   onApply={(optimizedContent) => {
                     // 如果有选中范围，替换选中部分
                     if (selectedRange) {
@@ -675,10 +691,21 @@ export const Node: React.FC<CustomNodeProps> = ({
                       message.success('已替换全部内容');
                     }
 
+                    // 调用优化完成回调
+                    if (optimizeRequestRef.current) {
+                      onNodeOptimize?.(nodeData.id, {
+                        optimizedContent,
+                        thinkingProcess: '优化完成',
+                      });
+                    }
+
                     setOptimizeModalOpen(false);
                     setSelectedContent(undefined);
                     setSelectedRange(null);
+                    optimizeRequestRef.current = null;
                   }}
+                  onLike={onLike}
+                  onDislike={onDislike}
                 />
               )}
             </div>

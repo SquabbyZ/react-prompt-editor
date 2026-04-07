@@ -25,13 +25,9 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
   }, [editorLoaded]);
 
   return (
-    <div
-      className="border border-gray-300 dark:border-gray-600 my-2 p-3 bg-white dark:bg-gray-900 rounded-lg"
-    >
+    <div className="my-2 rounded-lg border border-gray-300 bg-white p-3 dark:border-gray-600 dark:bg-gray-900">
       {/* 节点头部 */}
-      <div
-        className="flex items-center gap-2 mb-2"
-      >
+      <div className="mb-2 flex items-center gap-2">
         <button
           type="button"
           onClick={onToggle}
@@ -40,42 +36,47 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
           {isExpanded ? '▼' : '▶'}
         </button>
         <span className="font-bold text-gray-600 dark:text-gray-400">
-          [{number}] {node.title}
+          <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-none bg-gray-600 text-xs font-bold text-white dark:bg-gray-400">
+            {number}
+          </span>
+          {node.title}
         </span>
         {isLocked && <span>🔒</span>}
         {!hasRun && (
-          <span className="text-xs text-gray-400 dark:text-gray-500">(未运行)</span>
+          <span className="text-xs text-gray-400 dark:text-gray-500">
+            (未运行)
+          </span>
         )}
 
         <div className="ml-auto flex gap-2">
-          <button 
+          <button
             type="button"
-            onClick={onRun} 
+            onClick={onRun}
             disabled={false}
-            className="px-2 py-1 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded text-sm transition-colors"
+            className="rounded bg-blue-500 px-2 py-1 text-sm text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-gray-300"
           >
             运行
           </button>
-          <button 
+          <button
             type="button"
             onClick={onOptimize}
-            className="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm transition-colors"
+            className="rounded bg-green-500 px-2 py-1 text-sm text-white transition-colors hover:bg-green-600"
           >
             AI 优化
           </button>
-          <button 
+          <button
             type="button"
-            onClick={onLock} 
+            onClick={onLock}
             disabled={!hasRun}
-            className="px-2 py-1 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded text-sm transition-colors"
+            className="rounded bg-purple-500 px-2 py-1 text-sm text-white transition-colors hover:bg-purple-600 disabled:cursor-not-allowed disabled:bg-gray-300"
           >
             {isLocked ? '🔓 解锁' : '🔒 锁定'}
           </button>
-          <button 
+          <button
             type="button"
-            onClick={onDelete} 
+            onClick={onDelete}
             disabled={isLocked}
-            className="px-2 py-1 bg-red-500 hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded text-sm transition-colors"
+            className="rounded bg-red-500 px-2 py-1 text-sm text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:bg-gray-300"
           >
             删除
           </button>
@@ -93,7 +94,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
             />
           ) : (
             <div
-              className="p-10 text-center text-gray-400 dark:text-gray-500 cursor-pointer bg-gray-50 dark:bg-gray-800 rounded"
+              className="cursor-pointer rounded bg-gray-50 p-10 text-center text-gray-400 dark:bg-gray-800 dark:text-gray-500"
               onClick={handleFocus}
             >
               Click to load editor...

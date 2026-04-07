@@ -1,6 +1,12 @@
 import React from 'react';
 import { PromptEditor } from '../../../src';
-import { TaskNode } from '../../../src/types';
+import {
+  OptimizeRequest,
+  OptimizeResponse,
+  RunTaskRequest,
+  RunTaskResponse,
+  TaskNode,
+} from '../../../src/types';
 
 export default () => {
   const [value, setValue] = React.useState<TaskNode[]>([
@@ -34,30 +40,10 @@ export default () => {
     },
   ]);
 
-  const runAPI = async (req: any) => {
-    console.log('Run API called:', req);
-    // 模拟 API 调用
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    return {
-      result: `✅ 运行成功！\n\n节点：${req.nodeId}\n内容长度：${req.content.length} 字符\n依赖数量：${req.dependenciesContent.length}`,
-      stream: false,
-    };
-  };
-
-  const optimizeAPI = async (req: any) => {
-    console.log('Optimize API called:', req);
-    // 模拟 AI 优化
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    return {
-      optimizedContent:
-        req.content +
-        '\n\n---\n\n✨ **[AI 优化完成]**\n\n- 结构更清晰\n- 表达更准确\n- 逻辑更严密',
-      thinkingProcess: '🤔 分析内容结构...\n📝 优化表达方式...\n✅ 完成优化！',
-    };
-  };
-
-  const handleNodeRun = (nodeId: string, result: any) => {
-    console.log('✅ Node run:', nodeId, result);
+  // 节点运行完成回调
+  const handleNodeRun = (nodeId: string, result: RunTaskResponse) => {
+    console.log('✅ 节点运行完成:', nodeId, result);
+    // 通知组件更新节点状态
     alert(`运行成功！\n\n${result.result}`);
   };
 
@@ -76,13 +62,54 @@ export default () => {
     console.log('📊 Tree changed:', tree);
   };
 
+  // 运行请求回调 - 用户自行处理异步请求
+  const handleRunRequest = (request: RunTaskRequest) => {
+    console.log('运行请求:', request);
+    // 模拟异步请求
+    setTimeout(() => {
+      const result: RunTaskResponse = {
+        result: `✅ 运行成功！\n\n节点：${request.nodeId}\n内容长度：${request.content.length} 字符\n依赖数量：${request.dependenciesContent.length}`,
+        stream: false,
+      };
+      // 通过 onNodeRun 通知组件运行完成
+      handleNodeRun(request.nodeId, result);
+    }, 1000);
+  };
+
+  // AI 优化请求回调 - 用户自行处理异步请求
+  const handleOptimizeRequest = (
+    request: OptimizeRequest,
+    callbacks: {
+      onResponse: (response: OptimizeResponse) => void;
+      onError: (error: Error) => void;
+    },
+  ) => {
+    console.log('优化请求:', request);
+    // 模拟异步请求
+    setTimeout(() => {
+      try {
+        const response: OptimizeResponse = {
+          optimizedContent:
+            request.content +
+            '\n\n---\n\n✨ **[AI 优化完成]**\n\n- 结构更清晰\n- 表达更准确\n- 逻辑更严密',
+          thinkingProcess:
+            '🤔 分析内容结构...\n📝 优化表达方式...\n✅ 完成优化！',
+        };
+        // 通过 onResponse 返回结果
+        callbacks.onResponse(response);
+      } catch (error) {
+        callbacks.onError(error as Error);
+      }
+    }, 1500);
+  };
+
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="p-4">
       <PromptEditor
         value={value}
         onChange={setValue}
-        runAPI={runAPI}
-        optimizeAPI={optimizeAPI}
+        onRunRequest={handleRunRequest}
+        onOptimizeRequest={handleOptimizeRequest}
         onNodeRun={handleNodeRun}
         onNodeOptimize={handleNodeOptimize}
         onNodeLock={handleNodeLock}

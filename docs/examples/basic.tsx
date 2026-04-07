@@ -37,7 +37,9 @@ export default () => {
   const runAPI = async (req: any) => {
     console.log('Run API called:', req);
     // 模拟 API 调用
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 1000);
+    });
     return {
       result: `✅ 运行成功！\n\n节点：${req.nodeId}\n内容长度：${req.content.length} 字符\n依赖数量：${req.dependenciesContent.length}`,
       stream: false,
@@ -47,7 +49,9 @@ export default () => {
   const optimizeAPI = async (req: any) => {
     console.log('Optimize API called:', req);
     // 模拟 AI 优化
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 1500);
+    });
     return {
       optimizedContent:
         req.content +
@@ -77,7 +81,7 @@ export default () => {
   };
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="p-4">
       <PromptEditor
         value={value}
         onChange={setValue}

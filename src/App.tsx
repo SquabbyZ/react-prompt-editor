@@ -1,7 +1,12 @@
 import { ConfigProvider } from 'antd';
 import React from 'react';
 import { PromptEditor } from './components/PromptEditor';
-import { TaskNode } from './types';
+import {
+  OptimizeRequest,
+  OptimizeResponse,
+  RunTaskRequest,
+  TaskNode,
+} from './types';
 
 const App: React.FC = () => {
   const initialValue: TaskNode[] = [
@@ -35,30 +40,54 @@ const App: React.FC = () => {
     },
   ];
 
-  const runAPI = async (req: any) => {
-    console.log('Run API called:', req);
-    // 模拟 API 调用
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    return {
-      result: `运行成功！节点 ID: ${req.nodeId}\n内容长度：${req.content.length}\n依赖数量：${req.dependenciesContent.length}`,
-      stream: false,
-    };
-  };
-
-  const optimizeAPI = async (req: any) => {
-    console.log('Optimize API called:', req);
-    // 模拟 AI 优化
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    return {
-      optimizedContent:
-        req.content + '\n\n[AI 优化：内容已优化，结构更清晰，表达更准确]',
-      thinkingProcess: '正在分析内容结构...\n优化表达方式...\n完成！',
-    };
-  };
-
   const handleNodeRun = (nodeId: string, result: any) => {
     console.log('Node run callback:', nodeId, result);
     alert(`节点 ${nodeId} 运行完成！\n结果：${result.result}`);
+  };
+
+  // 运行请求回调 - 用户自行处理异步请求
+  const handleRunRequest = (request: RunTaskRequest) => {
+    console.log('运行请求:', request);
+
+    // 模拟异步请求
+    setTimeout(() => {
+      const result = {
+        result: `✅ 运行成功！节点 ID: ${request.nodeId}\n内容长度：${request.content.length}\n依赖数量：${request.dependenciesContent.length}`,
+        stream: false,
+      };
+
+      // 通知组件运行结果
+      handleNodeRun(request.nodeId, result);
+    }, 1000);
+  };
+
+  // AI 优化请求回调 - 用户自行处理异步请求（支持流式输出）
+  const handleOptimizeRequest = (
+    request: OptimizeRequest,
+    callbacks: {
+      onResponse: (response: OptimizeResponse) => void;
+      onError: (error: Error) => void;
+    },
+  ) => {
+    console.log('优化请求:', request);
+
+    // 模拟异步请求
+    setTimeout(() => {
+      try {
+        const response: OptimizeResponse = {
+          optimizedContent:
+            request.content +
+            '\n\n✨ [AI 优化完成：内容已优化，结构更清晰，表达更准确]',
+          thinkingProcess:
+            '🤔 正在分析内容结构...\n✍️ 优化表达方式...\n✅ 完成！',
+        };
+
+        // 通知组件优化结果（可以多次调用实现流式输出）
+        callbacks.onResponse(response);
+      } catch (error) {
+        callbacks.onError(error as Error);
+      }
+    }, 1500);
   };
 
   const handleNodeOptimize = (nodeId: string, result: any) => {
@@ -76,6 +105,18 @@ const App: React.FC = () => {
     console.log('Tree changed:', tree);
   };
 
+  // 点赞回调
+  const handleLike = (messageId: string) => {
+    console.log('点赞消息:', messageId);
+    // 可以在这里调用后端接口记录点赞
+  };
+
+  // 点踩回调
+  const handleDislike = (messageId: string) => {
+    console.log('点踩消息:', messageId);
+    // 可以在这里调用后端接口记录点踩
+  };
+
   return (
     <ConfigProvider
       theme={{
@@ -85,17 +126,19 @@ const App: React.FC = () => {
         },
       }}
     >
-      <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
+      <div className="mx-auto max-w-[1400px] p-6">
         <PromptEditor
           initialValue={initialValue}
-          runAPI={runAPI}
-          optimizeAPI={optimizeAPI}
+          onRunRequest={handleRunRequest}
+          onOptimizeRequest={handleOptimizeRequest}
           onNodeRun={handleNodeRun}
           onNodeOptimize={handleNodeOptimize}
           onNodeLock={handleNodeLock}
           onTreeChange={handleTreeChange}
+          onLike={handleLike}
+          onDislike={handleDislike}
           theme="default"
-          style={{ border: '1px solid #d9d9d9', borderRadius: '8px' }}
+          className="rounded-lg border border-gray-300"
         />
       </div>
     </ConfigProvider>
