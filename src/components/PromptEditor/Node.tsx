@@ -164,7 +164,7 @@ const DependencyConfigSection: React.FC<DependencyConfigSectionProps> = ({
   const treeData = buildTreeData(availableNodes);
 
   return (
-    <div className="border-t border-blue-200 bg-blue-50/50 px-3 py-2 dark:border-blue-800 dark:bg-blue-950/20">
+    <div className="border-t border-indigo-200 bg-indigo-50/50 px-3 py-2 dark:border-indigo-800 dark:bg-indigo-950/20">
       <div className="mb-2 flex items-center justify-between">
         <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
           依赖任务
@@ -622,7 +622,7 @@ export const Node: React.FC<CustomNodeProps> = ({
               />
 
               {/* 编辑器底部操作按钮 */}
-              <div className="flex items-center justify-end gap-2 border-t border-blue-200 bg-white px-3 py-2 dark:border-blue-800 dark:bg-gray-900">
+              <div className="flex items-center justify-end gap-2 border-t border-indigo-200 bg-white px-3 py-2 dark:border-indigo-800 dark:bg-gray-900">
                 <Button
                   type="primary"
                   icon={<PlayCircleOutlined />}

@@ -327,7 +327,7 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
           {/* 顶部操作栏 */}
           <div className="flex flex-shrink-0 items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
             <div className="flex items-center gap-3">
-              <ThunderboltOutlined className="text-xl text-purple-500" />
+              <ThunderboltOutlined className="text-xl text-indigo-500" />
               <span className="text-lg font-semibold text-gray-900">
                 AI 提示词优化
               </span>
@@ -350,8 +350,8 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
           <div className="flex-1 space-y-4 overflow-y-auto bg-gray-50 px-6 py-4">
             {/* 如果有选中的内容，显示在顶部作为参考 */}
             {selectedContent && (
-              <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
-                <div className="mb-2 flex items-center gap-1 text-xs font-medium text-blue-600">
+              <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-3">
+                <div className="mb-2 flex items-center gap-1 text-xs font-medium text-indigo-600">
                   <FileTextOutlined />
                   选中的内容（{selectedContent.length} 字）
                 </div>
@@ -376,7 +376,7 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
                 <div
                   className={`max-w-[80%] rounded-2xl px-5 py-3 ${
                     msg.role === 'user'
-                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+                      ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white'
                       : 'bg-white text-gray-900 shadow-sm'
                   }`}
                 >
@@ -393,14 +393,14 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
                           size="small"
                           icon={<CopyOutlined />}
                           onClick={() => handleCopy(msg.content)}
-                          className="text-gray-500 hover:text-blue-500"
+                          className="text-gray-500 hover:text-indigo-500"
                         />
                         <Button
                           type="text"
                           size="small"
                           icon={<ReloadOutlined />}
                           onClick={handleRegenerate}
-                          className="text-gray-500 hover:text-blue-500"
+                          className="text-gray-500 hover:text-indigo-500"
                         />
                         <div className="flex-1" />
                         <Button
@@ -433,7 +433,7 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
                   <div className="whitespace-pre-wrap text-sm leading-relaxed">
                     {renderMessageContent(currentResponse)}
                   </div>
-                  <span className="mt-1 inline-block h-4 w-2 animate-pulse bg-purple-500" />
+                  <span className="mt-1 inline-block h-4 w-2 animate-pulse bg-indigo-500" />
                 </div>
               </div>
             )}
