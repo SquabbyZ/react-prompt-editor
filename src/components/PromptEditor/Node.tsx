@@ -8,7 +8,7 @@ import {
   UnlockOutlined,
 } from '@ant-design/icons';
 import { Button, Input, message, Popconfirm, Tag, Tooltip } from 'antd';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback } from 'react';
 import { useNodeEditor } from '../../hooks/useNodeEditor';
 import {
   OptimizeRequest,
@@ -32,7 +32,8 @@ interface CustomNodeProps {
   onDelete: (id: string) => void;
   onAddChild: (parentId: string) => void;
   onUpdateTitle: (id: string, title: string) => void;
-  onUpdateDependencies: (id: string, dependencies: string[]) => void;
+  // TODO: 依赖配置功能待实现
+  // onUpdateDependencies: (id: string, dependencies: string[]) => void;
   getNodeNumber: (id: string) => string;
   // 互斥展开：同时只能展开一个编辑器
   expandedEditorId: string | null;
@@ -76,13 +77,13 @@ export const Node: React.FC<CustomNodeProps> = React.memo(
     onDelete,
     onAddChild,
     onUpdateTitle,
-    onUpdateDependencies,
+    // onUpdateDependencies, // TODO: 依赖配置功能待实现
     getNodeNumber,
     expandedEditorId,
     onToggleEditor,
     expandedNodes,
     onToggleChildren,
-    availableNodes,
+    // availableNodes, // TODO: 依赖配置功能待实现
     onOptimizeRequest,
     onNodeOptimize,
     onLike,
@@ -109,10 +110,10 @@ export const Node: React.FC<CustomNodeProps> = React.memo(
     // 编辑器状态管理（Undo/Redo）
     const {
       editorRef,
-      canUndo,
-      canRedo,
-      handleUndo,
-      handleRedo,
+      // canUndo,     // TODO: 添加撤回按钮时使用
+      // canRedo,     // TODO: 添加还原按钮时使用
+      // handleUndo,  // TODO: 添加撤回按钮时使用
+      // handleRedo,  // TODO: 添加还原按钮时使用
       handleContentChange,
     } = useNodeEditor({
       nodeId: nodeData.id,
