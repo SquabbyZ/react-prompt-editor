@@ -8,7 +8,6 @@ import React, {
   useState,
 } from 'react';
 import { createEditorStore, EditorStoreType } from '../../stores';
-import '../../styles/tailwind.css';
 import { Node } from './Node';
 import { PromptEditorProps } from './PromptEditor.types';
 
@@ -21,12 +20,12 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   onNodeRun,
   onNodeOptimize,
   onNodeLock,
-  theme = 'default',
   className,
   style,
   renderToolbar,
   onLike,
   onDislike,
+  previewMode = false,
 }) => {
   const isControlled = value !== undefined;
 
@@ -224,6 +223,27 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
     });
   }, []);
 
+  // 子节点展开动画跟踪
+  const [animatingChildren, setAnimatingChildren] = React.useState<Set<string>>(
+    new Set(),
+  );
+
+  const handleToggleChildrenAnimated = useCallback(
+    (nodeId: string) => {
+      setAnimatingChildren((prev) => new Set(prev).add(nodeId));
+      handleToggleChildren(nodeId);
+      // 动画时长后移除跟踪
+      setTimeout(() => {
+        setAnimatingChildren((prev) => {
+          const next = new Set(prev);
+          next.delete(nodeId);
+          return next;
+        });
+      }, 350);
+    },
+    [handleToggleChildren],
+  );
+
   // 递归渲染树节点
   const renderTreeNodes = (nodes: any[], level: number = 0) => {
     return nodes.map((node) => {
@@ -252,18 +272,24 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
             expandedEditorId={expandedEditorId}
             onToggleEditor={handleToggleEditor}
             expandedNodes={expandedNodes}
-            onToggleChildren={handleToggleChildren}
+            onToggleChildren={handleToggleChildrenAnimated}
             availableNodes={getAvailableNodes()}
             onOptimizeRequest={onOptimizeRequest}
             onNodeOptimize={onNodeOptimize}
             onLike={onLike}
             onDislike={onDislike}
+            previewMode={previewMode}
           />
           {/* 递归渲染子节点 - 根据 expandedNodes 判断是否显示 */}
           {node.children &&
             node.children.length > 0 &&
             expandedNodes.has(node.id) && (
-              <div>{renderTreeNodes(node.children, level + 1)}</div>
+              <div
+                className={`overflow-hidden ${animatingChildren.has(node.id) ? 'animate-slide-down-children' : ''}`}
+                style={{ transformOrigin: 'top' }}
+              >
+                {renderTreeNodes(node.children, level + 1)}
+              </div>
             )}
         </div>
       );
@@ -272,25 +298,27 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
 
   return (
     <div
-      className={`h-full w-full overflow-auto bg-white dark:bg-gray-900 ${className || ''}`}
+      className={`prompt-editor-container h-full w-full overflow-auto bg-white dark:bg-gray-900 ${className || ''}`}
+      data-prompt-editor="true"
       style={style}
-      data-theme={theme}
     >
-      {/* 顶部工具栏 */}
-      <div className="sticky top-0 z-10 border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-900">
-        {renderToolbar ? (
-          renderToolbar({ addRootNode: handleAddRootNode })
-        ) : (
-          <Button
-            type="dashed"
-            icon={<PlusOutlined />}
-            onClick={handleAddRootNode}
-            block
-          >
-            添加一级标题
-          </Button>
-        )}
-      </div>
+      {/* 顶部工具栏 - 预览模式下隐藏 */}
+      {!previewMode && (
+        <div className="sticky top-0 z-10 border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-900">
+          {renderToolbar ? (
+            renderToolbar({ addRootNode: handleAddRootNode })
+          ) : (
+            <Button
+              type="dashed"
+              icon={<PlusOutlined />}
+              onClick={handleAddRootNode}
+              block
+            >
+              添加一级标题
+            </Button>
+          )}
+        </div>
+      )}
       <div className="arborist-tree p-4" ref={treeRef}>
         {renderTreeNodes(tree)}
       </div>

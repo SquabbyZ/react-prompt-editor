@@ -1,6 +1,14 @@
 import React from 'react';
-import { PromptEditor } from '../../src';
-import { TaskNode } from '../../src/types';
+import {
+  OptimizeRequest,
+  OptimizeResponse,
+  PromptEditor,
+  RunTaskRequest,
+  RunTaskResponse,
+  TaskNode,
+} from '../../src';
+import '../../src/styles/tailwind.css';
+import { DemoWrapper } from '../demo-wrapper';
 
 export default () => {
   const [value, setValue] = React.useState<TaskNode[]>([
@@ -34,35 +42,49 @@ export default () => {
     },
   ]);
 
-  const runAPI = async (req: any) => {
-    console.log('Run API called:', req);
+  // 处理运行请求
+  const handleRunRequest = (request: RunTaskRequest) => {
+    console.log('🚀 Run API called:', request);
     // 模拟 API 调用
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 1000);
-    });
-    return {
-      result: `✅ 运行成功！\n\n节点：${req.nodeId}\n内容长度：${req.content.length} 字符\n依赖数量：${req.dependenciesContent.length}`,
-      stream: false,
-    };
+    setTimeout(() => {
+      const result: RunTaskResponse = {
+        result: `✅ 运行成功！\n\n节点：${request.nodeId}\n内容长度：${request.content.length} 字符\n依赖数量：${request.dependenciesContent.length}`,
+      };
+      // 通知组件运行完成（通过 meta.onNodeRun）
+      if (request.meta?.onNodeRun) {
+        (request.meta.onNodeRun as any)(request.nodeId, result);
+      }
+    }, 1000);
   };
 
-  const optimizeAPI = async (req: any) => {
-    console.log('Optimize API called:', req);
+  // 处理优化请求
+  const handleOptimizeRequest = (
+    request: OptimizeRequest,
+    callbacks: {
+      onResponse: (response: OptimizeResponse) => void;
+      onError: (error: Error) => void;
+    },
+  ) => {
+    console.log('✨ Optimize API called:', request);
     // 模拟 AI 优化
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 1500);
-    });
-    return {
-      optimizedContent:
-        req.content +
-        '\n\n---\n\n✨ **[AI 优化完成]**\n\n- 结构更清晰\n- 表达更准确\n- 逻辑更严密',
-      thinkingProcess: '🤔 分析内容结构...\n📝 优化表达方式...\n✅ 完成优化！',
-    };
+    setTimeout(() => {
+      try {
+        const response: OptimizeResponse = {
+          optimizedContent:
+            request.content +
+            '\n\n---\n\n✨ **[AI 优化完成]**\n\n- 结构更清晰\n- 表达更准确\n- 逻辑更严密',
+          thinkingProcess:
+            '🤔 分析内容结构...\n📝 优化表达方式...\n✅ 完成优化！',
+        };
+        callbacks.onResponse(response);
+      } catch (error) {
+        callbacks.onError(error as Error);
+      }
+    }, 1500);
   };
 
   const handleNodeRun = (nodeId: string, result: any) => {
     console.log('✅ Node run:', nodeId, result);
-    alert(`运行成功！\n\n${result.result}`);
   };
 
   const handleNodeOptimize = (nodeId: string, result: any) => {
@@ -76,23 +98,17 @@ export default () => {
     console.log('🔒 Node lock:', nodeId, isLocked);
   };
 
-  const handleTreeChange = (tree: TaskNode[]) => {
-    console.log('📊 Tree changed:', tree);
-  };
-
   return (
-    <div className="p-4">
+    <DemoWrapper height="550px" title="Basic Usage">
       <PromptEditor
         value={value}
         onChange={setValue}
-        runAPI={runAPI}
-        optimizeAPI={optimizeAPI}
+        onRunRequest={handleRunRequest}
+        onOptimizeRequest={handleOptimizeRequest}
         onNodeRun={handleNodeRun}
         onNodeOptimize={handleNodeOptimize}
         onNodeLock={handleNodeLock}
-        onTreeChange={handleTreeChange}
-        theme="default"
       />
-    </div>
+    </DemoWrapper>
   );
 };

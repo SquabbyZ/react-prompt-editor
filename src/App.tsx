@@ -137,7 +137,6 @@ const App: React.FC = () => {
           onTreeChange={handleTreeChange}
           onLike={handleLike}
           onDislike={handleDislike}
-          theme="default"
           className="rounded-lg border border-gray-300"
         />
       </div>

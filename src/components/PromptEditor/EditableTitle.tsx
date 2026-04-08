@@ -10,6 +10,7 @@ interface EditableTitleProps {
   onTitleChange: (id: string, title: string) => void;
   onContentChange: (id: string, content: string) => void;
   onClick?: () => void;
+  previewMode?: boolean;
 }
 
 /**
@@ -28,6 +29,7 @@ export const EditableTitle: React.FC<EditableTitleProps> = React.memo(
     onTitleChange,
     onContentChange,
     onClick,
+    previewMode = false,
   }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [titleValue, setTitleValue] = useState(title);
@@ -51,6 +53,10 @@ export const EditableTitle: React.FC<EditableTitleProps> = React.memo(
     // 开始编辑标题
     const handleStartEdit = (e: React.MouseEvent) => {
       e.stopPropagation();
+      if (previewMode) {
+        message.warning('预览模式下无法编辑');
+        return;
+      }
       if (isLocked) {
         message.warning('节点已锁定，无法编辑');
         return;
@@ -140,9 +146,9 @@ export const EditableTitle: React.FC<EditableTitleProps> = React.memo(
           />
         ) : (
           <span
-            className="-mx-1 cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap rounded px-1 py-0.5 hover:bg-gray-100 dark:hover:bg-gray-800"
+            className={`-mx-1 overflow-hidden text-ellipsis whitespace-nowrap rounded px-1 py-0.5 ${!previewMode ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800' : ''}`}
             onClick={handleClick}
-            onDoubleClick={handleStartEdit}
+            onDoubleClick={!previewMode ? handleStartEdit : undefined}
             title={title}
           >
             {title}

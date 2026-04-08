@@ -66,6 +66,8 @@ interface CustomNodeProps {
   onLike?: (messageId: string) => void;
   // AI 优化点踩回调
   onDislike?: (messageId: string) => void;
+  // 预览模式
+  previewMode?: boolean;
 }
 
 export const Node: React.FC<CustomNodeProps> = React.memo(
@@ -90,6 +92,7 @@ export const Node: React.FC<CustomNodeProps> = React.memo(
     onNodeOptimize,
     onLike,
     onDislike,
+    previewMode = false,
   }) => {
     const nodeData = node.data;
     // 判断是否是内部节点（有子节点）
@@ -108,6 +111,20 @@ export const Node: React.FC<CustomNodeProps> = React.memo(
     } | null>(null);
     // 存储优化请求，用于完成时调用 onNodeOptimize
     const optimizeRequestRef = React.useRef<OptimizeRequest | null>(null);
+
+    // 编辑器展开动画状态
+    const [isEditorAnimating, setIsEditorAnimating] = React.useState(false);
+    const prevExpandedRef = React.useRef(isEditorExpanded);
+
+    React.useEffect(() => {
+      if (prevExpandedRef.current !== isEditorExpanded) {
+        // 展开或收起时触发动画
+        setIsEditorAnimating(true);
+        const timer = setTimeout(() => setIsEditorAnimating(false), 300);
+        prevExpandedRef.current = isEditorExpanded;
+        return () => clearTimeout(timer);
+      }
+    }, [isEditorExpanded]);
 
     // 编辑器状态管理（Undo/Redo）
     const {
@@ -206,7 +223,11 @@ export const Node: React.FC<CustomNodeProps> = React.memo(
     );
 
     return (
-      <div className="arborist-node group mb-1" style={style} ref={dragHandle}>
+      <div
+        className="prompt-editor-node arborist-node group mb-1"
+        style={style}
+        ref={dragHandle}
+      >
         <div className="relative flex w-full flex-col transition-all">
           {/* 节点头部和编辑器容器 */}
           <div className="flex flex-col gap-2">
@@ -245,9 +266,13 @@ export const Node: React.FC<CustomNodeProps> = React.memo(
                   content={nodeData.content}
                   onTitleChange={onUpdateTitle}
                   onContentChange={onContentChange}
+                  previewMode={previewMode}
                   onClick={() => {
-                    // 单击标题：只展开/折叠子节点，不影响编辑器状态
-                    if (isInternal) {
+                    // 预览模式下：点击标题展开/折叠编辑器
+                    // 编辑模式下：只展开/折叠子节点
+                    if (previewMode) {
+                      onToggleEditor(nodeData.id);
+                    } else if (isInternal) {
                       onToggleChildren(nodeData.id);
                     }
                   }}
@@ -259,142 +284,161 @@ export const Node: React.FC<CustomNodeProps> = React.memo(
                     <LockOutlined style={{ fontSize: 12, color: '#faad14' }} />
                   </Tooltip>
                 )}
-                {!nodeData.hasRun && (
+                {!nodeData.hasRun && !previewMode && (
                   <Tag color="default" title="未运行" style={{ fontSize: 10 }}>
                     未运行
                   </Tag>
                 )}
               </div>
 
-              {/* 操作按钮 - 确保不被遮盖 */}
-              <div className="relative z-20 flex flex-shrink-0 items-center gap-1.5">
-                {/* 编辑按钮 - 只控制编辑器展开/折叠 */}
-                <Tooltip title={isEditorExpanded ? '折叠编辑器' : '展开编辑器'}>
-                  <Button
-                    type={isEditorExpanded ? 'primary' : 'default'}
-                    size="small"
-                    icon={<EditOutlined />}
-                    onClick={handleToggleEditor}
-                    style={{
-                      background: isEditorExpanded ? undefined : '#fff',
-                    }}
+              {/* 操作按钮 - 预览模式下隐藏 */}
+              {!previewMode && (
+                <div className="relative z-20 flex flex-shrink-0 items-center gap-1.5">
+                  {/* 编辑按钮 - 只控制编辑器展开/折叠 */}
+                  <Tooltip
+                    title={isEditorExpanded ? '折叠编辑器' : '展开编辑器'}
                   >
-                    <span className="hidden sm:inline">编辑提示词</span>
-                  </Button>
-                </Tooltip>
-                <Tooltip
-                  title={
-                    nodeData.isLocked
-                      ? '节点已锁定，无法添加子节点'
-                      : '添加子节点'
-                  }
-                >
-                  <Button
-                    size="small"
-                    icon={<PlusOutlined />}
-                    onClick={handleAddChild}
-                    disabled={nodeData.isLocked}
-                  >
-                    <span className="hidden sm:inline">子标题</span>
-                  </Button>
-                </Tooltip>
-                <Tooltip
-                  title={
-                    nodeData.hasRun
-                      ? nodeData.isLocked
-                        ? '解锁节点'
-                        : '锁定节点'
-                      : '请先运行'
-                  }
-                >
-                  <Button
-                    size="small"
-                    icon={
-                      nodeData.isLocked ? <UnlockOutlined /> : <LockOutlined />
-                    }
-                    onClick={handleLock}
-                    disabled={!nodeData.hasRun}
-                  >
-                    <span className="hidden sm:inline">
-                      {nodeData.isLocked ? '解锁' : '锁定'}
-                    </span>
-                  </Button>
-                </Tooltip>
-
-                <Popconfirm
-                  title="删除节点"
-                  description="确定要删除这个节点吗？"
-                  onConfirm={handleDelete}
-                  onCancel={() => message.info('已取消删除')}
-                  okText="确定"
-                  cancelText="取消"
-                  disabled={nodeData.isLocked}
-                >
+                    <Button
+                      type={isEditorExpanded ? 'primary' : 'default'}
+                      size="small"
+                      icon={<EditOutlined />}
+                      onClick={handleToggleEditor}
+                      style={{
+                        background: isEditorExpanded ? undefined : '#fff',
+                      }}
+                    >
+                      <span className="hidden sm:inline">编辑提示词</span>
+                    </Button>
+                  </Tooltip>
                   <Tooltip
                     title={
-                      nodeData.isLocked ? '节点已锁定，无法删除' : '删除节点'
+                      nodeData.isLocked
+                        ? '节点已锁定，无法添加子节点'
+                        : '添加子节点'
                     }
                   >
                     <Button
                       size="small"
-                      danger
-                      icon={<DeleteOutlined />}
+                      icon={<PlusOutlined />}
+                      onClick={handleAddChild}
                       disabled={nodeData.isLocked}
-                    />
+                    >
+                      <span className="hidden sm:inline">子标题</span>
+                    </Button>
                   </Tooltip>
-                </Popconfirm>
-              </div>
+                  <Tooltip
+                    title={
+                      nodeData.hasRun
+                        ? nodeData.isLocked
+                          ? '解锁节点'
+                          : '锁定节点'
+                        : '请先运行'
+                    }
+                  >
+                    <Button
+                      size="small"
+                      icon={
+                        nodeData.isLocked ? (
+                          <UnlockOutlined />
+                        ) : (
+                          <LockOutlined />
+                        )
+                      }
+                      onClick={handleLock}
+                      disabled={!nodeData.hasRun}
+                    >
+                      <span className="hidden sm:inline">
+                        {nodeData.isLocked ? '解锁' : '锁定'}
+                      </span>
+                    </Button>
+                  </Tooltip>
+
+                  <Popconfirm
+                    title="删除节点"
+                    description="确定要删除这个节点吗？"
+                    onConfirm={handleDelete}
+                    onCancel={() => message.info('已取消删除')}
+                    okText="确定"
+                    cancelText="取消"
+                    disabled={nodeData.isLocked}
+                  >
+                    <Tooltip
+                      title={
+                        nodeData.isLocked ? '节点已锁定，无法删除' : '删除节点'
+                      }
+                    >
+                      <Button
+                        size="small"
+                        danger
+                        icon={<DeleteOutlined />}
+                        disabled={nodeData.isLocked}
+                      />
+                    </Tooltip>
+                  </Popconfirm>
+                </div>
+              )}
             </div>
 
-            {/* 编辑器区域 - 展开后占据正常文档流 */}
+            {/* 编辑器区域 - 根据展开状态或预览模式决定显示 */}
             {isEditorExpanded && (
-              <div className="relative z-0 overflow-hidden rounded-lg border-2 border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800">
-                {/* 编辑器工具栏 - 撤回/还原 */}
-                <EditorToolbar
-                  canUndo={canUndo}
-                  canRedo={canRedo}
-                  onUndo={handleUndo}
-                  onRedo={handleRedo}
-                />
+              <div
+                className={`relative z-0 overflow-hidden rounded-lg border-2 border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800 ${isEditorAnimating ? 'animate-expand-in' : ''}`}
+                style={{
+                  transformOrigin: 'top center',
+                }}
+              >
+                {/* 编辑器工具栏 - 撤回/还原 - 预览模式下隐藏 */}
+                {!previewMode && (
+                  <EditorToolbar
+                    canUndo={canUndo}
+                    canRedo={canRedo}
+                    onUndo={handleUndo}
+                    onRedo={handleRedo}
+                  />
+                )}
 
                 <div className="m-2 rounded-md border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
                   <CodeMirrorEditor
                     ref={editorRef}
                     value={nodeData.content}
                     onChange={handleContentChange}
-                    isReadOnly={nodeData.isLocked}
+                    isReadOnly={nodeData.isLocked || previewMode}
                   />
                 </div>
 
-                {/* 依赖任务配置区域 */}
-                <DependencyConfigSection
-                  nodeId={nodeData.id}
-                  dependencies={nodeData.dependencies}
-                  onUpdateDependencies={onUpdateDependencies}
-                  getNodeNumber={getNodeNumber}
-                  availableNodes={availableNodes}
-                />
+                {/* 依赖任务配置区域 - 预览模式下隐藏 */}
+                {!previewMode && (
+                  <DependencyConfigSection
+                    nodeId={nodeData.id}
+                    dependencies={nodeData.dependencies}
+                    onUpdateDependencies={onUpdateDependencies}
+                    getNodeNumber={getNodeNumber}
+                    availableNodes={availableNodes}
+                  />
+                )}
 
-                {/* 编辑器底部操作按钮 */}
-                <div className="flex items-center justify-end gap-2 border-t border-indigo-200 bg-white px-3 py-2 dark:border-indigo-800 dark:bg-gray-900">
-                  <Button
-                    type="primary"
-                    icon={<PlayCircleOutlined />}
-                    onClick={handleRun}
-                  >
-                    运行
-                  </Button>
+                {/* 编辑器底部操作按钮 - 预览模式下隐藏 */}
+                {!previewMode && (
+                  <div className="flex items-center justify-end gap-2 border-t border-indigo-200 bg-white px-3 py-2 dark:border-indigo-800 dark:bg-gray-900">
+                    <Button
+                      type="primary"
+                      icon={<PlayCircleOutlined />}
+                      onClick={handleRun}
+                    >
+                      运行
+                    </Button>
 
-                  <Button
-                    icon={<ThunderboltOutlined />}
-                    onClick={handleOptimize}
-                  >
-                    AI 优化
-                  </Button>
-                </div>
+                    <Button
+                      icon={<ThunderboltOutlined />}
+                      onClick={handleOptimize}
+                    >
+                      AI 优化
+                    </Button>
+                  </div>
+                )}
 
-                {/* AI 优化弹窗 */}
-                {optimizeModalOpen && (
+                {/* AI 优化弹窗 - 预览模式下不渲染 */}
+                {!previewMode && optimizeModalOpen && (
                   <AIOptimizeModal
                     open={optimizeModalOpen}
                     onClose={() => {

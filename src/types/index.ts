@@ -103,7 +103,6 @@ export interface PromptEditorProps {
   onNodeOptimize?: (nodeId: string, result: OptimizeResponse) => void;
   onNodeLock?: (nodeId: string, isLocked: boolean) => void;
   onTreeChange?: (tree: TaskNode[]) => void;
-  theme?: 'default' | 'ant-design';
   className?: string;
   style?: React.CSSProperties;
   /**
@@ -121,4 +120,9 @@ export interface PromptEditorProps {
    * @param messageId 被点踩的消息 ID
    */
   onDislike?: (messageId: string) => void;
+  /**
+   * 预览模式 - 只读展示，隐藏所有操作按钮
+   * @default false
+   */
+  previewMode?: boolean;
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import { PromptEditor } from '../../../src';
+import '../../../src/styles/tailwind.css';
 import {
   OptimizeRequest,
   OptimizeResponse,
@@ -7,6 +8,7 @@ import {
   RunTaskResponse,
   TaskNode,
 } from '../../../src/types';
+import { DemoWrapper } from '../../demo-wrapper';
 
 /**
  * 流式输出示例 - 展示如何实现真正的流式 AI 优化
@@ -34,10 +36,6 @@ export default () => {
 
   const handleNodeLock = (nodeId: string, isLocked: boolean) => {
     console.log('🔒 Node lock:', nodeId, isLocked);
-  };
-
-  const handleTreeChange = (tree: TaskNode[]) => {
-    console.log('📊 Tree changed:', tree);
   };
 
   // 运行请求回调
@@ -129,10 +127,19 @@ export default () => {
   };
 
   return (
-    <div className="p-4">
-      <h3 className="mb-4">
-        💡 提示：点击节点的 &quot;AI 优化&quot; 按钮查看流式输出效果
-      </h3>
+    <DemoWrapper height="550px" title="Streaming Output">
+      <div
+        style={{
+          padding: '12px 16px',
+          borderBottom: '1px solid var(--color-neutral-200, #e4e4e7)',
+          backgroundColor: 'var(--color-primary-50, #fefce8)',
+          fontSize: '14px',
+          color: 'var(--color-neutral-600, #52525b)',
+        }}
+      >
+        💡 Tip: Click the &quot;AI Optimize&quot; button on any node to see
+        streaming output
+      </div>
       <PromptEditor
         value={value}
         onChange={setValue}
@@ -141,9 +148,7 @@ export default () => {
         onNodeRun={handleNodeRun}
         onNodeOptimize={handleNodeOptimize}
         onNodeLock={handleNodeLock}
-        onTreeChange={handleTreeChange}
-        theme="default"
       />
-    </div>
+    </DemoWrapper>
   );
 };

@@ -29,6 +29,9 @@ importers:
       antd:
         specifier: ^5.29.3
         version: 5.29.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
       lucide-react:
         specifier: ^1.7.0
         version: 1.7.0(react@18.3.1)
@@ -38,6 +41,15 @@ importers:
       react-window:
         specifier: ^2.2.7
         version: 2.2.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      tailwind-merge:
+        specifier: ^3.5.0
+        version: 3.5.0
+      tailwind-scrollbar:
+        specifier: ^4.0.2
+        version: 4.0.2(react@18.3.1)(tailwindcss@3.4.19)
+      tailwindcss-animate:
+        specifier: ^1.0.7
+        version: 1.0.7(tailwindcss@3.4.19)
       uuid:
         specifier: ^13.0.0
         version: 13.0.0
@@ -1952,7 +1964,7 @@ packages:
     resolution: {integrity: sha512-SuT16Q1K51EAVPz1K29DJ/sXjhSQ0zjvsypYJ6tlwVsRV9jwW5Adq2ch8Dq8kDBCkYnELS7N7VNCSB5nC56t/g==}
 
   '@types/prismjs@1.26.6':
-    resolution: {integrity: sha512-vqlvI7qlMvcCBbVe0AKAb4f97//Hy0EBTaiW8AalRnG/xAN5zOiWWyrNqNXeq8+KAuvRewjCVY1+IPxk4RdNYw==}
+    resolution: {integrity: sha512-vqlvI7qlMvcCBbVe0AKAb4f97//Hy0EBTaiW8AalRnG/xAN5zOiWWyrNqNXeq8+KAuvRewjCVY1+IPxk4RdNYw==, tarball: https://registry.npmjs.org/@types/prismjs/-/prismjs-1.26.6.tgz}
 
   '@types/prop-types@15.7.15':
     resolution: {integrity: sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw==}
@@ -2971,7 +2983,7 @@ packages:
     engines: {node: '>=12'}
 
   clsx@2.1.1:
-    resolution: {integrity: sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==}
+    resolution: {integrity: sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==, tarball: https://registry.npmjs.org/clsx/-/clsx-2.1.1.tgz}
     engines: {node: '>=6'}
 
   coa@2.0.2:
@@ -6381,6 +6393,11 @@ packages:
     peerDependencies:
       react: '>=0.14.9'
 
+  prism-react-renderer@2.4.1:
+    resolution: {integrity: sha512-ey8Ls/+Di31eqzUxC46h8MksNuGx/n0AAC8uKpwFau4RPDYLuE3EXTp8N8G2vX2N7UC/+IXeNUnlWBGGcAG+Ig==, tarball: https://registry.npmjs.org/prism-react-renderer/-/prism-react-renderer-2.4.1.tgz}
+    peerDependencies:
+      react: '>=16.0.0'
+
   prism-themes@1.9.0:
     resolution: {integrity: sha512-tX2AYsehKDw1EORwBps+WhBFKc2kxfoFpQAjxBndbZKr4fRmMkv47XN0BghC/K1qwodB1otbe4oF23vUTFDokw==}
 
@@ -7572,6 +7589,20 @@ packages:
   table@6.9.0:
     resolution: {integrity: sha512-9kY+CygyYM6j02t5YFHbNz2FN5QmYGv9zAjVp4lCDjlCw7amdckXlEt/bjMhUIfj4ThGRE4gCUH5+yGnNuPo5A==}
     engines: {node: '>=10.0.0'}
+
+  tailwind-merge@3.5.0:
+    resolution: {integrity: sha512-I8K9wewnVDkL1NTGoqWmVEIlUcB9gFriAEkXkfCjX5ib8ezGxtR3xD7iZIxrfArjEsH7F1CHD4RFUtxefdqV/A==, tarball: https://registry.npmjs.org/tailwind-merge/-/tailwind-merge-3.5.0.tgz}
+
+  tailwind-scrollbar@4.0.2:
+    resolution: {integrity: sha512-wAQiIxAPqk0MNTPptVe/xoyWi27y+NRGnTwvn4PQnbvB9kp8QUBiGl/wsfoVBHnQxTmhXJSNt9NHTmcz9EivFA==, tarball: https://registry.npmjs.org/tailwind-scrollbar/-/tailwind-scrollbar-4.0.2.tgz}
+    engines: {node: '>=12.13.0'}
+    peerDependencies:
+      tailwindcss: 4.x
+
+  tailwindcss-animate@1.0.7:
+    resolution: {integrity: sha512-bl6mpH3T7I3UFxuvDEXLxy/VuFxBk5bbzplh7tXI68mwMokNYd1t9qPBHlnyTwfa4JGC4zP516I1hYYtQ/vspA==, tarball: https://registry.npmjs.org/tailwindcss-animate/-/tailwindcss-animate-1.0.7.tgz}
+    peerDependencies:
+      tailwindcss: '>=3.0.0 || insiders'
 
   tailwindcss@3.4.19:
     resolution: {integrity: sha512-3ofp+LL8E+pK/JuPLPggVAIaEuhvIz4qNcf3nA1Xn2o/7fb7s/TYpHhwGDv1ZU3PkBluUVaF8PyCHcm48cKLWQ==}
@@ -15768,6 +15799,12 @@ snapshots:
     dependencies:
       react: 18.3.1
 
+  prism-react-renderer@2.4.1(react@18.3.1):
+    dependencies:
+      '@types/prismjs': 1.26.6
+      clsx: 2.1.1
+      react: 18.3.1
+
   prism-themes@1.9.0: {}
 
   prismjs@1.30.0: {}
@@ -17240,6 +17277,19 @@ snapshots:
       slice-ansi: 4.0.0
       string-width: 4.2.3
       strip-ansi: 6.0.1
+
+  tailwind-merge@3.5.0: {}
+
+  tailwind-scrollbar@4.0.2(react@18.3.1)(tailwindcss@3.4.19):
+    dependencies:
+      prism-react-renderer: 2.4.1(react@18.3.1)
+      tailwindcss: 3.4.19
+    transitivePeerDependencies:
+      - react
+
+  tailwindcss-animate@1.0.7(tailwindcss@3.4.19):
+    dependencies:
+      tailwindcss: 3.4.19
 
   tailwindcss@3.4.19:
     dependencies:
