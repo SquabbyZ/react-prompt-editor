@@ -7,7 +7,7 @@ import {
   ThunderboltOutlined,
   UnlockOutlined,
 } from '@ant-design/icons';
-import { Button, Input, message, Popconfirm, Tag, Tooltip } from 'antd';
+import { Button, message, Popconfirm, Tag, Tooltip } from 'antd';
 import React, { useCallback } from 'react';
 import { useNodeEditor } from '../../hooks/useNodeEditor';
 import {
@@ -18,6 +18,7 @@ import {
 import { AIOptimizeModal } from '../AIOptimizeModal/AIOptimizeModal';
 import { CodeMirrorEditor } from '../CodeMirrorEditor';
 import { DependencyConfigSection } from './DependencyConfigSection';
+import { EditableTitle } from './EditableTitle';
 import { EditorToolbar } from './EditorToolbar';
 
 interface CustomNodeProps {
@@ -204,96 +205,6 @@ export const Node: React.FC<CustomNodeProps> = React.memo(
       [nodeData.content, selectedContent],
     );
 
-    const [isEditingTitle, setIsEditingTitle] = React.useState(false);
-    const [titleValue, setTitleValue] = React.useState(nodeData.title);
-    const titleInputRef = React.useRef<any>(null);
-    const clickTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(
-      null,
-    );
-
-    React.useEffect(() => {
-      if (isEditingTitle && titleInputRef.current) {
-        titleInputRef.current.focus();
-        titleInputRef.current.select();
-      }
-      // 组件卸载时清理定时器
-      return () => {
-        if (clickTimeoutRef.current) {
-          clearTimeout(clickTimeoutRef.current);
-        }
-      };
-    }, [isEditingTitle]);
-
-    const handleStartEditTitle = (e: React.MouseEvent) => {
-      e.stopPropagation();
-      if (nodeData.isLocked) {
-        message.warning('节点已锁定，无法编辑');
-        return;
-      }
-      // 清除单击定时器，执行双击逻辑
-      if (clickTimeoutRef.current) {
-        clearTimeout(clickTimeoutRef.current);
-        clickTimeoutRef.current = null;
-      }
-      setTitleValue(nodeData.title);
-      setIsEditingTitle(true);
-    };
-
-    const handleTitleClick = (e: React.MouseEvent) => {
-      e.stopPropagation();
-      // 单击标题：只展开/折叠子节点，不影响编辑器状态
-      if (isInternal) {
-        onToggleChildren(nodeData.id);
-      }
-    };
-
-    const handleSaveTitle = () => {
-      const trimmed = titleValue.trim();
-      if (trimmed) {
-        // 更新标题
-        onUpdateTitle(nodeData.id, trimmed);
-
-        // 同步更新编辑器内容中的标题
-        const currentContent = nodeData.content;
-        const lines = currentContent.split('\n');
-
-        // 检查第一行是否是 Markdown 标题
-        if (lines.length > 0 && lines[0].startsWith('#')) {
-          // 提取标题级别（# 的数量）
-          const match = lines[0].match(/^(#+)\s*/);
-          if (match) {
-            const level = match[1]; // 例如: "#", "##", "###"
-            // 替换为新标题
-            lines[0] = `${level} ${trimmed}`;
-            const newContent = lines.join('\n');
-            onContentChange(nodeData.id, newContent);
-          }
-        } else {
-          // 如果第一行不是标题，在第一行插入标题
-          const newContent = `# ${trimmed}\n${currentContent}`;
-          onContentChange(nodeData.id, newContent);
-        }
-        message.success('标题修改成功');
-      } else {
-        message.warning('标题不能为空');
-      }
-      setIsEditingTitle(false);
-    };
-
-    const handleCancelEditTitle = () => {
-      setTitleValue(nodeData.title);
-      setIsEditingTitle(false);
-      message.info('已取消编辑');
-    };
-
-    const handleTitleKeyDown = (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') {
-        handleSaveTitle();
-      } else if (e.key === 'Escape') {
-        handleCancelEditTitle();
-      }
-    };
-
     return (
       <div className="arborist-node group mb-1" style={style} ref={dragHandle}>
         <div className="relative flex w-full flex-col transition-all">
@@ -326,35 +237,21 @@ export const Node: React.FC<CustomNodeProps> = React.memo(
                 )}
 
                 {/* 节点序号和标题 */}
-                <span
-                  className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100"
-                  title={!isEditingTitle ? nodeData.title : undefined}
-                >
-                  <Tag color="default" className="px-1 text-xs">
-                    {getNodeNumber(nodeData.id)}
-                  </Tag>
-                  {isEditingTitle ? (
-                    <Input
-                      ref={titleInputRef}
-                      value={titleValue}
-                      onChange={(e) => setTitleValue(e.target.value)}
-                      onBlur={handleSaveTitle}
-                      onKeyDown={handleTitleKeyDown}
-                      onClick={(e) => e.stopPropagation()}
-                      size="small"
-                      autoFocus
-                    />
-                  ) : (
-                    <span
-                      className="-mx-1 cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap rounded px-1 py-0.5 hover:bg-gray-100 dark:hover:bg-gray-800"
-                      onClick={handleTitleClick}
-                      onDoubleClick={handleStartEditTitle}
-                      title={nodeData.title}
-                    >
-                      {nodeData.title}
-                    </span>
-                  )}
-                </span>
+                <EditableTitle
+                  nodeId={nodeData.id}
+                  title={nodeData.title}
+                  number={getNodeNumber(nodeData.id)}
+                  isLocked={nodeData.isLocked}
+                  content={nodeData.content}
+                  onTitleChange={onUpdateTitle}
+                  onContentChange={onContentChange}
+                  onClick={() => {
+                    // 单击标题：只展开/折叠子节点，不影响编辑器状态
+                    if (isInternal) {
+                      onToggleChildren(nodeData.id);
+                    }
+                  }}
+                />
 
                 {/* 状态图标 */}
                 {nodeData.isLocked && (

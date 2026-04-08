@@ -35,7 +35,11 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
           const depNode = availableNodes.find((n) => n.id === depId);
           return depNode ? { ...depNode, number: getNodeNumber(depId) } : null;
         })
-        .filter(Boolean) as Array<{ id: string; title: string; number: string }>;
+        .filter(Boolean) as Array<{
+        id: string;
+        title: string;
+        number: string;
+      }>;
 
       const handleAddDependency = (depId: string) => {
         if (depId && !dependencies.includes(depId)) {
