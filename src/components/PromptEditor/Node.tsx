@@ -17,6 +17,7 @@ import {
 } from '../../types';
 import { AIOptimizeModal } from '../AIOptimizeModal/AIOptimizeModal';
 import { CodeMirrorEditor } from '../CodeMirrorEditor';
+import { EditorToolbar } from './EditorToolbar';
 
 interface CustomNodeProps {
   node: {
@@ -111,10 +112,10 @@ export const Node: React.FC<CustomNodeProps> = React.memo(
     // 编辑器状态管理（Undo/Redo）
     const {
       editorRef,
-      // canUndo,     // TODO: 添加撤回按钮时使用
-      // canRedo,     // TODO: 添加还原按钮时使用
-      // handleUndo,  // TODO: 添加撤回按钮时使用
-      // handleRedo,  // TODO: 添加还原按钮时使用
+      canUndo,
+      canRedo,
+      handleUndo,
+      handleRedo,
       handleContentChange,
     } = useNodeEditor({
       nodeId: nodeData.id,
@@ -452,6 +453,14 @@ export const Node: React.FC<CustomNodeProps> = React.memo(
             {/* 编辑器区域 - 展开后占据正常文档流 */}
             {isEditorExpanded && (
               <div className="relative z-0 overflow-hidden rounded-lg border-2 border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800">
+                {/* 编辑器工具栏 - 撤回/还原 */}
+                <EditorToolbar
+                  canUndo={canUndo}
+                  canRedo={canRedo}
+                  onUndo={handleUndo}
+                  onRedo={handleRedo}
+                />
+
                 <div className="m-2 rounded-md border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
                   <CodeMirrorEditor
                     ref={editorRef}

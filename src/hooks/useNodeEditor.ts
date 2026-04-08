@@ -44,58 +44,52 @@ export const useNodeEditor = ({
   /**
    * 撤回操作
    */
-  const handleUndo = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      const view = editorRef.current?.view;
-      if (!view) return;
+  const handleUndo = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    const view = editorRef.current?.view;
+    if (!view) return;
 
-      isUndoRedoOperation.current = true;
-      undo(view);
+    isUndoRedoOperation.current = true;
+    undo(view);
 
-      setTimeout(() => {
-        const canUndoMore = undo(view);
-        if (canUndoMore) {
-          redo(view);
-          setCanUndo(true);
-          setCanRedo(true);
-        } else {
-          setCanUndo(false);
-          setCanRedo(true);
-        }
-        isUndoRedoOperation.current = false;
-      }, 0);
-    },
-    [],
-  );
+    setTimeout(() => {
+      const canUndoMore = undo(view);
+      if (canUndoMore) {
+        redo(view);
+        setCanUndo(true);
+        setCanRedo(true);
+      } else {
+        setCanUndo(false);
+        setCanRedo(true);
+      }
+      isUndoRedoOperation.current = false;
+    }, 0);
+  }, []);
 
   /**
    * 还原操作
    */
-  const handleRedo = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      const view = editorRef.current?.view;
-      if (!view) return;
+  const handleRedo = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    const view = editorRef.current?.view;
+    if (!view) return;
 
-      isUndoRedoOperation.current = true;
-      redo(view);
+    isUndoRedoOperation.current = true;
+    redo(view);
 
-      setTimeout(() => {
-        const canRedoMore = redo(view);
-        if (canRedoMore) {
-          undo(view);
-          setCanRedo(true);
-          setCanUndo(true);
-        } else {
-          setCanRedo(false);
-          setCanUndo(true);
-        }
-        isUndoRedoOperation.current = false;
-      }, 0);
-    },
-    [],
-  );
+    setTimeout(() => {
+      const canRedoMore = redo(view);
+      if (canRedoMore) {
+        undo(view);
+        setCanRedo(true);
+        setCanUndo(true);
+      } else {
+        setCanRedo(false);
+        setCanUndo(true);
+      }
+      isUndoRedoOperation.current = false;
+    }, 0);
+  }, []);
 
   /**
    * 处理内容变化
