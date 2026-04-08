@@ -1,0 +1,834 @@
+# React Prompt Editor 项目规则
+
+> 本文档用于帮助 AI 助手快速理解和开发本项目。包含项目架构、技术栈、编码规范和核心逻辑说明。
+
+---
+
+## 📋 项目概览
+
+### 基本信息
+- **项目名称**: react-prompt-editor
+- **类型**: React 组件库（Prompt 编辑器）
+- **版本**: 0.0.1
+- **许可证**: MIT
+- **构建工具**: father + dumi
+- **包管理器**: pnpm
+
+### 核心价值
+一个功能强大的树形提示词编辑器，支持：
+- 🌳 多级嵌套的树形结构管理
+- 📝 Markdown 实时编辑与预览
+- 🤖 AI 智能优化（流式对话）
+- 🔗 可视化依赖任务管理
+- 🎯 运行状态追踪与内容锁定
+
+---
+
+## 🏗️ 技术栈
+
+### 核心框架
+```typescript
+React 18 + TypeScript  // UI 框架
+Zustand 5.x            // 状态管理（轻量级）
+```
+
+### UI 组件库
+```typescript
+Ant Design 5.x         // 基础 UI 组件
+@ant-design/x          // 高级组件（Bubble、Sender）
+TailwindCSS 3.x        // 原子化 CSS
+```
+
+### 编辑器
+```typescript
+CodeMirror 6           // Markdown 编辑器
+@uiw/react-codemirror  // React 封装
+@codemirror/lang-markdown
+```
+
+### 工具库
+```typescript
+uuid 13.x              // 唯一 ID 生成
+react-window           // 虚拟滚动（性能优化）
+```
+
+### 开发工具
+```typescript
+dumi 2.x               // 文档站点
+father 4.x             // 库构建工具
+ESLint + Prettier      // 代码规范
+Husky + lint-staged    // Git Hooks
+```
+
+---
+
+## 📁 项目结构
+
+```
+src/
+├── components/                # 组件目录
+│   ├── PromptEditor/         # 主编辑器组件
+│   │   ├── index.tsx         # 入口文件
+│   │   ├── Node.tsx          # 节点组件（核心）
+│   │   ├── PromptEditor.types.ts  # 类型定义
+│   │   └── styles.css        # 样式文件
+│   ├── AIOptimizeModal/      # AI 优化弹窗
+│   │   └── AIOptimizeModal.tsx
+│   ├── CodeMirrorEditor/     # Markdown 编辑器封装
+│   │   ├── index.tsx
+│   │   └── CodeMirrorEditor.types.ts
+│   └── TreeNode/             # 树节点组件（备用）
+│       ├── index.tsx
+│       └── TreeNode.types.ts
+├── stores/                    # Zustand 状态管理
+│   ├── index.ts              # 导出
+│   ├── editorStore.ts        # 编辑器状态（树形数据）
+│   └── optimizeStore.ts      # AI 优化状态（消息流）
+├── hooks/                     # 自定义 Hooks
+│   └── useTreeState.ts       # 树状态管理（已迁移到 store）
+├── utils/                     # 工具函数
+│   └── tree-utils.ts         # 树形数据转换
+├── types/                     # TypeScript 类型
+│   └── index.ts              # 所有类型定义
+├── styles/                    # 样式文件
+│   ├── variables.css         # CSS 变量（主题色板）
+│   ├── themes/default.css    # 默认主题
+│   └── tailwind.css          # Tailwind 配置
+├── index.ts                   # 库入口（导出公共 API）
+└── App.tsx                    # 开发环境演示
+```
+
+---
+
+## 🎨 设计规范
+
+### 颜色系统
+
+**主色调（Indigo）**
+```css
+--pe-color-primary: #6366f1;        /* Indigo 500 */
+--pe-color-primary-light: #818cf8;  /* Indigo 400 */
+--pe-color-primary-dark: #4f46e5;   /* Indigo 600 */
+--pe-color-primary-bg: #eef2ff;     /* Indigo 50 */
+--pe-color-primary-border: #c7d2fe; /* Indigo 200 */
+```
+
+**辅助色**
+```css
+--pe-color-success: #10b981;  /* Emerald 500 - 成功 */
+--pe-color-warning: #f59e0b;  /* Amber 500 - 警告 */
+--pe-color-error: #ef4444;    /* Red 500 - 错误 */
+--pe-color-info: #3b82f6;     /* Blue 500 - 信息 */
+```
+
+**中性色（Gray）**
+```css
+--pe-color-text-primary: #111827;   /* Gray 900 */
+--pe-color-text-secondary: #6b7280; /* Gray 500 */
+--pe-color-text-tertiary: #9ca3af;  /* Gray 400 */
+--pe-color-border: #e5e7eb;         /* Gray 200 */
+--pe-color-bg-primary: #fff;        /* White */
+--pe-color-bg-secondary: #f9fafb;   /* Gray 50 */
+--pe-color-bg-tertiary: #f3f4f6;    /* Gray 100 */
+```
+
+### 间距系统
+```css
+--pe-spacing-xs: 4px;
+--pe-spacing-sm: 8px;
+--pe-spacing-md: 16px;
+--pe-spacing-lg: 24px;
+--pe-spacing-xl: 32px;
+```
+
+### 圆角系统
+```css
+--pe-radius-sm: 4px;
+--pe-radius-md: 8px;
+--pe-radius-lg: 12px;
+--pe-radius-xl: 16px;
+```
+
+### 阴影系统
+```css
+--pe-shadow-sm: 0 1px 2px rgba(0, 0, 0, 5%);
+--pe-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 10%);
+--pe-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 10%);
+--pe-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 10%);
+```
+
+---
+
+## 💾 数据模型
+
+### 内部存储结构（扁平化 Map）
+
+```typescript
+interface TaskNodeMinimal {
+  id: string;                      // UUID v4（根节点：root-uuid）
+  title: string;                   // 节点标题
+  content: string;                 // Markdown 内容
+  parentId?: string;               // 父节点 ID
+  children: string[];              // 子节点 ID 数组（不是对象！）
+  isLocked: boolean;               // 是否已锁定（hasRun=true 后自动锁定）
+  hasRun: boolean;                 // 是否已运行
+  dependencies: string[];          // 依赖节点 ID 数组
+}
+
+type NodeStore = Map<string, TaskNodeMinimal>;
+```
+
+### 对外 API 结构（树形嵌套）
+
+```typescript
+interface TaskNode {
+  id: string;
+  title: string;
+  content: string;
+  parentId?: string;
+  children?: TaskNode[];           // 嵌套子节点数组
+  isLocked: boolean;
+  hasRun: boolean;
+  dependencies?: string[];
+}
+```
+
+### ID 生成策略
+
+```typescript
+// 根节点：root-{uuid}
+"root-550e8400-e29b-41d4-a716-446655440000"
+
+// 子节点：纯 uuid
+"6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+
+// 优势：
+// ✅ 全局唯一（碰撞概率 10^-37）
+// ✅ 分布式友好（无需时间同步）
+// ✅ 测试友好（不受 Mock 影响）
+// ✅ root- 前缀便于区分
+```
+
+### 数据转换工具
+
+```typescript
+// 树形 → 扁平 Map
+arrayToMap(tree: TaskNode[]): NodeStore
+
+// 扁平 Map → 树形
+mapToArray(store: NodeStore): TaskNode[]
+```
+
+---
+
+## 🔄 状态管理
+
+### Zustand Store 架构
+
+#### 1. EditorStore（编辑器状态）
+
+```typescript
+// src/stores/editorStore.ts
+interface EditorState {
+  store: NodeStore;                // 扁平化的节点 Map
+  
+  // 操作方法
+  initialize: (data: TaskNode[]) => void;
+  updateNode: (id: string, updates: Partial<TaskNodeMinimal>) => void;
+  removeNode: (id: string) => void;
+  addChild: (parentId: string) => string;  // 返回新节点 ID
+  addRootNode: () => string;               // 返回新节点 ID
+  getNode: (id: string) => TaskNodeMinimal | undefined;
+  getTree: () => TaskNode[];               // 转换为树形
+  getNodeNumber: (id: string) => string;   // 生成序号（如 "1.2.3"）
+}
+```
+
+**关键特性：**
+- ✅ 每个 PromptEditor 实例独立 store（通过 useRef）
+- ✅ 扁平化存储，O(1) 查找性能
+- ✅ 对外提供树形结构，符合用户直觉
+- ✅ 序号动态计算（基于 siblings 位置）
+
+#### 2. OptimizeStore（AI 优化状态）
+
+```typescript
+// src/stores/optimizeStore.ts
+interface OptimizeState {
+  inputValue: string;              // 输入框内容
+  setInputValue: (value: string) => void;
+  
+  // 其他 AI 优化相关状态...
+}
+```
+
+---
+
+## 🧩 核心组件
+
+### 1. PromptEditor（主组件）
+
+**职责：**
+- 管理整体布局
+- 协调节点渲染
+- 处理全局操作（添加根节点）
+- 订阅 Zustand store
+
+**关键逻辑：**
+```typescript
+// 受控/非受控模式
+const isControlled = value !== undefined;
+
+// 为每个实例创建独立 store
+const storeRef = useRef<EditorStoreType | null>(null);
+if (!storeRef.current) {
+  storeRef.current = createEditorStore(initialValue);
+}
+
+// 互斥展开：同时只能展开一个编辑器
+const [expandedEditorId, setExpandedEditorId] = useState<string | null>(null);
+
+// 子节点可多开
+const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+```
+
+### 2. Node（节点组件）
+
+**职责：**
+- 渲染单个节点（标题 + 编辑器）
+- 处理节点交互（展开/折叠、删除、添加子节点）
+- 管理依赖配置
+- 集成 AI 优化弹窗
+
+**关键特性：**
+```typescript
+// 1. 标题双击编辑
+const [isEditingTitle, setIsEditingTitle] = useState(false);
+
+// 2. 互斥展开编辑器
+const handleToggleEditor = () => {
+  if (expandedEditorId === nodeData.id) {
+    onToggleEditor(null);  // 关闭
+  } else {
+    onToggleEditor(nodeData.id);  // 打开（自动关闭其他）
+  }
+};
+
+// 3. 子节点独立展开
+const isChildrenExpanded = expandedNodes.has(nodeData.id);
+
+// 4. AI 优化弹窗
+const [optimizeModalOpen, setOptimizeModalOpen] = useState(false);
+const [selectedContent, setSelectedContent] = useState<string>();
+const [selectedRange, setSelectedRange] = useState<{ from: number; to: number } | null>(null);
+
+// 5. 未选中时默认全选
+const handleOptimize = () => {
+  const selection = view.state.selection.main;
+  if (!selection.empty) {
+    // 使用选中部分
+  } else {
+    // 默认选中全部
+    setSelectedContent(nodeData.content);
+    setSelectedRange({ from: 0, to: nodeData.content.length });
+  }
+};
+```
+
+**UI 层级：**
+```
+Node
+├─ 标题栏（z-10）
+│  ├─ 三角按钮（展开/折叠子节点）
+│  ├─ 序号 Tag
+│  ├─ 标题（可双击编辑）
+│  └─ 操作按钮（添加子节点、删除、AI 优化）
+├─ 子节点列表（条件渲染）
+└─ 编辑器区域（z-0，互斥展开）
+   ├─ CodeMirrorEditor
+   ├─ 依赖配置区
+   └─ 底部操作按钮（运行、退出）
+```
+
+### 3. AIOptimizeModal（AI 优化弹窗）
+
+**职责：**
+- 流式对话界面
+- 多轮问答
+- Markdown 渲染
+- 精准替换逻辑
+
+**关键技术：**
+```typescript
+// 1. 使用 @ant-design/x Bubble.List
+const bubbleItems = messages.map((msg) => ({
+  key: msg.id,
+  content: msg.role === 'assistant' 
+    ? renderMessageContent(msg.content)  // 预先渲染
+    : msg.content,
+  role: msg.role,
+  ...config,
+}));
+
+// 2. 流式输出模拟
+const simulateStreaming = (fullText: string) => {
+  let index = 0;
+  const timer = setInterval(() => {
+    setCurrentResponse((prev) => prev + fullText.slice(index, index + chunkSize));
+    index += chunkSize;
+  }, interval);
+};
+
+// 3. 精准替换（字符串操作）
+const onApply = (optimizedContent: string) => {
+  if (selectedRange) {
+    const before = currentContent.substring(0, selectedRange.from);
+    const after = currentContent.substring(selectedRange.to);
+    const newContent = before + optimizedContent + after;
+    onContentChange(nodeData.id, newContent);
+  }
+};
+
+// 4. Portal 渲染（避免 z-index 问题）
+return createPortal(<Modal />, document.body);
+```
+
+**注意：**
+- ❌ Bubble.List 不支持 `messageRender` 属性
+- ✅ 在构建 items 时直接调用 `renderMessageContent`
+
+### 4. CodeMirrorEditor（Markdown 编辑器）
+
+**职责：**
+- 封装 CodeMirror 6
+- 提供亮色主题
+- 支持 Markdown 语法高亮
+
+**配置：**
+```typescript
+import CodeMirror from '@uiw/react-codemirror';
+import { markdown } from '@codemirror/lang-markdown';
+
+<CodeMirror
+  value={content}
+  extensions={[markdown()]}
+  onChange={handleChange}
+  theme="light"  // 使用默认亮色主题
+/>
+```
+
+---
+
+## 🔐 业务逻辑
+
+### 1. 节点锁定机制
+
+**触发条件：**
+```typescript
+// 节点运行成功后自动锁定
+updateNode(nodeId, { hasRun: true });  // isLocked 由 hasRun 推导
+```
+
+**锁定效果：**
+- ✅ 内容不可编辑
+- ✅ 可作为依赖被其他节点选择
+- ❌ 不能选择自己作为依赖
+- ❌ 不能选择未锁定的节点作为依赖
+
+### 2. 依赖管理
+
+**选择规则：**
+```typescript
+const isNodeSelectable = (nodeId: string): boolean => {
+  if (nodeId === currentNodeId) return false;          // 不能选自己
+  if (dependencies.includes(nodeId)) return false;     // 不能重复
+  const node = availableNodes.find(n => n.id === nodeId);
+  return node?.hasRun === true;                        // 必须是已锁定节点
+};
+```
+
+**可视化展示：**
+- 使用 Ant Design TreeSelect
+- 只显示已锁定节点
+- 显示节点序号和标题
+- 支持搜索和清除
+
+### 3. 运行流程
+
+```typescript
+// 1. 用户点击"运行"按钮
+handleNodeRun(nodeId);
+
+// 2. 组件调用 onRunRequest 回调
+onRunRequest({
+  nodeId,
+  content: node.content,
+  dependenciesContent: [...],  // 依赖节点的内容
+});
+
+// 3. 用户执行异步请求
+const result = await api.runTask(request);
+
+// 4. 用户通知组件结果
+onNodeRun(nodeId, result);
+
+// 5. 组件更新状态
+updateNode(nodeId, { hasRun: true });  // 自动锁定
+```
+
+### 4. AI 优化流程
+
+```typescript
+// 1. 用户点击"AI 优化"按钮
+handleOptimize();
+
+// 2. 保存选中内容和范围
+setSelectedContent(selectedText);
+setSelectedRange({ from, to });
+
+// 3. 打开弹窗
+setOptimizeModalOpen(true);
+
+// 4. 用户输入指令并发送
+onOptimizeRequest(request, {
+  onResponse: (response) => {
+    // 流式输出：多次调用
+    streamUpdate(response.optimizedContent);
+  },
+  onError: (error) => {
+    message.error('优化失败');
+  },
+});
+
+// 5. 用户点击"替换"
+onApply(optimizedContent);
+
+// 6. 精准替换
+const newContent = before + optimizedContent + after;
+onContentChange(nodeId, newContent);
+
+// 7. 通知完成
+onNodeOptimize(nodeId, { optimizedContent });
+```
+
+---
+
+## 📝 编码规范
+
+### TypeScript 规范
+
+```typescript
+// ✅ 使用 interface 定义公开 API
+export interface PromptEditorProps {
+  initialValue?: TaskNode[];
+  onChange?: (data: TaskNode[]) => void;
+}
+
+// ✅ 使用 type 定义联合类型
+type Theme = 'default' | 'ant-design';
+
+// ✅ 明确的返回类型
+const handleAddChild = (parentId: string): string => {
+  return newNodeId;
+};
+
+// ❌ 避免 any
+const data: any = {};  // 不好
+const data: TaskNode = {};  // 好
+```
+
+### React 规范
+
+```typescript
+// ✅ 使用 useCallback 缓存事件处理函数
+const handleClick = useCallback(() => {
+  // ...
+}, [deps]);
+
+// ✅ 使用 useMemo 缓存计算结果
+const tree = useMemo(() => {
+  return mapToArray(store);
+}, [store]);
+
+// ✅ 使用 useRef 存储不需要触发重渲染的值
+const storeRef = useRef<EditorStoreType | null>(null);
+
+// ❌ 避免在 render 中创建新对象
+<Component config={{ a: 1 }} />  // 每次渲染都创建新对象
+const config = useMemo(() => ({ a: 1 }), []);
+<Component config={config} />
+```
+
+### Zustand 规范
+
+```typescript
+// ✅ 订阅最小化状态
+const storeMap = store((state) => state.store);  // 只订阅 store
+
+// ✅ 使用 getState 获取最新值（避免闭包陷阱）
+const node = store.getState().getNode(nodeId);
+
+// ❌ 避免订阅整个 store
+const state = store((state) => state);  // 任何变化都会触发重渲染
+
+// ❌ 避免在 useEffect 中使用过时的闭包
+useEffect(() => {
+  const oldNode = node;  // 可能是旧值
+}, [node]);
+```
+
+### CSS/Tailwind 规范
+
+```typescript
+// ✅ 使用 Tailwind 类名
+<div className="flex items-center gap-2 rounded-lg bg-indigo-50 px-4 py-2">
+
+// ✅ 使用 CSS 变量（主题化）
+<div style={{ color: 'var(--pe-color-primary)' }}>
+
+// ❌ 避免内联样式
+<div style={{ color: '#6366f1', padding: '16px' }}>
+
+// ❌ 避免硬编码颜色
+className="text-purple-500"  // 不统一
+className="text-indigo-500"  // 统一使用 Indigo
+```
+
+### 命名规范
+
+```typescript
+// 组件：PascalCase
+const PromptEditor = () => {};
+
+// 函数/变量：camelCase
+const handleNodeRun = () => {};
+const expandedNodes = new Set();
+
+// 常量：UPPER_SNAKE_CASE
+const MAX_DEPTH = 10;
+
+// 类型/接口：PascalCase
+interface TaskNode {}
+type NodeStore = Map<string, TaskNodeMinimal>;
+
+// 文件名：kebab-case 或 PascalCase（组件）
+prompt-editor.types.ts
+PromptEditor.tsx
+```
+
+---
+
+## 🚀 开发工作流
+
+### 本地开发
+
+```bash
+# 安装依赖
+pnpm install
+
+# 启动开发服务器（文档站点）
+pnpm dev
+
+# 清理缓存（遇到奇怪问题时）
+rm -rf .dumi/tmp node_modules/.cache
+pnpm dev
+```
+
+### 代码质量
+
+```bash
+# 运行所有检查
+pnpm lint
+
+# 单独运行
+pnpm lint:es      # ESLint
+pnpm lint:css     # Stylelint
+
+# 自动修复
+pnpm lint:fix
+```
+
+### 构建发布
+
+```bash
+# 构建库
+pnpm build
+
+# 监听模式（开发库时）
+pnpm build:watch
+
+# 构建文档
+pnpm docs:build
+
+# 预发布检查
+pnpm doctor
+```
+
+### Git 提交
+
+```bash
+# 提交消息格式（Conventional Commits）
+git commit -m "feat: 添加 AI 优化功能"
+git commit -m "fix: 修复节点删除 bug"
+git commit -m "docs: 更新使用说明"
+git commit -m "style: 统一主题颜色"
+git commit -m "refactor: 重构状态管理"
+git commit -m "test: 添加单元测试"
+git commit -m "chore: 更新依赖"
+
+# 类型说明：
+# feat:     新功能
+# fix:      修复 bug
+# docs:     文档变更
+# style:    代码格式（不影响功能）
+# refactor: 重构
+# test:     测试相关
+# chore:    构建/工具链
+```
+
+---
+
+## ⚠️ 常见陷阱
+
+### 1. Zustand 闭包陷阱
+
+```typescript
+// ❌ 错误：使用过时的闭包
+const handleClick = useCallback(() => {
+  const node = nodeData;  // 可能是旧值
+}, []);
+
+// ✅ 正确：使用 getState 获取最新值
+const handleClick = useCallback(() => {
+  const node = store.getState().getNode(nodeId);
+}, [nodeId, store]);
+```
+
+### 2. Bubble.List messageRender
+
+```typescript
+// ❌ 错误：Bubble.List 不支持 messageRender
+<Bubble.List
+  items={items}
+  messageRender={(content) => <div>{content}</div>}  // 报错！
+/>
+
+// ✅ 正确：在构建 items 时渲染
+const items = messages.map(msg => ({
+  content: msg.role === 'assistant' 
+    ? renderMessageContent(msg.content)
+    : msg.content,
+}));
+<Bubble.List items={items} />
+```
+
+### 3. dumi 缓存问题
+
+```bash
+# 症状：控制台报 lazy import 错误
+# 解决：清理缓存
+rm -rf .dumi/tmp node_modules/.cache
+pnpm dev
+```
+
+### 4. 树形数据 children 字段
+
+```typescript
+// ❌ 错误：children 存储完整对象
+interface TaskNodeMinimal {
+  children: TaskNodeMinimal[];  // 会导致循环引用
+}
+
+// ✅ 正确：children 只存 ID
+interface TaskNodeMinimal {
+  children: string[];  // 只存 ID 数组
+}
+```
+
+### 5. Set 扩展运算符
+
+```typescript
+// ❌ 错误：TS 编译错误
+const newSet = new Set([...oldSet, newItem]);
+
+// ✅ 正确：先转数组
+const newSet = new Set(Array.from(oldSet).concat(newItem));
+```
+
+---
+
+## 📚 关键文件速查
+
+| 文件 | 作用 | 修改频率 |
+|------|------|---------|
+| `src/types/index.ts` | 所有类型定义 | 低 |
+| `src/stores/editorStore.ts` | 编辑器状态管理 | 中 |
+| `src/components/PromptEditor/index.tsx` | 主组件 | 中 |
+| `src/components/PromptEditor/Node.tsx` | 节点组件（最复杂） | 高 |
+| `src/components/AIOptimizeModal/AIOptimizeModal.tsx` | AI 优化弹窗 | 中 |
+| `src/utils/tree-utils.ts` | 树形数据转换 | 低 |
+| `src/styles/variables.css` | CSS 变量（主题色） | 低 |
+
+---
+
+## 🎯 AI 助手开发指南
+
+### 当你需要...
+
+#### 添加新功能
+1. 确定功能所属模块（组件/store/utils）
+2. 更新类型定义（`src/types/index.ts`）
+3. 实现功能逻辑
+4. 添加必要的注释
+5. 运行 `pnpm lint` 检查
+
+#### 修复 Bug
+1. 定位问题文件（查看错误堆栈）
+2. 理解当前逻辑（阅读上下文代码）
+3. 最小化修改（避免引入新问题）
+4. 测试验证（`pnpm dev` 本地测试）
+5. 提交时说明修复内容
+
+#### 重构代码
+1. 保持 API 兼容（不要破坏现有用法）
+2. 逐步重构（小步迭代）
+3. 更新相关文档
+4. 运行完整测试
+
+#### 样式调整
+1. 优先使用 Tailwind 类名
+2. 保持颜色统一（使用 Indigo 色系）
+3. 遵循间距规范（xs/sm/md/lg/xl）
+4. 考虑暗色模式兼容性
+
+### 提交前检查清单
+
+- [ ] TypeScript 编译通过（`npx tsc --noEmit`）
+- [ ] Lint 检查通过（`pnpm lint`）
+- [ ] 功能测试正常（`pnpm dev` 手动测试）
+- [ ] 提交消息符合规范（Conventional Commits）
+- [ ] 更新了相关文档（如有必要）
+
+---
+
+## 🔗 相关链接
+
+- **项目仓库**: GitHub
+- **文档站点**: `pnpm dev` 启动后访问 http://localhost:8001
+- **Ant Design**: https://ant.design
+- **@ant-design/x**: https://x.ant.design
+- **CodeMirror 6**: https://codemirror.net
+- **Zustand**: https://zustand-demo.pmnd.rs
+- **TailwindCSS**: https://tailwindcss.com
+
+---
+
+## 📞 联系方式
+
+- **作者**: 601709253@qq.com
+- **Issue**: GitHub Issues
+
+---
+
+**最后更新**: 2026-04-07
+**维护者**: AI Assistant
