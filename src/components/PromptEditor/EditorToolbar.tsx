@@ -1,5 +1,5 @@
-import { Undo2, Redo2 } from 'lucide-react';
 import { Button, Tooltip } from 'antd';
+import { Redo2, Undo2 } from 'lucide-react';
 import React from 'react';
 
 interface EditorToolbarProps {
@@ -17,7 +17,7 @@ interface EditorToolbarProps {
 export const EditorToolbar: React.FC<EditorToolbarProps> = React.memo(
   ({ canUndo, canRedo, onUndo, onRedo }) => {
     return (
-      <div className="absolute right-3 top-3 z-10 flex items-center gap-1.5 rounded-xl bg-white/80 px-2 py-1.5 shadow-lg backdrop-blur-md ring-1 ring-black/5 transition-all hover:bg-white/90 dark:bg-gray-900/80 dark:hover:bg-gray-900/90 dark:ring-white/10">
+      <div className="absolute right-3 top-3 z-10 flex items-center gap-1.5 rounded-xl bg-white/80 px-2 py-1.5 shadow-lg ring-1 ring-black/5 backdrop-blur-md transition-all hover:bg-white/90 dark:bg-gray-900/80 dark:ring-white/10 dark:hover:bg-gray-900/90">
         <Tooltip title="撤回 (Ctrl+Z)">
           <Button
             size="small"

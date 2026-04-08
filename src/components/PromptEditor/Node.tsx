@@ -17,6 +17,7 @@ import {
 } from '../../types';
 import { AIOptimizeModal } from '../AIOptimizeModal/AIOptimizeModal';
 import { CodeMirrorEditor } from '../CodeMirrorEditor';
+import { DependencyConfigSection } from './DependencyConfigSection';
 import { EditorToolbar } from './EditorToolbar';
 
 interface CustomNodeProps {
@@ -33,7 +34,7 @@ interface CustomNodeProps {
   onDelete: (id: string) => void;
   onAddChild: (parentId: string) => void;
   onUpdateTitle: (id: string, title: string) => void;
-  onUpdateDependencies: (id: string, dependencies: string[]) => void; // TODO: 依赖配置功能待实现
+  onUpdateDependencies: (id: string, dependencies: string[]) => void;
   getNodeNumber: (id: string) => string;
   // 互斥展开：同时只能展开一个编辑器
   expandedEditorId: string | null;
@@ -77,15 +78,13 @@ export const Node: React.FC<CustomNodeProps> = React.memo(
     onDelete,
     onAddChild,
     onUpdateTitle,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onUpdateDependencies, // TODO: 依赖配置功能待实现
+    onUpdateDependencies,
     getNodeNumber,
     expandedEditorId,
     onToggleEditor,
     expandedNodes,
     onToggleChildren,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    availableNodes, // TODO: 依赖配置功能待实现
+    availableNodes,
     onOptimizeRequest,
     onNodeOptimize,
     onLike,
@@ -470,12 +469,14 @@ export const Node: React.FC<CustomNodeProps> = React.memo(
                   />
                 </div>
 
-                {/* 依赖任务配置区域 - TODO: 提取为独立组件 */}
-                <div className="border-t border-indigo-200 bg-indigo-50/50 px-3 py-2 dark:border-indigo-800 dark:bg-indigo-950/20">
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    依赖配置功能待实现
-                  </div>
-                </div>
+                {/* 依赖任务配置区域 */}
+                <DependencyConfigSection
+                  nodeId={nodeData.id}
+                  dependencies={nodeData.dependencies}
+                  onUpdateDependencies={onUpdateDependencies}
+                  getNodeNumber={getNodeNumber}
+                  availableNodes={availableNodes}
+                />
 
                 {/* 编辑器底部操作按钮 */}
                 <div className="flex items-center justify-end gap-2 border-t border-indigo-200 bg-white px-3 py-2 dark:border-indigo-800 dark:bg-gray-900">
