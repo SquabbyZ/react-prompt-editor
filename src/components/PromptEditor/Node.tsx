@@ -32,8 +32,7 @@ interface CustomNodeProps {
   onDelete: (id: string) => void;
   onAddChild: (parentId: string) => void;
   onUpdateTitle: (id: string, title: string) => void;
-  // TODO: 依赖配置功能待实现
-  // onUpdateDependencies: (id: string, dependencies: string[]) => void;
+  onUpdateDependencies: (id: string, dependencies: string[]) => void; // TODO: 依赖配置功能待实现
   getNodeNumber: (id: string) => string;
   // 互斥展开：同时只能展开一个编辑器
   expandedEditorId: string | null;
@@ -77,13 +76,15 @@ export const Node: React.FC<CustomNodeProps> = React.memo(
     onDelete,
     onAddChild,
     onUpdateTitle,
-    // onUpdateDependencies, // TODO: 依赖配置功能待实现
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onUpdateDependencies, // TODO: 依赖配置功能待实现
     getNodeNumber,
     expandedEditorId,
     onToggleEditor,
     expandedNodes,
     onToggleChildren,
-    // availableNodes, // TODO: 依赖配置功能待实现
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    availableNodes, // TODO: 依赖配置功能待实现
     onOptimizeRequest,
     onNodeOptimize,
     onLike,
