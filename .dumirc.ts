@@ -2,6 +2,11 @@ import { defineConfig } from 'dumi';
 
 export default defineConfig({
   outputPath: 'docs-dist',
+  // 设置默认语言为中文
+  locales: [
+    { id: 'zh-CN', name: '中文' },
+    { id: 'en-US', name: 'English' },
+  ],
   themeConfig: {
     name: 'promptED',
     logo: '/logo.png',

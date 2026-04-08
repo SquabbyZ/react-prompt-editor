@@ -4,5 +4,8 @@ export default defineConfig({
   // more father config: https://github.com/umijs/father/blob/master/docs/config.md
   esm: {
     output: 'dist',
+    extraBabelPlugins: [
+      ['babel-plugin-transform-remove-console', { exclude: ['error', 'warn'] }],
+    ],
   },
 });

@@ -1,5 +1,5 @@
 import { Tag, TreeSelect } from 'antd';
-import React from 'react';
+import React, { memo } from 'react';
 
 interface DependencyConfigSectionProps {
   nodeId: string;
@@ -21,7 +21,7 @@ interface DependencyConfigSectionProps {
  * 提供树形选择器来配置节点依赖关系
  */
 export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
-  React.memo(
+  memo(
     ({
       nodeId,
       dependencies,

@@ -1,3 +1,5 @@
+import type { Locale } from '../../i18n/locales/zh-CN';
+
 export interface CodeMirrorEditorProps {
   value: string;
   onChange?: (value: string) => void;
@@ -5,4 +7,8 @@ export interface CodeMirrorEditorProps {
   placeholder?: string;
   className?: string;
   style?: React.CSSProperties;
+  /**
+   * 国际化配置
+   */
+  locale?: Locale;
 }

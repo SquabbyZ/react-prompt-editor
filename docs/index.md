@@ -1,5 +1,4 @@
 ---
-title: PromptEditor - 提示词编辑器
 hero:
   title: PromptEditor
   description: 树形提示词编辑器组件库，支持层级化管理、依赖配置、运行与 AI 优化
@@ -10,7 +9,7 @@ hero:
       link: https://github.com/your-repo/react-prompt-editor
 ---
 
-## 🎯 特性
+## 🎯 特性 / Features
 
 - 🌳 **树形结构管理** - 层级化提示词组织，可视化拖拽编辑
 - 🔗 **依赖关系配置** - 配置节点间依赖，运行时自动拼接
@@ -20,19 +19,21 @@ hero:
 - ⚡ **高性能** - Map 数据结构，支持 2000+ 节点
 - 📝 **CodeMirror** - Markdown 语法高亮，懒加载
 - 🎨 **可定制主题** - CSS 变量，支持主题扩展
+- 🌍 **国际化支持** - 支持中英文切换
 
-## 🚀 快速体验
+## 🚀 快速体验 / Quick Demo
 
 <code src="./components/examples/basic.tsx" title="在线 Demo" iframe></code>
 
-## 📦 安装
+## 📦 安装 / Installation
 
 ```bash
 pnpm add @uiw/react-codemirror @codemirror/lang-markdown @codemirror/theme-one-dark
 pnpm add react-prompt-editor
 ```
 
-## 🔗 相关链接
+## 🔗 相关链接 / Links
 
 - [组件文档](/components/prompt-editor)
 - [使用指南](/components/prompt-editor#使用指南)
+- [国际化](/i18n)

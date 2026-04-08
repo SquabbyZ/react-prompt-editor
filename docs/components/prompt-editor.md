@@ -1,6 +1,4 @@
 ---
-title: PromptEditor - 提示词编辑器
-description: 树形提示词编辑器组件，支持层级化管理、依赖配置、运行与 AI 优化
 demo:
   - cols: 1
     iframe: 600
@@ -16,26 +14,10 @@ demo:
 
 ```typescript
 import { PromptEditor } from 'react-prompt-editor';
-import 'react-prompt-editor/dist/styles/tailwind.css'; // 必须引入样式
+import 'react-prompt-editor/dist/styles/tailwind.css'; // 必须引入
 ```
 
 如果不引入样式文件，组件将失去所有样式，显示为未格式化的原始内容。
-
-## 🎨 设计系统展示
-
-查看全新的 **Refined Utilitarian** 设计系统效果：
-
-<code src="../examples/design-system-showcase.tsx" title="设计系统展示" iframe></code>
-
-### 设计特色
-
-- **Amber 主色调** - 区别于常见的紫色/蓝色，采用温暖的琥珀色
-- **窗口 Chrome 美学** - macOS 风格的红绿灯装饰和精致边框
-- **分层阴影系统** - 微妙的阴影层级增加深度感
-- **4px 网格系统** - 统一的间距比例保证视觉节奏
-- **优雅微交互** - 平滑的悬停过渡和动画效果
-
-详细设计规范请参考：[Design System Documentation](../design-system.md)
 
 ## 快速上手
 
@@ -61,6 +43,26 @@ import 'react-prompt-editor/dist/styles/tailwind.css'; // 必须引入样式
 
 <code src="./examples/streaming.tsx" title="流式输出示例"></code>
 
+## 🌍 国际化
+
+组件支持中英文切换，CodeMirror 编辑器的搜索框等 UI 元素也会自动切换语言：
+
+<code src="./examples/i18n-demo.tsx" title="国际化演示" iframe></code>
+
+### 使用方式
+
+```tsx
+import { PromptEditor, zhCN, enUS } from 'react-prompt-editor';
+
+// 使用中文
+const App = () => <PromptEditor locale={zhCN} />;
+
+// 使用英文
+const AppEn = () => <PromptEditor locale={enUS} />;
+```
+
+更多国际化详情请参考：[国际化文档](../i18n)
+
 ## API
 
 ### PromptEditor Props
@@ -81,7 +83,8 @@ import 'react-prompt-editor/dist/styles/tailwind.css'; // 必须引入样式
 | renderToolbar     | 自定义顶部工具栏                                               | `(actions) => ReactNode`                                                 | -       |
 | onLike            | AI 优化消息点赞回调                                            | `(messageId: string) => void`                                            | -       |
 | onDislike         | AI 优化消息点踩回调                                            | `(messageId: string) => void`                                            | -       |
-| previewMode       | 预览模式（只读展示，隐藏操作按钮）                             | `boolean`                                                                | `false` |
+| previewMode       | 预览模式（只读，隐藏编辑功能）                                 | `boolean`                                                                | `false` |
+| locale            | 国际化配置（类似 Ant Design 的语言包）                         | `Locale`                                                                 | `zhCN`  |
 
 ## 数据类型
 

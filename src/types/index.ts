@@ -1,3 +1,5 @@
+import type { Locale } from '../i18n/locales/zh-CN';
+
 /**
  * 内部存储结构（扁平化）
  */
@@ -125,4 +127,10 @@ export interface PromptEditorProps {
    * @default false
    */
   previewMode?: boolean;
+  /**
+   * 国际化配置 - 类似 Ant Design 的语言包
+   * @example import zhCN from 'react-prompt-editor/locale/zh-CN';
+   * @default zhCN (中文)
+   */
+  locale?: Locale;
 }

@@ -1,5 +1,5 @@
 import { Input, message, Tag } from 'antd';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { memo, useEffect, useRef, useState } from 'react';
 
 interface EditableTitleProps {
   nodeId: string;
@@ -19,7 +19,7 @@ interface EditableTitleProps {
  * - 双击编辑标题
  * - 自动同步更新 Markdown 内容中的标题
  */
-export const EditableTitle: React.FC<EditableTitleProps> = React.memo(
+export const EditableTitle: React.FC<EditableTitleProps> = memo(
   ({
     nodeId,
     title,

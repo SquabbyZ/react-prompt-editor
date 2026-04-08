@@ -13,10 +13,10 @@ if (!fs.existsSync(outputPath)) {
     fs.mkdirSync(outputPath, { recursive: true });
 }
 
-// Compile Tailwind CSS using CLI
+// Compile Tailwind CSS using CLI with explicit config to ensure animations are included
 try {
     execSync(
-        `npx tailwindcss -i ${srcPath} -o ${path.resolve(outputPath, 'tailwind.css')} --minify`,
+        `npx tailwindcss -i ${srcPath} -o ${path.resolve(outputPath, 'tailwind.css')} --minify --config ./tailwind.config.js`,
         { stdio: 'inherit' }
     );
     console.log('✅ Tailwind CSS compiled successfully!');

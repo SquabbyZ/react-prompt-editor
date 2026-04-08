@@ -9,7 +9,7 @@ import {
 } from '@ant-design/icons';
 import { Bubble, Sender } from '@ant-design/x';
 import { Button, message } from 'antd';
-import React, { useEffect, useRef } from 'react';
+import React, { memo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { createOptimizeStore, OptimizeStoreType } from '../../stores';
 import { OptimizeRequest, OptimizeResponse } from '../../types';
@@ -404,7 +404,10 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
     const config = roleConfig[msg.role] || {};
     return {
       key: msg.id,
-      content: msg.role === 'assistant' ? renderMessageContent(msg.content) : msg.content,
+      content:
+        msg.role === 'assistant'
+          ? renderMessageContent(msg.content)
+          : msg.content,
       role: msg.role,
       ...config,
     };
@@ -556,3 +559,5 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
     document.body,
   );
 };
+
+export default memo(AIOptimizeModal);

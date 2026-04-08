@@ -1,6 +1,6 @@
 import { Button, Tooltip } from 'antd';
 import { Redo2, Undo2 } from 'lucide-react';
-import React from 'react';
+import React, { memo } from 'react';
 
 interface EditorToolbarProps {
   canUndo: boolean;
@@ -14,7 +14,7 @@ interface EditorToolbarProps {
  * 提供撤回/还原功能
  * 浮动在编辑器右上角
  */
-export const EditorToolbar: React.FC<EditorToolbarProps> = React.memo(
+export const EditorToolbar: React.FC<EditorToolbarProps> = memo(
   ({ canUndo, canRedo, onUndo, onRedo }) => {
     return (
       <div className="absolute right-3 top-3 z-10 flex items-center gap-1.5 rounded-xl bg-white/80 px-2 py-1.5 shadow-lg ring-1 ring-black/5 backdrop-blur-md transition-all hover:bg-white/90 dark:bg-gray-900/80 dark:ring-white/10 dark:hover:bg-gray-900/90">

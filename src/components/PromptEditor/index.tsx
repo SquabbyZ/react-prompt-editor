@@ -1,6 +1,7 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { Button, message } from 'antd';
 import React, {
+  memo,
   useCallback,
   useEffect,
   useMemo,
@@ -26,6 +27,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   onLike,
   onDislike,
   previewMode = false,
+  locale,
 }) => {
   const isControlled = value !== undefined;
 
@@ -279,6 +281,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
             onLike={onLike}
             onDislike={onDislike}
             previewMode={previewMode}
+            locale={locale}
           />
           {/* 递归渲染子节点 - 根据 expandedNodes 判断是否显示 */}
           {node.children &&
@@ -326,4 +329,4 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   );
 };
 
-export default PromptEditor;
+export default memo(PromptEditor);

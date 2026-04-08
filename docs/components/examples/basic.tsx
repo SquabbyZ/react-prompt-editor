@@ -1,5 +1,5 @@
 import React from 'react';
-import { PromptEditor } from '../../../src';
+import { PromptEditor, zhCN } from '../../../src';
 import {
   OptimizeRequest,
   OptimizeResponse,
@@ -114,7 +114,7 @@ export default () => {
         onNodeOptimize={handleNodeOptimize}
         onNodeLock={handleNodeLock}
         onTreeChange={handleTreeChange}
-        theme="default"
+        locale={zhCN}
       />
     </div>
   );

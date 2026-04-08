@@ -8,8 +8,9 @@ import {
   UnlockOutlined,
 } from '@ant-design/icons';
 import { Button, message, Popconfirm, Tag, Tooltip } from 'antd';
-import React, { useCallback } from 'react';
+import React, { memo, useCallback } from 'react';
 import { useNodeEditor } from '../../hooks/useNodeEditor';
+import type { Locale } from '../../i18n/locales/zh-CN';
 import {
   OptimizeRequest,
   OptimizeResponse,
@@ -68,9 +69,11 @@ interface CustomNodeProps {
   onDislike?: (messageId: string) => void;
   // 预览模式
   previewMode?: boolean;
+  // 国际化配置
+  locale?: Locale;
 }
 
-export const Node: React.FC<CustomNodeProps> = React.memo(
+export const Node: React.FC<CustomNodeProps> = memo(
   ({
     node,
     style,
@@ -93,6 +96,7 @@ export const Node: React.FC<CustomNodeProps> = React.memo(
     onLike,
     onDislike,
     previewMode = false,
+    locale,
   }) => {
     const nodeData = node.data;
     // 判断是否是内部节点（有子节点）
@@ -397,12 +401,13 @@ export const Node: React.FC<CustomNodeProps> = React.memo(
                   />
                 )}
 
-                <div className="m-2 rounded-md border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                <div className="m-2 rounded-md bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
                   <CodeMirrorEditor
                     ref={editorRef}
                     value={nodeData.content}
                     onChange={handleContentChange}
                     isReadOnly={nodeData.isLocked || previewMode}
+                    locale={locale}
                   />
                 </div>
 
@@ -450,7 +455,7 @@ export const Node: React.FC<CustomNodeProps> = React.memo(
                     originalContent={nodeData.content}
                     selectedContent={selectedContent}
                     onOptimizeRequest={onOptimizeRequest}
-                    onApply={(optimizedContent) => {
+                    onApply={(optimizedContent: string) => {
                       // 如果有选中范围，替换选中部分
                       if (selectedRange) {
                         try {
