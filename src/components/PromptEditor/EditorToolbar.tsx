@@ -12,18 +12,19 @@ interface EditorToolbarProps {
 /**
  * 编辑器工具栏组件
  * 提供撤回/还原功能
+ * 浮动在编辑器右上角
  */
 export const EditorToolbar: React.FC<EditorToolbarProps> = React.memo(
   ({ canUndo, canRedo, onUndo, onRedo }) => {
     return (
-      <div className="flex items-center gap-1 border-b border-gray-200 bg-gray-50 px-2 py-1.5 dark:border-gray-700 dark:bg-gray-800">
+      <div className="absolute right-2 top-2 z-10 flex items-center gap-1 rounded-lg bg-white/90 p-1.5 shadow-md backdrop-blur-sm dark:bg-gray-900/90">
         <Tooltip title="撤回 (Ctrl+Z)">
           <Button
             size="small"
             icon={<UndoOutlined />}
             onClick={onUndo}
             disabled={!canUndo}
-            className="text-xs"
+            className="h-7 w-7"
           />
         </Tooltip>
         <Tooltip title="还原 (Ctrl+Y)">
@@ -32,7 +33,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = React.memo(
             icon={<RedoOutlined />}
             onClick={onRedo}
             disabled={!canRedo}
-            className="text-xs"
+            className="h-7 w-7"
           />
         </Tooltip>
       </div>
