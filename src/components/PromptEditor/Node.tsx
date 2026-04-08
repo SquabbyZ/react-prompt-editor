@@ -9,6 +9,7 @@ import {
 } from '@ant-design/icons';
 import { Button, message, Popconfirm, Tag, Tooltip } from 'antd';
 import React, { memo, useCallback } from 'react';
+import { useI18n } from '../../hooks/useI18n';
 import { useNodeEditor } from '../../hooks/useNodeEditor';
 import type { Locale } from '../../i18n/locales/zh-CN';
 import {
@@ -98,6 +99,8 @@ export const Node: React.FC<CustomNodeProps> = memo(
     previewMode = false,
     locale,
   }) => {
+    // 国际化 Hook
+    const { t } = useI18n(locale);
     const nodeData = node.data;
     // 判断是否是内部节点（有子节点）
     const isInternal = nodeData.children.length > 0;
@@ -173,12 +176,12 @@ export const Node: React.FC<CustomNodeProps> = memo(
       (e: React.MouseEvent) => {
         e.stopPropagation();
         if (nodeData.isLocked) {
-          message.warning('节点已锁定，无法添加子节点');
+          message.warning(t('editor.lockedCannotAddChild'));
           return;
         }
         onAddChild(nodeData.id);
       },
-      [nodeData.id, nodeData.isLocked, onAddChild],
+      [nodeData.id, nodeData.isLocked, onAddChild, t],
     );
 
     const handleRun = useCallback(
@@ -248,7 +251,11 @@ export const Node: React.FC<CustomNodeProps> = memo(
                       onToggleChildren(nodeData.id);
                     }}
                     type="button"
-                    title={isChildrenExpanded ? '折叠子节点' : '展开子节点'}
+                    title={
+                      isChildrenExpanded
+                        ? t('editor.collapseChildren')
+                        : t('editor.expandChildren')
+                    }
                   >
                     <span
                       className={`text-[10px] leading-none transition-transform ${isChildrenExpanded ? 'rotate-0' : '-rotate-90'}`}
@@ -271,6 +278,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
                   onTitleChange={onUpdateTitle}
                   onContentChange={onContentChange}
                   previewMode={previewMode}
+                  locale={locale}
                   onClick={() => {
                     // 预览模式下：点击标题展开/折叠编辑器
                     // 编辑模式下：只展开/折叠子节点
@@ -284,13 +292,17 @@ export const Node: React.FC<CustomNodeProps> = memo(
 
                 {/* 状态图标 */}
                 {nodeData.isLocked && (
-                  <Tooltip title="已锁定">
+                  <Tooltip title={t('editor.nodeLocked')}>
                     <LockOutlined style={{ fontSize: 12, color: '#faad14' }} />
                   </Tooltip>
                 )}
                 {!nodeData.hasRun && !previewMode && (
-                  <Tag color="default" title="未运行" style={{ fontSize: 10 }}>
-                    未运行
+                  <Tag
+                    color="default"
+                    title={t('editor.notRun')}
+                    style={{ fontSize: 10 }}
+                  >
+                    {t('editor.notRun')}
                   </Tag>
                 )}
               </div>
@@ -300,7 +312,11 @@ export const Node: React.FC<CustomNodeProps> = memo(
                 <div className="relative z-20 flex flex-shrink-0 items-center gap-1.5">
                   {/* 编辑按钮 - 只控制编辑器展开/折叠 */}
                   <Tooltip
-                    title={isEditorExpanded ? '折叠编辑器' : '展开编辑器'}
+                    title={
+                      isEditorExpanded
+                        ? t('editor.collapseEditor')
+                        : t('editor.expandEditor')
+                    }
                   >
                     <Button
                       type={isEditorExpanded ? 'primary' : 'default'}
@@ -311,14 +327,16 @@ export const Node: React.FC<CustomNodeProps> = memo(
                         background: isEditorExpanded ? undefined : '#fff',
                       }}
                     >
-                      <span className="hidden sm:inline">编辑提示词</span>
+                      <span className="hidden sm:inline">
+                        {t('editor.editPrompt')}
+                      </span>
                     </Button>
                   </Tooltip>
                   <Tooltip
                     title={
                       nodeData.isLocked
-                        ? '节点已锁定，无法添加子节点'
-                        : '添加子节点'
+                        ? t('editor.lockedCannotAddChild')
+                        : t('editor.addChildNode')
                     }
                   >
                     <Button
@@ -327,16 +345,18 @@ export const Node: React.FC<CustomNodeProps> = memo(
                       onClick={handleAddChild}
                       disabled={nodeData.isLocked}
                     >
-                      <span className="hidden sm:inline">子标题</span>
+                      <span className="hidden sm:inline">
+                        {t('editor.childTitle')}
+                      </span>
                     </Button>
                   </Tooltip>
                   <Tooltip
                     title={
                       nodeData.hasRun
                         ? nodeData.isLocked
-                          ? '解锁节点'
-                          : '锁定节点'
-                        : '请先运行'
+                          ? t('editor.unlockNode')
+                          : t('editor.lockNode')
+                        : t('editor.runFirst')
                     }
                   >
                     <Button
@@ -352,23 +372,27 @@ export const Node: React.FC<CustomNodeProps> = memo(
                       disabled={!nodeData.hasRun}
                     >
                       <span className="hidden sm:inline">
-                        {nodeData.isLocked ? '解锁' : '锁定'}
+                        {nodeData.isLocked
+                          ? t('editor.unlock')
+                          : t('editor.lock')}
                       </span>
                     </Button>
                   </Tooltip>
 
                   <Popconfirm
-                    title="删除节点"
-                    description="确定要删除这个节点吗？"
+                    title={t('editor.deleteNode')}
+                    description={t('editor.confirmDeleteNode')}
                     onConfirm={handleDelete}
-                    onCancel={() => message.info('已取消删除')}
-                    okText="确定"
-                    cancelText="取消"
+                    onCancel={() => message.info(t('editor.cancelledDelete'))}
+                    okText={t('common.ok')}
+                    cancelText={t('common.cancel')}
                     disabled={nodeData.isLocked}
                   >
                     <Tooltip
                       title={
-                        nodeData.isLocked ? '节点已锁定，无法删除' : '删除节点'
+                        nodeData.isLocked
+                          ? t('editor.lockedCannotDelete')
+                          : t('editor.deleteNode')
                       }
                     >
                       <Button
@@ -398,6 +422,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
                     canRedo={canRedo}
                     onUndo={handleUndo}
                     onRedo={handleRedo}
+                    locale={locale}
                   />
                 )}
 
@@ -419,6 +444,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
                     onUpdateDependencies={onUpdateDependencies}
                     getNodeNumber={getNodeNumber}
                     availableNodes={availableNodes}
+                    locale={locale}
                   />
                 )}
 
@@ -430,14 +456,14 @@ export const Node: React.FC<CustomNodeProps> = memo(
                       icon={<PlayCircleOutlined />}
                       onClick={handleRun}
                     >
-                      运行
+                      {t('editor.run')}
                     </Button>
 
                     <Button
                       icon={<ThunderboltOutlined />}
                       onClick={handleOptimize}
                     >
-                      AI 优化
+                      {t('editor.aiOptimize')}
                     </Button>
                   </div>
                 )}
@@ -471,15 +497,17 @@ export const Node: React.FC<CustomNodeProps> = memo(
                           const newContent = before + optimizedContent + after;
 
                           onContentChange(nodeData.id, newContent);
-                          message.success('已替换选中内容');
+                          message.success(
+                            t('aiOptimize.replacedSelectedContent'),
+                          );
                         } catch (error) {
                           console.error('替换失败:', error);
-                          message.error('替换失败，请重试');
+                          message.error(t('aiOptimize.replaceFailed'));
                         }
                       } else {
                         // 没有选中内容，替换全部内容
                         onContentChange(nodeData.id, optimizedContent);
-                        message.success('已替换全部内容');
+                        message.success(t('aiOptimize.replacedAllContent'));
                       }
 
                       // 调用优化完成回调

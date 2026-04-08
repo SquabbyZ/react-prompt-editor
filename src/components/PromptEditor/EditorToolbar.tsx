@@ -1,12 +1,15 @@
 import { Button, Tooltip } from 'antd';
 import { Redo2, Undo2 } from 'lucide-react';
 import React, { memo } from 'react';
+import { useI18n } from '../../hooks/useI18n';
+import type { Locale } from '../../i18n/locales/zh-CN';
 
 interface EditorToolbarProps {
   canUndo: boolean;
   canRedo: boolean;
   onUndo: (e: React.MouseEvent) => void;
   onRedo: (e: React.MouseEvent) => void;
+  locale?: Locale;
 }
 
 /**
@@ -15,10 +18,12 @@ interface EditorToolbarProps {
  * 浮动在编辑器右上角
  */
 export const EditorToolbar: React.FC<EditorToolbarProps> = memo(
-  ({ canUndo, canRedo, onUndo, onRedo }) => {
+  ({ canUndo, canRedo, onUndo, onRedo, locale }) => {
+    // 国际化 Hook
+    const { t } = useI18n(locale);
     return (
       <div className="absolute right-3 top-3 z-10 flex items-center gap-1.5 rounded-xl bg-white/80 px-2 py-1.5 shadow-lg ring-1 ring-black/5 backdrop-blur-md transition-all hover:bg-white/90 dark:bg-gray-900/80 dark:ring-white/10 dark:hover:bg-gray-900/90">
-        <Tooltip title="撤回 (Ctrl+Z)">
+        <Tooltip title={t('editor_toolbar.undo')}>
           <Button
             size="small"
             type="text"
@@ -28,7 +33,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = memo(
             className="flex h-7 w-7 items-center justify-center p-0"
           />
         </Tooltip>
-        <Tooltip title="还原 (Ctrl+Y)">
+        <Tooltip title={t('editor_toolbar.redo')}>
           <Button
             size="small"
             type="text"

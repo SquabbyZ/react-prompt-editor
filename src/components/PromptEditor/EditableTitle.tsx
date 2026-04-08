@@ -1,5 +1,7 @@
 import { Input, message, Tag } from 'antd';
 import React, { memo, useEffect, useRef, useState } from 'react';
+import { useI18n } from '../../hooks/useI18n';
+import type { Locale } from '../../i18n/locales/zh-CN';
 
 interface EditableTitleProps {
   nodeId: string;
@@ -11,6 +13,7 @@ interface EditableTitleProps {
   onContentChange: (id: string, content: string) => void;
   onClick?: () => void;
   previewMode?: boolean;
+  locale?: Locale;
 }
 
 /**
@@ -30,7 +33,10 @@ export const EditableTitle: React.FC<EditableTitleProps> = memo(
     onContentChange,
     onClick,
     previewMode = false,
+    locale,
   }) => {
+    // 国际化 Hook
+    const { t } = useI18n(locale);
     const [isEditing, setIsEditing] = useState(false);
     const [titleValue, setTitleValue] = useState(title);
     const inputRef = useRef<any>(null);
@@ -54,11 +60,11 @@ export const EditableTitle: React.FC<EditableTitleProps> = memo(
     const handleStartEdit = (e: React.MouseEvent) => {
       e.stopPropagation();
       if (previewMode) {
-        message.warning('预览模式下无法编辑');
+        message.warning(t('editor.previewModeNoEdit'));
         return;
       }
       if (isLocked) {
-        message.warning('节点已锁定，无法编辑');
+        message.warning(t('editor.lockedCannotEdit'));
         return;
       }
       // 清除单击定时器，执行双击逻辑
@@ -96,7 +102,7 @@ export const EditableTitle: React.FC<EditableTitleProps> = memo(
           const newContent = `# ${trimmed}\n${content}`;
           onContentChange(nodeId, newContent);
         }
-        message.success('标题修改成功');
+        message.success(t('editor.titleUpdated'));
       } else {
         message.warning('标题不能为空');
       }

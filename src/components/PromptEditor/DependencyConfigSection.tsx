@@ -1,5 +1,7 @@
 import { Tag, TreeSelect } from 'antd';
 import React, { memo } from 'react';
+import { useI18n } from '../../hooks/useI18n';
+import type { Locale } from '../../i18n/locales/zh-CN';
 
 interface DependencyConfigSectionProps {
   nodeId: string;
@@ -14,6 +16,7 @@ interface DependencyConfigSectionProps {
     parentId?: string;
     children: string[];
   }>;
+  locale?: Locale;
 }
 
 /**
@@ -28,7 +31,10 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
       onUpdateDependencies,
       getNodeNumber,
       availableNodes,
+      locale,
     }) => {
+      // 国际化 Hook
+      const { t } = useI18n(locale);
       // 获取已选择的依赖节点信息
       const selectedDeps = dependencies
         .map((depId) => {
@@ -89,7 +95,7 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
                   {childNode.title}
                   {childNode.hasRun && (
                     <Tag color="green" className="px-2 py-1 text-xs font-bold">
-                      已锁定
+                      {t('editor.nodeLocked')}
                     </Tag>
                   )}
                 </span>
@@ -124,7 +130,7 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
                 {rootNode.title}
                 {rootNode.hasRun && (
                   <Tag color="green" className="px-2 py-1 text-xs font-bold">
-                    已锁定
+                    {t('editor.nodeLocked')}
                   </Tag>
                 )}
               </span>
@@ -145,10 +151,10 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
         <div className="border-t border-indigo-200 bg-indigo-50/50 px-3 py-2 dark:border-indigo-800 dark:bg-indigo-950/20">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-              依赖任务
+              {t('dependency.dependencies')}
             </span>
             <span className="text-[10px] text-gray-500 dark:text-gray-400">
-              只能选择已锁定且序号靠前的节点
+              {t('dependency.canOnlySelectLockedNodes')}
             </span>
           </div>
 
@@ -179,7 +185,7 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
             </div>
           ) : (
             <div className="mb-2 rounded border border-dashed border-gray-300 bg-gray-50 px-2 py-1.5 text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
-              暂无依赖，点击下方按钮添加（只能选择已锁定的前置节点）
+              {t('dependency.noDependencies')}
             </div>
           )}
 
@@ -187,7 +193,7 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
           <TreeSelect
             className="w-full"
             treeData={treeData}
-            placeholder="选择依赖节点（只能选择已锁定的节点）"
+            placeholder={t('dependency.selectDependencyPlaceholder')}
             allowClear
             treeDefaultExpandAll
             dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}

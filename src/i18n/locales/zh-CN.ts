@@ -14,6 +14,7 @@ export default {
     error: '错误',
     warning: '警告',
     info: '提示',
+    ok: '确定',
   },
 
   // PromptEditor 组件
@@ -45,6 +46,12 @@ export default {
     deleteConfirmDesc: '确定要删除这个节点吗？',
     cancelledDelete: '已取消删除',
     editPrompt: '编辑提示词',
+    run: '运行',
+    aiOptimize: 'AI 优化',
+    expandChildren: '展开子节点',
+    collapseChildren: '折叠子节点',
+    titleUpdated: '标题修改成功',
+    missingOnRunRequest: '请提供 onRunRequest 回调',
   },
 
   // Node 操作按钮
@@ -57,16 +64,18 @@ export default {
 
   // 依赖配置
   dependency: {
-    title: '依赖任务',
-    placeholder: '选择依赖节点（只能选择已锁定的节点）',
-    hint: '只能选择已锁定且序号靠前的节点',
-    noDependency: '暂无依赖，点击下方按钮添加（只能选择已锁定的前置节点）',
+    dependencies: '依赖任务',
+    selectDependencyPlaceholder: '选择依赖节点（只能选择已锁定的节点）',
+    canOnlySelectLockedNodes: '只能选择已锁定且序号靠前的节点',
+    noDependencies: '暂无依赖，点击下方按钮添加（只能选择已锁定的前置节点）',
     locked: '已锁定',
   },
 
   // AI 优化弹窗
   optimize: {
     title: 'AI 提示词优化',
+    userRole: '用户',
+    aiRole: 'AI',
     selectedContent: '已选中 {length} 字',
     selectedContentHint: '选中的内容（{length} 字）',
     inputPlaceholder: '请输入优化指令...',
@@ -84,6 +93,13 @@ export default {
     optimizeComplete: '优化完成',
     emptyState: '输入优化指令，AI 将为您优化提示词',
     provideCallback: '请提供 onOptimizeRequest 回调',
+  },
+
+  // AI 优化消息
+  aiOptimize: {
+    replacedSelectedContent: '已替换选中内容',
+    replacedAllContent: '已替换全部内容',
+    replaceFailed: '替换失败，请重试',
   },
 
   // CodeMirror 编辑器

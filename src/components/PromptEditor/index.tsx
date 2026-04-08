@@ -8,6 +8,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useI18n } from '../../hooks/useI18n';
 import { createEditorStore, EditorStoreType } from '../../stores';
 import { Node } from './Node';
 import { PromptEditorProps } from './PromptEditor.types';
@@ -29,6 +30,8 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   previewMode = false,
   locale,
 }) => {
+  // 国际化 Hook
+  const { t } = useI18n(locale);
   const isControlled = value !== undefined;
 
   // 为每个 PromptEditor 实例创建独立的 store
@@ -85,7 +88,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   const handleNodeRun = useCallback(
     (nodeId: string) => {
       if (!onRunRequest) {
-        message.warning('请提供 onRunRequest 回调');
+        message.warning(t('editor.missingOnRunRequest'));
         return;
       }
 
@@ -114,7 +117,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
         },
       });
     },
-    [onRunRequest, store, handleNodeRunCallback],
+    [onRunRequest, store, handleNodeRunCallback, t],
   );
 
   const handleNodeLock = useCallback(
@@ -124,20 +127,22 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
 
       const newLocked = !node.isLocked;
       updateNode(nodeId, { isLocked: newLocked });
-      message.success(newLocked ? '节点已锁定' : '节点已解锁');
+      message.success(
+        newLocked ? t('editor.nodeLocked') : t('editor.nodeUnlocked'),
+      );
       onNodeLock?.(nodeId, newLocked);
       onChange?.(store.getState().getTree());
     },
-    [updateNode, onNodeLock, onChange, store],
+    [updateNode, onNodeLock, onChange, store, t],
   );
 
   const handleDelete = useCallback(
     (nodeId: string) => {
       removeNode(nodeId);
-      message.success('节点已删除');
+      message.success(t('editor.nodeDeleted'));
       onChange?.(store.getState().getTree());
     },
-    [removeNode, onChange, store],
+    [removeNode, onChange, store, t],
   );
 
   const handleAddChild = useCallback(
@@ -151,19 +156,19 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
         next.add(parentId);
         return next;
       });
-      message.success('子节点添加成功');
+      message.success(t('editor.childNodeAdded'));
       onChange?.(store.getState().getTree());
     },
-    [addChild, onChange, store],
+    [addChild, onChange, store, t],
   );
 
   const handleAddRootNode = useCallback(() => {
     const newNodeId = addRootNode();
     // 自动展开新节点的编辑器
     setExpandedEditorId(newNodeId);
-    message.success('一级标题添加成功');
+    message.success(t('editor.rootTitleAdded'));
     onChange?.(store.getState().getTree());
-  }, [addRootNode, onChange, store]);
+  }, [addRootNode, onChange, store, t]);
 
   const handleUpdateTitle = useCallback(
     (nodeId: string, title: string) => {
@@ -179,13 +184,13 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
         store.getState().getNode(nodeId)?.dependencies.length || 0;
       updateNode(nodeId, { dependencies });
       if (dependencies.length > prevCount) {
-        message.success('依赖添加成功');
+        message.success(t('editor.dependencyAdded'));
       } else if (dependencies.length < prevCount) {
-        message.info('依赖已移除');
+        message.info(t('editor.dependencyRemoved'));
       }
       onChange?.(store.getState().getTree());
     },
-    [updateNode, onChange, store],
+    [updateNode, onChange, store, t],
   );
 
   // 获取所有可用节点列表（用于依赖选择）
@@ -317,7 +322,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
               onClick={handleAddRootNode}
               block
             >
-              添加一级标题
+              {t('editor.addRootNode')}
             </Button>
           )}
         </div>

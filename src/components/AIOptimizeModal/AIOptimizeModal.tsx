@@ -11,6 +11,7 @@ import { Bubble, Sender } from '@ant-design/x';
 import { Button, message } from 'antd';
 import React, { memo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { useI18n } from '../../hooks/useI18n';
 import { createOptimizeStore, OptimizeStoreType } from '../../stores';
 import { OptimizeRequest, OptimizeResponse } from '../../types';
 
@@ -49,6 +50,8 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
   onLike,
   onDislike,
 }) => {
+  // 国际化 Hook
+  const { t } = useI18n();
   // 为每个弹窗实例创建独立的 store
   const storeRef = useRef<OptimizeStoreType | null>(null);
   if (!storeRef.current) {
@@ -182,7 +185,7 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
 
   const handleSendMessageFromContent = (content: string) => {
     if (!onOptimizeRequest) {
-      message.error('请提供 onOptimizeRequest 回调');
+      message.error(t('optimize.provideCallback'));
       store.getState().stopStreaming();
       return;
     }
@@ -190,7 +193,10 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
     abortControllerRef.current = new AbortController();
 
     const conversationHistory = messages
-      .map((msg) => `${msg.role === 'user' ? '用户' : 'AI'}: ${msg.content}`)
+      .map(
+        (msg) =>
+          `${msg.role === 'user' ? t('optimize.userRole') : t('optimize.aiRole')}: ${msg.content}`,
+      )
       .join('\n\n');
 
     // 触发优化请求回调，用户通过 onResponse 返回结果
@@ -205,7 +211,7 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
         },
         onError: (error) => {
           console.error('Optimize failed:', error);
-          message.error('优化失败，请重试');
+          message.error(t('optimize.optimizeFailed'));
           store.getState().stopStreaming();
           streamingStateRef.current.isStarted = false;
         },
@@ -215,7 +221,7 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
 
   const handleCopy = (content: string) => {
     navigator.clipboard.writeText(content);
-    message.success('已复制到剪贴板');
+    message.success(t('optimize.copied'));
   };
 
   const handleRegenerate = () => {
@@ -276,10 +282,10 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
 
     if (lastAssistantMessage?.content) {
       onApply(lastAssistantMessage.content);
-      message.success('优化内容已应用');
+      message.success(t('optimize.contentApplied'));
       handleClose();
     } else {
-      message.warning('暂无优化内容可应用');
+      message.warning(t('optimize.noOptimizeContent'));
     }
   };
 
@@ -508,7 +514,7 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
             {messages.length === 0 && !isGenerating && !selectedContent && (
               <div className="flex h-64 flex-col items-center justify-center text-gray-400">
                 <ThunderboltOutlined className="mb-3 text-5xl opacity-30" />
-                <p className="text-sm">输入优化指令，AI 将为您优化提示词</p>
+                <p className="text-sm">{t('optimize.emptyState')}</p>
               </div>
             )}
           </div>
@@ -524,10 +530,10 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
                   onClick={handleApply}
                   className="border-none bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700"
                 >
-                  替换
+                  {t('optimize.apply')}
                 </Button>
                 <Button size="large" onClick={handleClose}>
-                  退出
+                  {t('optimize.exit')}
                 </Button>
               </div>
             )}
@@ -541,8 +547,10 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
               loading={isStreaming}
               placeholder={
                 selectedContent
-                  ? `请输入优化指令（已选中 ${selectedContent.length} 字内容）`
-                  : '请输入优化指令...'
+                  ? t('optimize.inputPlaceholderWithSelection', {
+                      length: selectedContent.length,
+                    })
+                  : t('optimize.inputPlaceholder')
               }
               allowSpeech={false}
               disabled={isGenerating}
@@ -550,7 +558,7 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
 
             {/* 免责声明 */}
             <p className="mt-3 text-center text-xs text-gray-400">
-              内容由AI生成，无法确保真实准确，仅供参考。
+              {t('optimize.disclaimer')}
             </p>
           </div>
         </div>

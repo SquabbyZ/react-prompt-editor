@@ -14,6 +14,7 @@ export default {
     error: 'Error',
     warning: 'Warning',
     info: 'Info',
+    ok: 'OK',
   },
 
   // PromptEditor Component
@@ -45,6 +46,12 @@ export default {
     deleteConfirmDesc: 'Are you sure you want to delete this node?',
     cancelledDelete: 'Delete cancelled',
     editPrompt: 'Edit Prompt',
+    run: 'Run',
+    aiOptimize: 'AI Optimize',
+    expandChildren: 'Expand Children',
+    collapseChildren: 'Collapse Children',
+    titleUpdated: 'Title modified successfully',
+    missingOnRunRequest: 'Please provide onRunRequest callback',
   },
 
   // Node Action Buttons
@@ -57,10 +64,12 @@ export default {
 
   // Dependency Configuration
   dependency: {
-    title: 'Dependencies',
-    placeholder: 'Select dependency nodes (only locked nodes can be selected)',
-    hint: 'Only locked nodes with earlier sequence numbers can be selected',
-    noDependency:
+    dependencies: 'Dependencies',
+    selectDependencyPlaceholder:
+      'Select dependency nodes (only locked nodes can be selected)',
+    canOnlySelectLockedNodes:
+      'Only locked nodes with earlier sequence numbers can be selected',
+    noDependencies:
       'No dependencies yet. Click below to add (only locked predecessor nodes)',
     locked: 'Locked',
   },
@@ -68,6 +77,8 @@ export default {
   // AI Optimization Modal
   optimize: {
     title: 'AI Prompt Optimization',
+    userRole: 'User',
+    aiRole: 'AI',
     selectedContent: '{length} characters selected',
     selectedContentHint: 'Selected content ({length} characters)',
     inputPlaceholder: 'Enter optimization instructions...',
@@ -88,6 +99,13 @@ export default {
     emptyState:
       'Enter optimization instructions, AI will optimize the prompt for you',
     provideCallback: 'Please provide onOptimizeRequest callback',
+  },
+
+  // AI Optimization Messages
+  aiOptimize: {
+    replacedSelectedContent: 'Selected content replaced',
+    replacedAllContent: 'All content replaced',
+    replaceFailed: 'Replacement failed, please retry',
   },
 
   // CodeMirror Editor
