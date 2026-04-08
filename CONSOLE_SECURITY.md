@@ -30,6 +30,7 @@ rules: {
 ```
 
 **效果：**
+
 - ⚠️ 使用 `console.log/info/debug` 时会收到警告
 - ❌ 使用 `debugger` 会报错
 - ✅ 允许使用 `console.warn/error`（用于错误追踪）
@@ -44,7 +45,7 @@ console.log('Debug info:', data); // 提交前删除
 
 // 生产环境保留
 console.error('Critical error:', error); // 错误追踪
-console.warn('Deprecation warning');     // 警告信息
+console.warn('Deprecation warning'); // 警告信息
 ```
 
 #### ❌ 避免做法
@@ -73,7 +74,7 @@ module.exports = {
       new TerserPlugin({
         terserOptions: {
           compress: {
-            drop_console: true,  // 移除所有 console
+            drop_console: true, // 移除所有 console
             drop_debugger: true, // 移除 debugger
           },
         },
@@ -86,17 +87,22 @@ module.exports = {
 ### 方案 2: 使用 Babel 插件
 
 安装插件：
+
 ```bash
 pnpm add -D babel-plugin-transform-remove-console
 ```
 
 配置 `.babelrc`：
+
 ```json
 {
   "plugins": [
-    ["transform-remove-console", { 
-      "exclude": ["error", "warn"] 
-    }]
+    [
+      "transform-remove-console",
+      {
+        "exclude": ["error", "warn"]
+      }
+    ]
   ]
 }
 ```
@@ -117,7 +123,7 @@ function removeConsole(filePath) {
 
 // 递归处理 dist 目录
 function processDir(dir) {
-  fs.readdirSync(dir).forEach(file => {
+  fs.readdirSync(dir).forEach((file) => {
     const filePath = path.join(dir, file);
     if (fs.statSync(filePath).isDirectory()) {
       processDir(filePath);
@@ -131,6 +137,7 @@ processDir('./dist');
 ```
 
 在 `package.json` 中添加：
+
 ```json
 {
   "scripts": {
