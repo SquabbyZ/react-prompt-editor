@@ -358,14 +358,11 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
     user: {
       placement: 'end',
       variant: 'filled',
-      // 移除了自定义的 backgroundColor 和 color，让组件自己处理
     },
     assistant: {
       placement: 'start',
       variant: 'outlined',
       typing: isStreaming ? { step: 5, interval: 20 } : false,
-      messageRender: (content: React.ReactNode) =>
-        renderMessageContent(content as string),
       footer: (content: React.ReactNode, key: React.Key) => (
         <div className="mt-2 flex items-center gap-1 border-t border-gray-100 pt-2">
           <Button
@@ -407,7 +404,7 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
     const config = roleConfig[msg.role] || {};
     return {
       key: msg.id,
-      content: msg.content,
+      content: msg.role === 'assistant' ? renderMessageContent(msg.content) : msg.content,
       role: msg.role,
       ...config,
     };
@@ -418,7 +415,7 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
     const assistantConfig = roleConfig['assistant'] || {};
     bubbleItems.push({
       key: 'streaming-response',
-      content: currentResponse,
+      content: renderMessageContent(currentResponse),
       role: 'assistant',
       ...assistantConfig,
     });
