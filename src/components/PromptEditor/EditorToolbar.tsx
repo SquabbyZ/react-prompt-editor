@@ -1,4 +1,4 @@
-import { RedoOutlined, UndoOutlined } from '@ant-design/icons';
+import { Undo2, Redo2 } from 'lucide-react';
 import { Button, Tooltip } from 'antd';
 import React from 'react';
 
@@ -17,23 +17,25 @@ interface EditorToolbarProps {
 export const EditorToolbar: React.FC<EditorToolbarProps> = React.memo(
   ({ canUndo, canRedo, onUndo, onRedo }) => {
     return (
-      <div className="absolute right-2 top-2 z-10 flex items-center gap-1 rounded-lg bg-white/90 p-1.5 shadow-md backdrop-blur-sm dark:bg-gray-900/90">
+      <div className="absolute right-3 top-3 z-10 flex items-center gap-1.5 rounded-xl bg-white/80 px-2 py-1.5 shadow-lg backdrop-blur-md ring-1 ring-black/5 transition-all hover:bg-white/90 dark:bg-gray-900/80 dark:hover:bg-gray-900/90 dark:ring-white/10">
         <Tooltip title="撤回 (Ctrl+Z)">
           <Button
             size="small"
-            icon={<UndoOutlined />}
+            type="text"
+            icon={<Undo2 size={16} strokeWidth={2} />}
             onClick={onUndo}
             disabled={!canUndo}
-            className="h-7 w-7"
+            className="flex h-7 w-7 items-center justify-center p-0"
           />
         </Tooltip>
         <Tooltip title="还原 (Ctrl+Y)">
           <Button
             size="small"
-            icon={<RedoOutlined />}
+            type="text"
+            icon={<Redo2 size={16} strokeWidth={2} />}
             onClick={onRedo}
             disabled={!canRedo}
-            className="h-7 w-7"
+            className="flex h-7 w-7 items-center justify-center p-0"
           />
         </Tooltip>
       </div>
