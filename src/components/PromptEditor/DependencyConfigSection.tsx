@@ -148,7 +148,7 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
       const treeData = buildTreeData(availableNodes);
 
       return (
-        <div className="border-t border-indigo-200 bg-indigo-50/50 px-3 py-2 dark:border-indigo-800 dark:bg-indigo-950/20">
+        <div className="border-t border-indigo-200 bg-indigo-50/50 px-3 py-2 dark:border-indigo-900/50 dark:bg-gray-900/80">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
               {t('dependency.dependencies')}

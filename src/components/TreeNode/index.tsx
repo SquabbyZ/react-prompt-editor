@@ -54,7 +54,7 @@ export const TreeNode: React.FC<TreeNodeProps> = memo(
               type="button"
               onClick={onRun}
               disabled={false}
-              className="rounded bg-blue-500 px-2 py-1 text-sm text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-gray-300"
+              className="rounded bg-blue-500 px-2 py-1 text-sm text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-gray-300 dark:disabled:bg-gray-700"
             >
               运行
             </button>
@@ -69,7 +69,7 @@ export const TreeNode: React.FC<TreeNodeProps> = memo(
               type="button"
               onClick={onLock}
               disabled={!hasRun}
-              className="rounded bg-purple-500 px-2 py-1 text-sm text-white transition-colors hover:bg-purple-600 disabled:cursor-not-allowed disabled:bg-gray-300"
+              className="rounded bg-purple-500 px-2 py-1 text-sm text-white transition-colors hover:bg-purple-600 disabled:cursor-not-allowed disabled:bg-gray-300 dark:disabled:bg-gray-700"
             >
               {isLocked ? '🔓 解锁' : '🔒 锁定'}
             </button>
@@ -77,7 +77,7 @@ export const TreeNode: React.FC<TreeNodeProps> = memo(
               type="button"
               onClick={onDelete}
               disabled={isLocked}
-              className="rounded bg-red-500 px-2 py-1 text-sm text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:bg-gray-300"
+              className="rounded bg-red-500 px-2 py-1 text-sm text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:bg-gray-300 dark:disabled:bg-gray-700"
             >
               删除
             </button>

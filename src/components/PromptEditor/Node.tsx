@@ -293,7 +293,10 @@ export const Node: React.FC<CustomNodeProps> = memo(
                 {/* 状态图标 */}
                 {nodeData.isLocked && (
                   <Tooltip title={t('editor.nodeLocked')}>
-                    <LockOutlined style={{ fontSize: 12, color: '#faad14' }} />
+                    <LockOutlined
+                      style={{ fontSize: 12, color: '#faad14' }}
+                      className="dark:text-yellow-500"
+                    />
                   </Tooltip>
                 )}
                 {!nodeData.hasRun && !previewMode && (
@@ -301,6 +304,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
                     color="default"
                     title={t('editor.notRun')}
                     style={{ fontSize: 10 }}
+                    className="dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                   >
                     {t('editor.notRun')}
                   </Tag>
@@ -363,13 +367,14 @@ export const Node: React.FC<CustomNodeProps> = memo(
                       size="small"
                       icon={
                         nodeData.isLocked ? (
-                          <UnlockOutlined />
+                          <UnlockOutlined className="text-gray-600 dark:text-gray-300" />
                         ) : (
-                          <LockOutlined />
+                          <LockOutlined className="text-gray-600 dark:text-gray-300" />
                         )
                       }
                       onClick={handleLock}
                       disabled={!nodeData.hasRun}
+                      className="border-gray-300 text-gray-700 hover:border-gray-400 hover:text-gray-900 disabled:border-gray-200 disabled:text-gray-400 dark:border-gray-600 dark:text-gray-200 dark:hover:border-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-100 dark:disabled:border-gray-700 dark:disabled:text-gray-600"
                     >
                       <span className="hidden sm:inline">
                         {nodeData.isLocked

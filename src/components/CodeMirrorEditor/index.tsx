@@ -1,6 +1,14 @@
 import { markdown } from '@codemirror/lang-markdown';
+import { oneDark } from '@codemirror/theme-one-dark';
 import CodeMirror from '@uiw/react-codemirror';
-import React, { forwardRef, memo, useImperativeHandle, useRef } from 'react';
+import React, {
+  forwardRef,
+  memo,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 import { getCodeMirrorPhrases } from '../../i18n/codemirror';
 import { defaultLocale } from '../../i18n/types';
 import { CodeMirrorEditorProps } from './CodeMirrorEditor.types';
@@ -24,6 +32,37 @@ export const CodeMirrorEditor = memo(
       ref,
     ) => {
       const cmRef = useRef<any>(null);
+      const [isDarkMode, setIsDarkMode] = useState(false);
+
+      // 检测暗色模式
+      useEffect(() => {
+        const checkDarkMode = () => {
+          const htmlElement = document.documentElement;
+          const isDark =
+            htmlElement.classList.contains('dark') ||
+            htmlElement.getAttribute('data-theme') === 'dark' ||
+            window.matchMedia('(prefers-color-scheme: dark)').matches;
+          setIsDarkMode(isDark);
+        };
+
+        checkDarkMode();
+
+        // 监听类名变化
+        const observer = new MutationObserver(checkDarkMode);
+        observer.observe(document.documentElement, {
+          attributes: true,
+          attributeFilter: ['class', 'data-theme'],
+        });
+
+        // 监听系统主题变化
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        mediaQuery.addEventListener('change', checkDarkMode);
+
+        return () => {
+          observer.disconnect();
+          mediaQuery.removeEventListener('change', checkDarkMode);
+        };
+      }, []);
 
       // 获取 CodeMirror 国际化配置
       const phrases = getCodeMirrorPhrases(locale);
@@ -34,12 +73,18 @@ export const CodeMirrorEditor = memo(
         },
       }));
 
+      // 根据暗色模式动态设置扩展
+      const extensions = [markdown()];
+      if (isDarkMode) {
+        extensions.push(oneDark as any);
+      }
+
       return (
         <CodeMirror
           ref={cmRef}
           value={value}
           height="200px"
-          extensions={[markdown()]}
+          extensions={extensions}
           onChange={(val) => onChange?.(val)}
           editable={!isReadOnly}
           placeholder={placeholder}

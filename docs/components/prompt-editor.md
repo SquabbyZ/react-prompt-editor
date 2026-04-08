@@ -1,7 +1,6 @@
 ---
 demo:
-  - cols: 1
-    iframe: 600
+  cols: 2
 ---
 
 # PromptEditor 提示词编辑器
@@ -23,19 +22,19 @@ import 'react-prompt-editor/dist/styles/tailwind.css'; // 必须引入
 
 最简单的使用方式，只需提供数据和 onChange 回调：
 
-<code src="../examples/quickstart.tsx" title="快速上手" iframe></code>
+<code src="../examples/quickstart.tsx" title="快速上手"></code>
 
 ## 基础使用
 
 完整示例，包含运行和 AI 优化功能：
 
-<code src="../examples/basic.tsx" title="基础示例" iframe></code>
+<code src="../examples/basic.tsx" title="基础示例"></code>
 
 ## 预览模式
 
 使用 `previewMode` 属性实现只读展示，隐藏所有操作按钮：
 
-<code src="../examples/preview.tsx" title="预览模式" iframe></code>
+<code src="../examples/preview.tsx" title="预览模式"></code>
 
 ## 流式输出示例
 
@@ -47,7 +46,7 @@ import 'react-prompt-editor/dist/styles/tailwind.css'; // 必须引入
 
 组件支持中英文切换，CodeMirror 编辑器的搜索框等 UI 元素也会自动切换语言：
 
-<code src="./examples/i18n-demo.tsx" title="国际化演示" iframe></code>
+<code src="./examples/i18n-demo.tsx" title="国际化演示"></code>
 
 ### 使用方式
 

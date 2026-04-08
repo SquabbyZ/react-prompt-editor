@@ -306,7 +306,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
 
   return (
     <div
-      className={`prompt-editor-container h-full w-full overflow-auto bg-white dark:bg-gray-900 ${className || ''}`}
+      className={`prompt-editor-container scroll-thin h-full w-full overflow-auto bg-white dark:bg-gray-900 ${className || ''}`}
       data-prompt-editor="true"
       style={style}
     >
