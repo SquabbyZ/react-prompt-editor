@@ -7,212 +7,19 @@ import {
   ThunderboltOutlined,
   UnlockOutlined,
 } from '@ant-design/icons';
+import { Button, message, Popconfirm, Tooltip } from 'antd';
+import React, { useCallback, useRef, useState } from 'react';
 import {
-  Button,
-  Input,
-  message,
-  Popconfirm,
-  Space,
-  Tag,
-  Tooltip,
-  TreeSelect,
-} from 'antd';
-import React from 'react';
-import { TaskNodeMinimal } from '../../types';
+  OptimizeRequest,
+  OptimizeResponse,
+  TaskNodeMinimal,
+} from '../../types';
 import { AIOptimizeModal } from '../AIOptimizeModal/AIOptimizeModal';
 import { CodeMirrorEditor } from '../CodeMirrorEditor';
-
-import { OptimizeRequest, OptimizeResponse } from '../../types';
-
-// 依赖配置组件
-interface DependencyConfigSectionProps {
-  nodeId: string;
-  dependencies: string[];
-  onUpdateDependencies: (id: string, deps: string[]) => void;
-  getNodeNumber: (id: string) => string;
-  availableNodes: Array<{
-    id: string;
-    title: string;
-    number: string;
-    hasRun: boolean;
-    parentId?: string;
-    children: string[];
-  }>;
-}
-
-const DependencyConfigSection: React.FC<DependencyConfigSectionProps> = ({
-  nodeId,
-  dependencies,
-  onUpdateDependencies,
-  getNodeNumber,
-  availableNodes,
-}) => {
-  // 获取已选择的依赖节点信息
-  const selectedDeps = dependencies
-    .map((depId) => {
-      const depNode = availableNodes.find((n) => n.id === depId);
-      return depNode ? { ...depNode, number: getNodeNumber(depId) } : null;
-    })
-    .filter(Boolean) as Array<{ id: string; title: string; number: string }>;
-
-  const handleAddDependency = (depId: string) => {
-    if (depId && !dependencies.includes(depId)) {
-      onUpdateDependencies(nodeId, [...dependencies, depId]);
-    }
-  };
-
-  const handleRemoveDependency = (depId: string) => {
-    onUpdateDependencies(
-      nodeId,
-      dependencies.filter((id) => id !== depId),
-    );
-  };
-
-  // 判断节点是否可选：
-  // 1. 已锁定（hasRun=true）
-  // 2. 不是自身
-  // 3. 未在选择列表中
-  const isNodeSelectable = (nodeIdToCheck: string): boolean => {
-    if (nodeIdToCheck === nodeId) return false;
-    if (dependencies.includes(nodeIdToCheck)) return false;
-    const node = availableNodes.find((n) => n.id === nodeIdToCheck);
-    if (!node) return false;
-    return node.hasRun;
-  };
-
-  // 构建树形数据结构
-  const buildChildrenTree = (
-    childrenIds: string[],
-    allNodes: typeof availableNodes,
-    _level: number,
-  ): Array<{
-    title: React.ReactNode;
-    value: string;
-    key: string;
-    disabled: boolean;
-    children?: any[];
-  }> => {
-    return childrenIds
-      .map((childId) => {
-        const childNode = allNodes.find((n) => n.id === childId);
-        if (!childNode) return null;
-        return {
-          title: (
-            <span>
-              <span className="mr-1 font-bold">[{childNode.number}]</span>
-              {childNode.title}
-              {childNode.hasRun && (
-                <Tag color="green" className="px-2 py-1 text-xs font-bold">
-                  已锁定
-                </Tag>
-              )}
-            </span>
-          ),
-          value: childNode.id,
-          key: childNode.id,
-          disabled: !isNodeSelectable(childNode.id),
-          children:
-            childNode.children.length > 0
-              ? buildChildrenTree(childNode.children, allNodes, _level + 1)
-              : undefined,
-        };
-      })
-      .filter(Boolean) as any[];
-  };
-
-  const buildTreeData = (
-    nodes: typeof availableNodes,
-  ): Array<{
-    title: React.ReactNode;
-    value: string;
-    key: string;
-    disabled: boolean;
-    children?: any[];
-  }> => {
-    return nodes
-      .filter((node) => !node.parentId)
-      .map((rootNode) => ({
-        title: (
-          <span>
-            <span className="mr-1 font-bold">[{rootNode.number}]</span>
-            {rootNode.title}
-            {rootNode.hasRun && (
-              <Tag color="green" className="px-2 py-1 text-xs font-bold">
-                已锁定
-              </Tag>
-            )}
-          </span>
-        ),
-        value: rootNode.id,
-        key: rootNode.id,
-        disabled: !isNodeSelectable(rootNode.id),
-        children:
-          rootNode.children.length > 0
-            ? buildChildrenTree(rootNode.children, nodes, 1)
-            : undefined,
-      }));
-  };
-
-  const treeData = buildTreeData(availableNodes);
-
-  return (
-    <div className="border-t border-indigo-200 bg-indigo-50/50 px-3 py-2 dark:border-indigo-800 dark:bg-indigo-950/20">
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-          依赖任务
-        </span>
-        <span className="text-[10px] text-gray-500 dark:text-gray-400">
-          只能选择已锁定且序号靠前的节点
-        </span>
-      </div>
-
-      {/* 已选择的依赖标签 */}
-      {selectedDeps.length > 0 ? (
-        <Space wrap className="mb-2">
-          {selectedDeps.map((dep) => (
-            <Tag
-              key={dep.id}
-              closable
-              onClose={() => handleRemoveDependency(dep.id)}
-              color="blue"
-              className="max-w-50"
-            >
-              <span className="font-bold" style={{ fontFamily: 'monospace' }}>
-                [{dep.number}]
-              </span>
-              <span title={dep.title}>
-                {dep.title.length > 15
-                  ? `${dep.title.slice(0, 15)}...`
-                  : dep.title}
-              </span>
-            </Tag>
-          ))}
-        </Space>
-      ) : (
-        <div className="mb-2 rounded border border-dashed border-gray-300 bg-gray-50 px-2 py-1.5 text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
-          暂无依赖，点击下方按钮添加（只能选择已锁定的前置节点）
-        </div>
-      )}
-
-      {/* 添加依赖 */}
-      <TreeSelect
-        className="w-full"
-        treeData={treeData}
-        placeholder="选择依赖节点（只能选择已锁定的节点）"
-        allowClear
-        treeDefaultExpandAll
-        dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
-        onChange={(value) => {
-          if (value) {
-            handleAddDependency(value as string);
-          }
-        }}
-        treeNodeFilterProp="title"
-        showSearch
-      />
-    </div>
-  );
-};
+import { DependencyConfigSection } from './DependencyConfigSection';
+import { EditableTitle } from './EditableTitle';
+import { EditorToolbar } from './EditorToolbar';
+import { useNodeEditor } from '../../hooks/useNodeEditor';
 
 interface CustomNodeProps {
   node: {
@@ -261,7 +68,8 @@ interface CustomNodeProps {
   onDislike?: (messageId: string) => void;
 }
 
-export const Node: React.FC<CustomNodeProps> = ({
+export const Node: React.FC<CustomNodeProps> = React.memo(
+  ({
   node,
   style,
   dragHandle,
@@ -292,7 +100,6 @@ export const Node: React.FC<CustomNodeProps> = ({
   const isChildrenExpanded = expandedNodes.has(nodeData.id);
 
   // AI 优化相关状态
-  const editorRef = React.useRef<any>(null);
   const [optimizeModalOpen, setOptimizeModalOpen] = React.useState(false);
   const [selectedContent, setSelectedContent] = React.useState<string>();
   const [selectedRange, setSelectedRange] = React.useState<{
@@ -302,69 +109,101 @@ export const Node: React.FC<CustomNodeProps> = ({
   // 存储优化请求，用于完成时调用 onNodeOptimize
   const optimizeRequestRef = React.useRef<OptimizeRequest | null>(null);
 
+  // 编辑器状态管理（Undo/Redo）
+  const {
+    editorRef,
+    canUndo,
+    canRedo,
+    handleUndo,
+    handleRedo,
+    handleContentChange,
+  } = useNodeEditor({
+    nodeId: nodeData.id,
+    initialContent: nodeData.content,
+    onContentChange,
+  });
+
   // 处理展开/折叠编辑器（互斥）
-  const handleToggleEditor = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onToggleEditor(nodeData.id);
-  };
+  const handleToggleEditor = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onToggleEditor(nodeData.id);
+    },
+    [nodeData.id, onToggleEditor],
+  );
 
-  const handleDelete = (e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    onDelete(nodeData.id);
-  };
+  const handleDelete = useCallback(
+    (e?: React.MouseEvent) => {
+      e?.stopPropagation();
+      onDelete(nodeData.id);
+    },
+    [nodeData.id, onDelete],
+  );
 
-  const handleLock = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onNodeLock(nodeData.id);
-  };
+  const handleLock = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onNodeLock(nodeData.id);
+    },
+    [nodeData.id, onNodeLock],
+  );
 
-  const handleAddChild = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (nodeData.isLocked) {
-      message.warning('节点已锁定，无法添加子节点');
-      return;
-    }
-    onAddChild(nodeData.id);
-  };
-
-  const handleRun = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onNodeRun(nodeData.id);
-  };
-
-  const handleOptimize = (e: React.MouseEvent) => {
-    e.stopPropagation();
-
-    // 获取选中的内容和范围
-    const view = editorRef.current?.view;
-    if (view) {
-      const selection = view.state.selection.main;
-      if (!selection.empty) {
-        // 有选中内容，使用选中的部分
-        setSelectedContent(
-          view.state.doc.sliceString(selection.from, selection.to),
-        );
-        setSelectedRange({ from: selection.from, to: selection.to });
-      } else {
-        // 没有选中内容，默认选中全部
-        const doc = view.state.doc;
-        setSelectedContent(doc.toString());
-        setSelectedRange({ from: 0, to: doc.length });
+  const handleAddChild = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (nodeData.isLocked) {
+        message.warning('节点已锁定，无法添加子节点');
+        return;
       }
-    } else {
-      // 如果无法获取 view，使用全部内容作为兜底
-      setSelectedContent(nodeData.content);
-      setSelectedRange({ from: 0, to: nodeData.content.length });
-    }
+      onAddChild(nodeData.id);
+    },
+    [nodeData.id, nodeData.isLocked, onAddChild],
+  );
 
-    // 保存优化请求信息
-    optimizeRequestRef.current = {
-      content: nodeData.content,
-      selectedText: selectedContent,
-    };
+  const handleRun = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onNodeRun(nodeData.id);
+    },
+    [nodeData.id, onNodeRun],
+  );
 
-    setOptimizeModalOpen(true);
-  };
+  const handleOptimize = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+
+      // 获取选中的内容和范围
+      const view = editorRef.current?.view;
+      if (view) {
+        const selection = view.state.selection.main;
+        if (!selection.empty) {
+          // 有选中内容，使用选中的部分
+          setSelectedContent(
+            view.state.doc.sliceString(selection.from, selection.to),
+          );
+          setSelectedRange({ from: selection.from, to: selection.to });
+        } else {
+          // 没有选中内容，默认选中全部
+          const doc = view.state.doc;
+          setSelectedContent(doc.toString());
+          setSelectedRange({ from: 0, to: doc.length });
+        }
+      } else {
+        // 如果无法获取 view，使用全部内容作为兜底
+        setSelectedContent(nodeData.content);
+        setSelectedRange({ from: 0, to: nodeData.content.length });
+      }
+
+      // 保存优化请求信息
+      optimizeRequestRef.current = {
+        content: nodeData.content,
+        selectedText: selectedContent,
+      };
+
+      setOptimizeModalOpen(true);
+    },
+    [nodeData.content, selectedContent],
+  );
 
   const [isEditingTitle, setIsEditingTitle] = React.useState(false);
   const [titleValue, setTitleValue] = React.useState(nodeData.title);
@@ -454,10 +293,6 @@ export const Node: React.FC<CustomNodeProps> = ({
     } else if (e.key === 'Escape') {
       handleCancelEditTitle();
     }
-  };
-
-  const handleContentChange = (content: string) => {
-    onContentChange(nodeData.id, content);
   };
 
   return (
@@ -714,4 +549,7 @@ export const Node: React.FC<CustomNodeProps> = ({
       </div>
     </div>
   );
-};
+  },
+);
+
+Node.displayName = 'Node';
