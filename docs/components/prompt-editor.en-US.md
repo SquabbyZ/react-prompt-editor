@@ -23,31 +23,31 @@ If you don't import the style file, the component will lose all styles and displ
 
 The simplest way to use it, just provide data and onChange callback:
 
-<code src="../examples/quickstart.tsx" title="Quick Start" iframe></code>
+<code src="../examples/quickstart.tsx" iframe></code>
 
 ## Basic Usage
 
 Complete example with execution and AI optimization features:
 
-<code src="../examples/basic.tsx" title="Basic Example" iframe></code>
+<code src="../examples/basic.tsx" iframe></code>
 
 ## Preview Mode
 
 Use the `previewMode` prop to enable read-only display and hide all operation buttons:
 
-<code src="../examples/preview.tsx" title="Preview Mode" iframe></code>
+<code src="../examples/preview.tsx" iframe></code>
 
 ## Streaming Output Example
 
 Demonstrates how to implement true streaming AI optimization (simulating SSE responses from APIs like OpenAI, Qwen, etc.):
 
-<code src="./examples/streaming.tsx" title="Streaming Output Example"></code>
+<code src="./examples/streaming.tsx"></code>
 
 ## 🌍 Internationalization
 
 The component supports Chinese and English switching. CodeMirror editor's search box and other UI elements will also automatically switch languages:
 
-<code src="./examples/i18n-demo.tsx" title="Internationalization Demo" iframe></code>
+<code src="./examples/i18n-demo.tsx" iframe></code>
 
 ### Usage
 
@@ -67,7 +67,7 @@ For more internationalization details, please refer to: [Internationalization Do
 
 The component supports light/dark theme switching, which can follow the system or be manually specified:
 
-<code src="../examples/theme-demo.tsx" title="Theme Mode Demo"></code>
+<code src="../examples/theme-demo.tsx" ></code>
 
 ### Usage
 
@@ -94,26 +94,26 @@ const AppDark = () => <PromptEditor theme="dark" />;
 
 ### PromptEditor Props
 
-| Parameter         | Description                                                                                | Type                                                                     | Default |
-| ----------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ | ------- |
-| initialValue      | Initial tree data (uncontrolled mode)                                                      | `TaskNode[]`                                                             | `[]`    |
-| value             | Tree data (controlled mode)                                                                | `TaskNode[]`                                                             | -       |
-| onChange          | Data change callback                                                                       | `(data: TaskNode[]) => void`                                             | -       |
-| onRunRequest      | Run request callback (called when triggered, user handles async requests)                  | `(request: RunTaskRequest) => void`                                      | -       |
-| optimizeConfig    | AI optimization config (simplified mode, component handles SSE requests automatically)    | `OptimizeConfig`                                                         | -       |
-| autoOptimize      | Whether to automatically start optimization when opening the modal                         | `boolean`                                                                | `true`  |
-| onOptimizeRequest | Optimize request callback (called when triggered, user returns result via onResponse)      | `(request: OptimizeRequest, callbacks: { onResponse, onError }) => void` | -       |
-| onNodeRun         | Node run completion callback (user calls after completing run request to notify component) | `(nodeId: string, result: RunTaskResponse) => void`                      | -       |
-| onNodeOptimize    | Node optimize completion callback (user calls after completing optimize request)           | `(nodeId: string, result: OptimizeResponse) => void`                     | -       |
-| onNodeLock        | Node lock callback                                                                         | `(nodeId: string, isLocked: boolean) => void`                            | -       |
-| onTreeChange      | Tree change callback                                                                       | `(tree: TaskNode[]) => void`                                             | -       |
-| className         | Custom class name                                                                          | `string`                                                                 | -       |
-| style             | Custom styles                                                                              | `React.CSSProperties`                                                    | -       |
-| renderToolbar     | Custom top toolbar                                                                         | `(actions) => ReactNode`                                                 | -       |
-| onLike            | AI optimization message like callback                                                      | `(messageId: string) => void`                                            | -       |
-| onDislike         | AI optimization message dislike callback                                                   | `(messageId: string) => void`                                            | -       |
-| previewMode       | Preview mode (read-only, hides editing features)                                           | `boolean`                                                                | `false` |
-| locale            | Internationalization configuration (similar to Ant Design's language pack)                 | `Locale`                                                                 | `zhCN`  |
+| Parameter         | Description                                                                                | Type                                                                     | Default    |
+| ----------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ | ---------- |
+| initialValue      | Initial tree data (uncontrolled mode)                                                      | `TaskNode[]`                                                             | `[]`       |
+| value             | Tree data (controlled mode)                                                                | `TaskNode[]`                                                             | -          |
+| onChange          | Data change callback                                                                       | `(data: TaskNode[]) => void`                                             | -          |
+| onRunRequest      | Run request callback (called when triggered, user handles async requests)                  | `(request: RunTaskRequest) => void`                                      | -          |
+| optimizeConfig    | AI optimization config (simplified mode, component handles SSE requests automatically)     | `OptimizeConfig`                                                         | -          |
+| autoOptimize      | Whether to automatically start optimization when opening the modal                         | `boolean`                                                                | `true`     |
+| onOptimizeRequest | Optimize request callback (called when triggered, user returns result via onResponse)      | `(request: OptimizeRequest, callbacks: { onResponse, onError }) => void` | -          |
+| onNodeRun         | Node run completion callback (user calls after completing run request to notify component) | `(nodeId: string, result: RunTaskResponse) => void`                      | -          |
+| onNodeOptimize    | Node optimize completion callback (user calls after completing optimize request)           | `(nodeId: string, result: OptimizeResponse) => void`                     | -          |
+| onNodeLock        | Node lock callback                                                                         | `(nodeId: string, isLocked: boolean) => void`                            | -          |
+| onTreeChange      | Tree change callback                                                                       | `(tree: TaskNode[]) => void`                                             | -          |
+| className         | Custom class name                                                                          | `string`                                                                 | -          |
+| style             | Custom styles                                                                              | `React.CSSProperties`                                                    | -          |
+| renderToolbar     | Custom top toolbar                                                                         | `(actions) => ReactNode`                                                 | -          |
+| onLike            | AI optimization message like callback                                                      | `(messageId: string) => void`                                            | -          |
+| onDislike         | AI optimization message dislike callback                                                   | `(messageId: string) => void`                                            | -          |
+| previewMode       | Preview mode (read-only, hides editing features)                                           | `boolean`                                                                | `false`    |
+| locale            | Internationalization configuration (similar to Ant Design's language pack)                 | `Locale`                                                                 | `zhCN`     |
 | theme             | Theme mode (controls light/dark theme)                                                     | `'system' \| 'light' \| 'dark'`                                          | `'system'` |
 
 ## Data Types
@@ -154,7 +154,7 @@ interface DependencyInfo {
 
 ### OptimizeRequest
 
-```typescript
+````typescript
 interface OptimizeRequest {
   content: string; // Original content
   selectedText?: string; // Selected text (if any)
@@ -174,8 +174,9 @@ interface OptimizeConfig {
   temperature?: number; // Temperature parameter, default: 0.7
   extraParams?: Record<string, unknown>; // Other custom parameters
 }
-```
-```
+````
+
+````
 
 ## Usage Guide
 
@@ -190,7 +191,7 @@ const [value, setValue] = useState<TaskNode[]>(initialData);
   value={value}
   onChange={setValue}
 />
-```
+````
 
 ### Pure Callback Mode Explained
 
@@ -291,7 +292,7 @@ If you are using a backend that follows the OpenAI API specification (supports S
     url: '/api/ai/optimize',
     headers: { Authorization: 'Bearer your_token' },
     model: 'gpt-4',
-    temperature: 0.8
+    temperature: 0.8,
   }}
 />
 ```

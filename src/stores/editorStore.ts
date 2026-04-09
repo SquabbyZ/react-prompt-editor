@@ -77,7 +77,7 @@ export function createEditorStore(initialValue: TaskNode[] = []) {
       });
     },
 
-    // 添加子节点
+    // 添加子标题
     addChild: (parentId) => {
       let newNodeId = '';
       set((state) => {

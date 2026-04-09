@@ -38,6 +38,7 @@ export default {
     lockedCannotEdit: 'Node is locked, cannot edit',
     previewModeNoEdit: 'Cannot edit in preview mode',
     notRun: 'Not Run',
+    hasRun: 'Has Run',
     runFirst: 'Please run first',
     childTitle: 'Child Title',
     lock: 'Lock',
@@ -99,9 +100,12 @@ export default {
     emptyState:
       'Enter optimization instructions, AI will optimize the prompt for you',
     provideCallback: 'Please provide onOptimizeRequest callback',
-    provideConfigOrCallback: 'Please configure optimizeConfig or provide onOptimizeRequest callback',
-    autoOptimize: 'Please optimize this prompt to make it more professional, clear, and efficient.',
-    autoOptimizeWithSelection: 'Please optimize this prompt based on the selected {length} characters to make it more professional, clear, and efficient.',
+    provideConfigOrCallback:
+      'Please configure optimizeConfig or provide onOptimizeRequest callback',
+    autoOptimize:
+      'Please optimize this prompt to make it more professional, clear, and efficient.',
+    autoOptimizeWithSelection:
+      'Please optimize this prompt based on the selected {length} characters to make it more professional, clear, and efficient.',
   },
 
   // AI Optimization Messages
@@ -130,6 +134,7 @@ export default {
     close: 'Close',
     findPlaceholder: 'Find...',
     replacePlaceholder: 'Replace with...',
+    placeholder: 'Enter prompt content...',
   },
 
   // Messages

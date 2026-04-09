@@ -3,27 +3,28 @@
   "version": "0.0.1",
   "description": "react prompt editor",
   "license": "MIT",
-  "main": "dist/lib/index.js",
-  "module": "dist/esm/index.js",
-  "types": "dist/esm/index.d.ts",
-  "style": "dist/styles/index.css",
   "exports": {
     ".": {
+      "types": "./dist/esm/index.d.ts",
       "import": "./dist/esm/index.js",
-      "require": "./dist/lib/index.js",
-      "types": "./dist/esm/index.d.ts"
+      "require": "./dist/lib/index.js"
     },
     "./dist/*": "./dist/*",
     "./styles/index.css": "./dist/styles/index.css"
   },
+  "main": "dist/lib/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "style": "dist/styles/index.css",
   "files": [
     "dist"
   ],
   "scripts": {
     "build": "father build && node scripts/build-css.js",
-    "build:prod": "father build && node scripts/build-css.js && node scripts/remove-console.js",
     "build:css": "node scripts/build-css.js",
+    "build:prod": "father build && node scripts/build-css.js && node scripts/remove-console.js",
     "build:watch": "father dev",
+    "clean-cache": "rm -rf .dumi/tmp",
     "dev": "dumi dev",
     "docs:build": "dumi build",
     "docs:preview": "dumi preview",
@@ -36,8 +37,7 @@
     "lint:fix": "npm run lint:es:fix && npm run lint:css:fix",
     "prepare": "husky install && dumi setup",
     "prepublishOnly": "father doctor && npm run build",
-    "start": "npm run dev",
-    "clean-cache": "rm -rf .dumi/tmp"
+    "start": "npm run dev"
   },
   "commitlint": {
     "extends": [
@@ -72,7 +72,6 @@
     "clsx": "^2.1.1",
     "lucide-react": "^1.7.0",
     "react-arborist": "^3.4.3",
-    "react-prompt-editor": "link:",
     "react-window": "^2.2.7",
     "tailwind-merge": "^3.5.0",
     "tailwind-scrollbar": "^4.0.2",

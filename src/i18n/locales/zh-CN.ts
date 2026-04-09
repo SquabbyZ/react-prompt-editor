@@ -29,15 +29,16 @@ export default {
     dependencyRemoved: '依赖已移除',
     expandEditor: '展开编辑器',
     collapseEditor: '折叠编辑器',
-    addChildNode: '添加子节点',
+    addChildNode: '添加子标题',
     lockNode: '锁定节点',
     unlockNode: '解锁节点',
     deleteNode: '删除节点',
-    lockedCannotAddChild: '节点已锁定，无法添加子节点',
+    lockedCannotAddChild: '节点已锁定，无法添加子标题',
     lockedCannotDelete: '节点已锁定，无法删除',
     lockedCannotEdit: '节点已锁定，无法编辑',
     previewModeNoEdit: '预览模式下无法编辑',
     notRun: '未运行',
+    hasRun: '已运行',
     runFirst: '请先运行',
     childTitle: '子标题',
     lock: '锁定',
@@ -93,9 +94,11 @@ export default {
     optimizeComplete: '优化完成',
     emptyState: '输入优化指令，AI 将为您优化提示词',
     provideCallback: '请提供 onOptimizeRequest 回调',
-    provideConfigOrCallback: '请配置 optimizeConfig 或提供 onOptimizeRequest 回调',
+    provideConfigOrCallback:
+      '请配置 optimizeConfig 或提供 onOptimizeRequest 回调',
     autoOptimize: '请优化这段提示词，使其更加专业、清晰、高效。',
-    autoOptimizeWithSelection: '请基于选中的这 {length} 个字内容进行针对性优化，使其更加专业、清晰、高效。',
+    autoOptimizeWithSelection:
+      '请基于选中的这 {length} 个字内容进行针对性优化，使其更加专业、清晰、高效。',
   },
 
   // AI 优化消息
@@ -124,6 +127,7 @@ export default {
     close: '关闭',
     findPlaceholder: '查找...',
     replacePlaceholder: '替换为...',
+    placeholder: '请输入提示词内容...',
   },
 
   // 消息提示
@@ -142,5 +146,6 @@ export type Locale = {
   dependency: Record<string, string>;
   optimize: Record<string, string>;
   editor_toolbar: Record<string, string>;
+  codemirror: Record<string, string>;
   message: Record<string, string>;
 };

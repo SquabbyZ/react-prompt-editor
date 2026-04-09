@@ -1,21 +1,12 @@
 import {
   DeleteOutlined,
-  EditOutlined,
   LockOutlined,
-  MoreOutlined,
   PlayCircleOutlined,
   PlusOutlined,
   ThunderboltOutlined,
   UnlockOutlined,
 } from '@ant-design/icons';
-import {
-  Button,
-  Dropdown,
-  message,
-  Modal,
-  Popconfirm,
-  Tooltip,
-} from 'antd';
+import { Button, message, Modal, Tooltip } from 'antd';
 import React, { memo, useCallback } from 'react';
 import { useI18n } from '../../hooks/useI18n';
 import { useNodeEditor } from '../../hooks/useNodeEditor';
@@ -31,6 +22,8 @@ import { CodeMirrorEditor } from '../CodeMirrorEditor';
 import { DependencyConfigSection } from './DependencyConfigSection';
 import { EditableTitle } from './EditableTitle';
 import { EditorToolbar } from './EditorToolbar';
+import { NodeActions } from './NodeActions';
+import { NodeStatusIndicator } from './NodeStatusIndicator';
 
 interface CustomNodeProps {
   node: {
@@ -133,6 +126,9 @@ export const Node: React.FC<CustomNodeProps> = memo(
     // 屏幕尺寸检测：小屏显示下拉菜单，大屏显示独立按钮
     // 使用 useEffect 在客户端检测，避免 SSR 问题
     const [isMobile, setIsMobile] = React.useState(false);
+    const [availableWidth, setAvailableWidth] = React.useState(0);
+    const headerRef = React.useRef<HTMLDivElement>(null);
+
     React.useEffect(() => {
       const checkMobile = () => {
         setIsMobile(window.innerWidth < 640); // sm breakpoint = 640px
@@ -141,6 +137,24 @@ export const Node: React.FC<CustomNodeProps> = memo(
       window.addEventListener('resize', checkMobile);
       return () => window.removeEventListener('resize', checkMobile);
     }, []);
+
+    // 监听头部容器的可用宽度
+    React.useEffect(() => {
+      const headerElement = headerRef.current;
+      if (!headerElement) return;
+
+      const resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          setAvailableWidth(entry.contentRect.width);
+        }
+      });
+
+      resizeObserver.observe(headerElement);
+      return () => resizeObserver.disconnect();
+    }, []);
+
+    // 根据可用宽度决定显示哪些按钮
+    const showAllButtons = availableWidth > 650; // 宽度大于 650px 时显示所有按钮
 
     // AI 优化相关状态
     const [optimizeModalOpen, setOptimizeModalOpen] = React.useState(false);
@@ -317,7 +331,10 @@ export const Node: React.FC<CustomNodeProps> = memo(
           {/* 节点头部和编辑器容器 */}
           <div className="flex flex-col gap-2">
             {/* 节点头部 */}
-            <div className="relative z-10 flex items-center justify-between gap-2 rounded-md bg-gray-50 px-3 py-2 transition-colors hover:bg-gray-100 dark:bg-gray-800/80 dark:hover:bg-gray-700/50">
+            <div
+              ref={headerRef}
+              className="relative z-10 flex items-center justify-between gap-2 rounded-md bg-gray-50 px-3 py-2 transition-colors hover:bg-gray-100 dark:bg-gray-800/80 dark:hover:bg-gray-700/50"
+            >
               <div className="flex min-w-0 flex-1 items-center gap-2">
                 {/* 三角按钮 - 只控制子节点展开/折叠 */}
                 {isInternal ? (
@@ -371,140 +388,31 @@ export const Node: React.FC<CustomNodeProps> = memo(
                     />
                   </div>
 
-                  {/* 状态指示：放在标题后面，更紧凑 */}
+                  {/* 状态指示器 - 统一处理不同状态 */}
                   {!previewMode && (
-                    <div className="flex flex-shrink-0 items-center gap-1.5">
-                      {nodeData.isLocked ? (
-                        <Tooltip title={t('editor.nodeLocked')}>
-                          <LockOutlined className="text-xs text-green-500" />
-                        </Tooltip>
-                      ) : !nodeData.hasRun ? (
-                        <Tooltip title={t('editor.notRun')}>
-                          <span className="flex items-center gap-1 text-xs text-gray-400">
-                            <span className="inline-block h-1.5 w-1.5 rounded-full bg-gray-400" />
-                            <span className="text-[11px] leading-none">{t('editor.notRun')}</span>
-                          </span>
-                        </Tooltip>
-                      ) : null}
-                    </div>
+                    <NodeStatusIndicator
+                      hasRun={nodeData.hasRun}
+                      isLocked={nodeData.isLocked}
+                      locale={locale}
+                    />
                   )}
                 </div>
               </div>
 
               {/* 操作按钮 - 预览模式下隐藏 */}
               {!previewMode && (
-                <div className="relative z-20 flex flex-shrink-0 items-center gap-1">
-                  {/* 编辑按钮 */}
-                  <Tooltip
-                    title={
-                      isEditorExpanded
-                        ? t('editor.collapseEditor')
-                        : t('editor.expandEditor')
-                    }
-                  >
-                    <Button
-                      type={isEditorExpanded ? 'primary' : 'text'}
-                      size="small"
-                      icon={<EditOutlined />}
-                      onClick={handleToggleEditor}
-                      className={
-                        isEditorExpanded
-                          ? ''
-                          : 'text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700'
-                      }
-                    />
-                  </Tooltip>
-
-                  {/* 桌面端显示所有按钮 - 大屏时显示 */}
-                  {!isMobile && (
-                    <div className="flex items-center gap-1">
-                    <Tooltip
-                      title={
-                        nodeData.isLocked
-                          ? t('editor.lockedCannotAddChild')
-                          : t('editor.addChildNode')
-                      }
-                    >
-                      <Button
-                        type="text"
-                        size="small"
-                        icon={<PlusOutlined />}
-                        onClick={handleAddChild}
-                        disabled={nodeData.isLocked}
-                        className="text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
-                      />
-                    </Tooltip>
-
-                    <Tooltip
-                      title={
-                        nodeData.hasRun
-                          ? nodeData.isLocked
-                            ? t('editor.unlockNode')
-                            : t('editor.lockNode')
-                          : t('editor.runFirst')
-                      }
-                    >
-                      <Button
-                        type="text"
-                        size="small"
-                        icon={
-                          nodeData.isLocked ? (
-                            <UnlockOutlined />
-                          ) : (
-                            <LockOutlined />
-                          )
-                        }
-                        onClick={handleLock}
-                        disabled={!nodeData.hasRun}
-                        className="text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
-                      />
-                    </Tooltip>
-
-                    <Popconfirm
-                      title={t('editor.deleteNode')}
-                      description={t('editor.confirmDeleteNode')}
-                      onConfirm={handleDelete}
-                      onCancel={() => message.info(t('editor.cancelledDelete'))}
-                      okText={t('common.ok')}
-                      cancelText={t('common.cancel')}
-                      disabled={nodeData.isLocked}
-                    >
-                      <Tooltip
-                        title={
-                          nodeData.isLocked
-                            ? t('editor.lockedCannotDelete')
-                            : t('editor.deleteNode')
-                        }
-                      >
-                        <Button
-                          type="text"
-                          size="small"
-                          danger
-                          icon={<DeleteOutlined />}
-                          disabled={nodeData.isLocked}
-                          className="hover:bg-red-50 dark:hover:bg-red-900/20"
-                        />
-                      </Tooltip>
-                    </Popconfirm>
-                  </div>
-                  )}
-
-                  {/* 移动端/小屏幕显示下拉菜单 - 小屏时显示 */}
-                  {isMobile && (
-                    <Dropdown
-                      menu={{ items: menuItems }}
-                      trigger={['click']}
-                      placement="bottomRight"
-                    >
-                      <Button
-                        type="text"
-                        size="small"
-                        icon={<MoreOutlined />}
-                        className="text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
-                      />
-                    </Dropdown>
-                  )}
-                </div>
+                <NodeActions
+                  isEditorExpanded={isEditorExpanded}
+                  nodeData={nodeData}
+                  showAllButtons={showAllButtons}
+                  isMobile={isMobile}
+                  menuItems={menuItems}
+                  handleToggleEditor={handleToggleEditor}
+                  handleAddChild={handleAddChild}
+                  handleLock={handleLock}
+                  handleDelete={handleDelete}
+                  locale={locale}
+                />
               )}
             </div>
 

@@ -7,7 +7,7 @@ demo:
 
 树形提示词编辑器组件，提供层级化提示词管理、可视化编辑、任务依赖、运行与 AI 优化能力。
 
-## ⚠️ 重要：样式引入
+## 样式引入
 
 **使用组件前必须先引入样式文件！**
 
@@ -22,31 +22,31 @@ import 'react-prompt-editor/styles/index.css'; // 必须引入
 
 最简单的使用方式，只需提供数据和 onChange 回调：
 
-<code src="../examples/quickstart.tsx" title="快速上手"></code>
+<code src="../examples/quickstart.tsx"></code>
 
 ## 基础使用
 
 完整示例，包含运行和 AI 优化功能：
 
-<code src="../examples/basic.tsx" title="基础示例"></code>
+<code src="../examples/basic.tsx"></code>
 
 ## 预览模式
 
 使用 `previewMode` 属性实现只读展示，隐藏所有操作按钮：
 
-<code src="../examples/preview.tsx" title="预览模式"></code>
+<code src="../examples/preview.tsx"></code>
 
 ## 流式输出示例
 
 展示如何实现真正的流式 AI 优化（模拟 OpenAI、通义千问等 API 的 SSE 响应）：
 
-<code src="./examples/streaming.tsx" title="流式输出示例"></code>
+<code src="./examples/streaming.tsx"></code>
 
 ## 🌍 国际化
 
 组件支持中英文切换，CodeMirror 编辑器的搜索框等 UI 元素也会自动切换语言：
 
-<code src="./examples/i18n-demo.tsx" title="国际化演示"></code>
+<code src="./examples/i18n-demo.tsx"></code>
 
 ### 使用方式
 
@@ -66,7 +66,7 @@ const AppEn = () => <PromptEditor locale={enUS} />;
 
 组件支持明亮/暗色主题切换，可以跟随系统或手动指定：
 
-<code src="../examples/theme-demo.tsx" title="主题模式演示"></code>
+<code src="../examples/theme-demo.tsx"></code>
 
 ### 使用方式
 
@@ -93,26 +93,26 @@ const AppDark = () => <PromptEditor theme="dark" />;
 
 ### PromptEditor Props
 
-| 参数              | 说明                                                           | 类型                                                                     | 默认值  |
-| ----------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------ | ------- |
-| initialValue      | 初始树形数据（非受控模式）                                     | `TaskNode[]`                                                             | `[]`    |
-| value             | 树形数据（受控模式）                                           | `TaskNode[]`                                                             | -       |
-| onChange          | 数据变化回调                                                   | `(data: TaskNode[]) => void`                                             | -       |
-| onRunRequest      | 运行请求回调（触发运行时调用，用户自行处理异步请求）           | `(request: RunTaskRequest) => void`                                      | -       |
-| optimizeConfig    | AI 优化配置（简化模式，提供此项后组件自动处理 SSE 请求）       | `OptimizeConfig`                                                         | -       |
-| autoOptimize      | 是否在打开优化弹窗时自动开始优化                               | `boolean`                                                                | `true`  |
-| onOptimizeRequest | 优化请求回调（触发优化时调用，用户通过 onResponse 返回结果）   | `(request: OptimizeRequest, callbacks: { onResponse, onError }) => void` | -       |
-| onNodeRun         | 节点运行完成回调（用户执行完运行请求后调用，通知组件更新状态） | `(nodeId: string, result: RunTaskResponse) => void`                      | -       |
-| onNodeOptimize    | 节点优化完成回调（用户执行完优化请求后调用，通知组件）         | `(nodeId: string, result: OptimizeResponse) => void`                     | -       |
-| onNodeLock        | 节点锁定回调                                                   | `(nodeId: string, isLocked: boolean) => void`                            | -       |
-| onTreeChange      | 树变化回调                                                     | `(tree: TaskNode[]) => void`                                             | -       |
-| className         | 自定义类名                                                     | `string`                                                                 | -       |
-| style             | 自定义样式                                                     | `React.CSSProperties`                                                    | -       |
-| renderToolbar     | 自定义顶部工具栏                                               | `(actions) => ReactNode`                                                 | -       |
-| onLike            | AI 优化消息点赞回调                                            | `(messageId: string) => void`                                            | -       |
-| onDislike         | AI 优化消息点踩回调                                            | `(messageId: string) => void`                                            | -       |
-| previewMode       | 预览模式（只读，隐藏编辑功能）                                 | `boolean`                                                                | `false` |
-| locale            | 国际化配置（类似 Ant Design 的语言包）                         | `Locale`                                                                 | `zhCN`  |
+| 参数              | 说明                                                           | 类型                                                                     | 默认值     |
+| ----------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------ | ---------- |
+| initialValue      | 初始树形数据（非受控模式）                                     | `TaskNode[]`                                                             | `[]`       |
+| value             | 树形数据（受控模式）                                           | `TaskNode[]`                                                             | -          |
+| onChange          | 数据变化回调                                                   | `(data: TaskNode[]) => void`                                             | -          |
+| onRunRequest      | 运行请求回调（触发运行时调用，用户自行处理异步请求）           | `(request: RunTaskRequest) => void`                                      | -          |
+| optimizeConfig    | AI 优化配置（简化模式，提供此项后组件自动处理 SSE 请求）       | `OptimizeConfig`                                                         | -          |
+| autoOptimize      | 是否在打开优化弹窗时自动开始优化                               | `boolean`                                                                | `true`     |
+| onOptimizeRequest | 优化请求回调（触发优化时调用，用户通过 onResponse 返回结果）   | `(request: OptimizeRequest, callbacks: { onResponse, onError }) => void` | -          |
+| onNodeRun         | 节点运行完成回调（用户执行完运行请求后调用，通知组件更新状态） | `(nodeId: string, result: RunTaskResponse) => void`                      | -          |
+| onNodeOptimize    | 节点优化完成回调（用户执行完优化请求后调用，通知组件）         | `(nodeId: string, result: OptimizeResponse) => void`                     | -          |
+| onNodeLock        | 节点锁定回调                                                   | `(nodeId: string, isLocked: boolean) => void`                            | -          |
+| onTreeChange      | 树变化回调                                                     | `(tree: TaskNode[]) => void`                                             | -          |
+| className         | 自定义类名                                                     | `string`                                                                 | -          |
+| style             | 自定义样式                                                     | `React.CSSProperties`                                                    | -          |
+| renderToolbar     | 自定义顶部工具栏                                               | `(actions) => ReactNode`                                                 | -          |
+| onLike            | AI 优化消息点赞回调                                            | `(messageId: string) => void`                                            | -          |
+| onDislike         | AI 优化消息点踩回调                                            | `(messageId: string) => void`                                            | -          |
+| previewMode       | 预览模式（只读，隐藏编辑功能）                                 | `boolean`                                                                | `false`    |
+| locale            | 国际化配置（类似 Ant Design 的语言包）                         | `Locale`                                                                 | `zhCN`     |
 | theme             | 主题模式（控制明亮/暗色主题）                                  | `'system' \| 'light' \| 'dark'`                                          | `'system'` |
 
 ## 数据类型
@@ -153,7 +153,7 @@ interface DependencyInfo {
 
 ### OptimizeRequest
 
-```typescript
+````typescript
 interface OptimizeRequest {
   content: string; // 原始内容
   selectedText?: string; // 选中的文本（如果有）
@@ -173,8 +173,9 @@ interface OptimizeConfig {
   temperature?: number; // 温度参数，默认 0.7
   extraParams?: Record<string, unknown>; // 其他自定义参数
 }
-```
-```
+````
+
+````
 
 ## 使用指南
 
@@ -189,7 +190,7 @@ const [value, setValue] = useState<TaskNode[]>(initialData);
   value={value}
   onChange={setValue}
 />
-```
+````
 
 ### 纯回调模式详解
 
@@ -290,7 +291,7 @@ const handleOptimizeRequest = (
     url: '/api/ai/optimize',
     headers: { Authorization: 'Bearer your_token' },
     model: 'gpt-4',
-    temperature: 0.8
+    temperature: 0.8,
   }}
 />
 ```

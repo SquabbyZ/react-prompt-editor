@@ -18,6 +18,7 @@
 ### 1.2 目标与非目标
 
 **目标**
+
 - 在 React 中提供可复用的 PromptEditor 组件：树 + 编辑器 + 运行/优化 + 锁定/依赖的完整闭环。
 - 支持大规模树数据（目标 2000 节点）的可用体验：可滚动、可展开、可编辑、可运行。
 - 提供清晰的受控/非受控模式与扩展点：主题、API 对接、节点渲染。
@@ -25,6 +26,7 @@
 - 基于 dumi 构建组件文档与 Demo 展示，提供研发与使用的一站式体验。
 
 **非目标（v1.0/v1.1 不做）**
+
 - Vue 2 / Vue 3 适配（计划放到 v1.2+）。
 - ShadcnUI / Mantine 等多主题体系的全面铺开（计划放到 v2.0）。
 - 复杂权限/多用户协作/版本管理等"工作流平台"能力（仅做组件库，不做平台）。
@@ -33,10 +35,12 @@
 ### 1.3 关键用户与场景
 
 **用户**
+
 - 前端工程师：在业务系统/内部工具中嵌入提示词工作流编辑器。
 - AI 应用开发者：将提示词分步骤组织成树结构，便于复用与依赖管理。
 
 **核心场景**
+
 - 构建"分步骤提示词"工作流：每个节点对应一个步骤提示词，可依赖上游步骤输出/提示词。
 - 运行某一节点：自动拼接依赖提示词与当前提示词，调用业务 API，触发回调（不展示结果）。
 - AI 优化某一节点：基于指令优化当前内容或选中文本，用户确认后写回。
@@ -54,22 +58,27 @@
 ## 2. 版本规划（方案 B）
 
 ### v1.0（React + 默认主题）MVP
+
 - React 版本组件库可用（支持 React 18+，对当前仓库 React 19 兼容）。
 - 默认主题（CSS Variables）完成。
 - 树形管理、编辑、依赖、运行、AI 优化、锁定形成闭环。
 - 基于 dumi 的组件文档与 Demo 展示完成。
 
 ### v1.1（Ant Design 主题 + 深度集成）
+
 - Ant Design 风格主题与 Token 对齐（视觉与交互更贴近 AntD）。
 - 更完善的 dumi 文档与 Demo 示例。
 
 ### v1.2（Vue 3 适配）
+
 - 将核心逻辑拆分为框架无关 core（若尚未完成），并完成 Vue 3 版本适配。
 
 ### v1.3（Vue 2 适配）
+
 - 完成 Vue 2 兼容与必要 polyfill 策略。
 
 ### v2.0（主题扩展）
+
 - ShadcnUI / Mantine 等主题扩展与更完善的主题切换能力。
 
 ---
@@ -77,6 +86,7 @@
 ## 3. v1.0 范围定义（Must / Should / Could / Won’t）
 
 **Must（必须交付）**
+
 - 树：增删、拖拽移动、互斥展开、自动序号展示。
 - 编辑：节点内容编辑（CodeMirror 优先），编辑器按需加载与降级（CodeMirror → 纯文本）。
 - 依赖：配置依赖、可视化展示、运行时自动包含依赖内容；依赖循环检测与阻止。
@@ -86,13 +96,16 @@
 - 降级：CodeMirror 不可用时降级到纯文本编辑。
 
 **Should（推荐交付）**
+
 - AI 优化支持"选中文本优先优化"。
 - dumi Demo 覆盖：空数据、大数据、错误态、降级态。
 
 **Could（可选）**
+
 - 更丰富的依赖可视化（例如依赖列表可跳转定位）。
 
 **Won’t（明确不做）**
+
 - 多人协作与实时同步。
 - 节点权限控制与审计。
 
@@ -144,26 +157,29 @@ interface TaskNodeMinimal {
   title: string;
   content: string;
   parentId?: string;
-  children: string[];  // 子节点 ID 数组（不存储完整对象）
+  children: string[]; // 子节点 ID 数组（不存储完整对象）
   isLocked: boolean;
   hasRun: boolean;
-  dependencies: string[];  // 依赖节点 ID 数组
+  dependencies: string[]; // 依赖节点 ID 数组
 }
 ```
 
 **设计优势**
+
 - O(1) 时间复杂度查找/更新任意节点
 - children 只存储 ID 引用，避免对象重复，减少内存占用
 - 序列化友好（Map 可轻松转换为数组/对象进行持久化）
 - 实现简单，维护成本低
 
 **数据转换**
+
 - 内部操作：使用 Map 结构，节点通过 ID 索引
 - 对外 API：转换为 `TaskNode[]` 数组格式（兼容传统树形结构）
 - 持久化：Map → 数组 → JSON 序列化
 
 **一致性维护**
-- 添加子节点：同时更新子节点的 `parentId` 和父节点的 `children` 数组
+
+- 添加子标题：同时更新子节点的 `parentId` 和父节点的 `children` 数组
 - 删除子节点：同时清理父节点 `children` 引用和子节点的 `parentId`
 - 移动节点：更新 `parentId` 并维护原父节点和新父节点的 `children` 数组
 
@@ -181,15 +197,15 @@ interface TaskNodeMinimal {
 
 锁定的目标是“防误改”，建议 v1.0 采用保守策略：
 
-| 操作 | hasRun=false & isLocked=false | hasRun=true & isLocked=false | isLocked=true |
-| --- | --- | --- | --- |
-| 编辑 content | ✅ | ✅ | ❌ |
-| 改 title | ✅ | ✅ | ❌ |
-| 拖拽移动/重排 | ✅ | ✅ | ❌ |
-| 删除节点 | ✅ | ✅ | ❌ |
-| 变更 dependencies | ✅ | ✅ | ❌ |
-| 运行 | ✅ | ✅ | ✅ |
-| 锁定/解锁 | ❌（需先运行） | ✅ | ✅ |
+| 操作              | hasRun=false & isLocked=false | hasRun=true & isLocked=false | isLocked=true |
+| ----------------- | ----------------------------- | ---------------------------- | ------------- |
+| 编辑 content      | ✅                            | ✅                           | ❌            |
+| 改 title          | ✅                            | ✅                           | ❌            |
+| 拖拽移动/重排     | ✅                            | ✅                           | ❌            |
+| 删除节点          | ✅                            | ✅                           | ❌            |
+| 变更 dependencies | ✅                            | ✅                           | ❌            |
+| 运行              | ✅                            | ✅                           | ✅            |
+| 锁定/解锁         | ❌（需先运行）                | ✅                           | ✅            |
 
 ### 5.3 依赖规则（建议 v1.0 采用“运行时实时取内容”）
 
@@ -236,10 +252,12 @@ export interface RunTaskResponse {
 ```
 
 **流式建议（组件侧约定，服务端可选实现）**
+
 - 推荐 SSE 或 fetch stream（ReadableStream）；若服务端不支持则 `stream=false` 走一次性响应。
 - 流式响应仅用于回调通知，组件侧不展示结果。
 
 **错误约定（建议统一）**
+
 ```ts
 export interface APIError {
   code: string;
@@ -249,6 +267,7 @@ export interface APIError {
 ```
 
 组件应支持：
+
 - 错误处理（不崩溃）、可重试（由宿主决定）。
 - 取消（若宿主 runAPI 支持 AbortSignal，可在扩展点中接入）。
 - 运行结果仅通过 onNodeRun 回调通知宿主，组件侧不展示。
@@ -271,6 +290,7 @@ export interface OptimizeResponse {
 ```
 
 约定：
+
 - `thinkingProcess` 可选；缺失时 UI 不展示“思考过程”区域。
 - “替换写回”必须是用户确认后的动作（Insert/Apply）。
 
@@ -281,6 +301,7 @@ export interface OptimizeResponse {
 建议保持对外 API 小而稳定，扩展点通过配置对象与渲染插槽提供。
 
 **数据格式说明**
+
 - 对外 API 使用传统树形数组结构 `TaskNode[]`（符合用户直觉）
 - 内部存储使用 `Map<string, TaskNodeMinimal>`（优化查找性能）
 - 组件自动处理 Map ↔ Array 的双向转换
@@ -292,7 +313,7 @@ export interface TaskNode {
   title: string;
   content: string;
   parentId?: string;
-  children?: TaskNode[];  // 嵌套子节点数组
+  children?: TaskNode[]; // 嵌套子节点数组
   isLocked: boolean;
   hasRun: boolean;
   dependencies?: string[];
@@ -304,16 +325,16 @@ interface TaskNodeMinimal {
   title: string;
   content: string;
   parentId?: string;
-  children: string[];  // 子节点 ID 数组
+  children: string[]; // 子节点 ID 数组
   isLocked: boolean;
   hasRun: boolean;
   dependencies: string[];
 }
 
 export interface PromptEditorProps {
-  initialValue?: TaskNode[];  // 输入：树形数组
-  value?: TaskNode[];         // 受控模式：树形数组
-  onChange?: (data: TaskNode[]) => void;  // 输出：树形数组
+  initialValue?: TaskNode[]; // 输入：树形数组
+  value?: TaskNode[]; // 受控模式：树形数组
+  onChange?: (data: TaskNode[]) => void; // 输出：树形数组
 
   runAPI?: (req: RunTaskRequest) => Promise<RunTaskResponse>;
   optimizeAPI?: (req: OptimizeRequest) => Promise<OptimizeResponse>;
@@ -331,6 +352,7 @@ export interface PromptEditorProps {
 ```
 
 **转换工具函数（内部实现）**
+
 ```ts
 // Array → Map：将树形数组转换为扁平 Map 结构
 function arrayToMap(tree: TaskNode[]): NodeStore;
@@ -346,19 +368,23 @@ function mapToArray(store: NodeStore): TaskNode[];
 ### 8.1 性能策略
 
 **目标场景**
+
 - 2000 节点树可浏览、可展开、可编辑。
 
 **数据结构优化**
+
 - 内部存储使用 `Map<string, TaskNodeMinimal>` 实现 O(1) 节点查找
 - children 只存储 ID 引用，避免对象重复，减少内存占用（相比嵌套数组减少约 60-70% 内存）
 - 依赖关系使用 ID 数组，避免循环引用
 
 **渲染优化**
+
 - 树渲染必须虚拟化（由 tree 组件或列表组件承担，避免双重虚拟化）。
 - CodeMirror 仅在需要时加载，避免全量渲染节点编辑器。
 - 关键计算（可见节点、序号）必须缓存（memo）并尽量使用纯函数。
 
 **转换优化**
+
 - Array ↔ Map 转换仅在初始化/提交时进行（低频操作）
 - 内部操作直接使用 Map，避免重复转换开销
 - 使用 Web Worker 处理大数据量转换（可选，视性能表现而定）

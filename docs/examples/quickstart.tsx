@@ -22,7 +22,7 @@ export default () => {
   ]);
 
   return (
-    <DemoWrapper height="450px" title="Quick Start">
+    <DemoWrapper height="450px">
       <PromptEditor value={value} onChange={setValue} />
     </DemoWrapper>
   );

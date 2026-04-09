@@ -10,7 +10,7 @@ import React, {
   useState,
 } from 'react';
 import { getCodeMirrorPhrases } from '../../i18n/codemirror';
-import { defaultLocale } from '../../i18n/types';
+import { createTranslator, defaultLocale } from '../../i18n/types';
 import { CodeMirrorEditorProps } from './CodeMirrorEditor.types';
 
 export interface CodeMirrorRef {
@@ -24,7 +24,7 @@ export const CodeMirrorEditor = memo(
         value,
         onChange,
         isReadOnly = false,
-        placeholder = 'Enter markdown content...',
+        placeholder,
         className,
         style,
         locale = defaultLocale,
@@ -34,6 +34,11 @@ export const CodeMirrorEditor = memo(
     ) => {
       const cmRef = useRef<any>(null);
       const [isDarkMode, setIsDarkMode] = useState(false);
+
+      // 获取国际化翻译函数
+      const t = createTranslator(locale);
+      // 如果没有传入 placeholder，使用国际化的默认值
+      const defaultPlaceholder = placeholder || t('codemirror.placeholder');
 
       // 检测暗色模式
       useEffect(() => {
@@ -101,7 +106,7 @@ export const CodeMirrorEditor = memo(
           extensions={extensions}
           onChange={(val) => onChange?.(val)}
           editable={!isReadOnly}
-          placeholder={placeholder}
+          placeholder={defaultPlaceholder}
           className={`min-h-[200px] w-full overflow-hidden rounded-lg ${className || ''}`}
           style={style}
           basicSetup={{
