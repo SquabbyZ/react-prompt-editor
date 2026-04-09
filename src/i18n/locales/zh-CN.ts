@@ -93,6 +93,9 @@ export default {
     optimizeComplete: '优化完成',
     emptyState: '输入优化指令，AI 将为您优化提示词',
     provideCallback: '请提供 onOptimizeRequest 回调',
+    provideConfigOrCallback: '请配置 optimizeConfig 或提供 onOptimizeRequest 回调',
+    autoOptimize: '请优化这段提示词，使其更加专业、清晰、高效。',
+    autoOptimizeWithSelection: '请基于选中的这 {length} 个字内容进行针对性优化，使其更加专业、清晰、高效。',
   },
 
   // AI 优化消息

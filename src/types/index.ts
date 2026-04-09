@@ -40,25 +40,57 @@ export interface DependencyInfo {
   hasRun: boolean;
 }
 
-export interface RunTaskRequest {
-  nodeId: string;
-  content: string;
-  dependenciesContent: DependencyInfo[];
-  stream?: boolean;
-  meta?: Record<string, unknown>;
-}
-
 export interface RunTaskResponse {
   result: string;
   stream?: boolean;
   meta?: Record<string, unknown>;
 }
 
-export interface OptimizeRequest {
+export interface RunTaskRequest {
+  nodeId: string;
   content: string;
+  dependenciesContent: DependencyInfo[];
+  stream?: boolean;
+  meta?: {
+    /** 节点运行完成回调，用于通知组件更新状态 */
+    onNodeRun?: (nodeId: string, result?: RunTaskResponse) => void;
+    [key: string]: unknown;
+  };
+}
+
+export interface OptimizeRequest {
+  /** 原始内容 */
+  content: string;
+  /** 选中的内容（如果有） */
   selectedText?: string;
+  /** 当前输入的指令（包含上下文拼接） */
   instruction?: string;
+  /** 结构化的对话历史（包含当前指令作为最后一条消息） */
+  messages?: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>;
+  /** 取消请求的信号，当用户停止生成或关闭弹窗时触发 */
+  signal?: AbortSignal;
+  /** 其他自定义参数 */
   meta?: Record<string, unknown>;
+}
+
+/**
+ * AI 优化请求配置（简化模式）
+ * 提供此配置后，组件内部自动处理请求和流式显示
+ */
+export interface OptimizeConfig {
+  /** API 请求地址（支持 OpenAI 兼容格式） */
+  url: string;
+  /** 
+   * 请求头（通常用于鉴权）
+   * 建议通过后端代理转发以保护 API Key，避免在前端直接暴露敏感信息
+   */
+  headers?: Record<string, string>;
+  /** 模型名称 */
+  model?: string;
+  /** 温度参数 */
+  temperature?: number;
+  /** 其他自定义参数 */
+  extraParams?: Record<string, unknown>;
 }
 
 export interface OptimizeResponse {
@@ -80,9 +112,21 @@ export interface PromptEditorProps {
    */
   onRunRequest?: (request: RunTaskRequest) => void;
   /**
-   * 优化请求回调
+   * AI 优化配置（简化模式）
+   * 提供此配置后，组件内部自动处理 SSE 流式请求和显示
+   * 如果同时提供了 optimizeConfig 和 onOptimizeRequest，优先使用 onOptimizeRequest
+   */
+  optimizeConfig?: OptimizeConfig;
+  /**
+   * 是否在打开优化弹窗时自动开始优化
+   * @default true
+   */
+  autoOptimize?: boolean;
+  /**
+   * 优化请求回调（高级模式）
    * 组件触发优化时调用，参数包含请求信息和响应回调
    * 用户需自行执行异步请求，多次调用 onResponse 可实现流式输出
+   * 优先级高于 optimizeConfig
    */
   onOptimizeRequest?: (
     request: OptimizeRequest,
@@ -103,6 +147,11 @@ export interface PromptEditorProps {
    * 用户执行完优化请求后调用，通知组件
    */
   onNodeOptimize?: (nodeId: string, result: OptimizeResponse) => void;
+  /**
+   * 用户点击"应用"按钮时的回调
+   * 当用户确认使用 AI 优化的内容时触发
+   */
+  onOptimizeApply?: (nodeId: string, optimizedContent: string) => void;
   onNodeLock?: (nodeId: string, isLocked: boolean) => void;
   onTreeChange?: (tree: TaskNode[]) => void;
   className?: string;

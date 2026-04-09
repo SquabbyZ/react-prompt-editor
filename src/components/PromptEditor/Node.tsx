@@ -2,17 +2,26 @@ import {
   DeleteOutlined,
   EditOutlined,
   LockOutlined,
+  MoreOutlined,
   PlayCircleOutlined,
   PlusOutlined,
   ThunderboltOutlined,
   UnlockOutlined,
 } from '@ant-design/icons';
-import { Button, message, Popconfirm, Tag, Tooltip } from 'antd';
+import {
+  Button,
+  Dropdown,
+  message,
+  Modal,
+  Popconfirm,
+  Tooltip,
+} from 'antd';
 import React, { memo, useCallback } from 'react';
 import { useI18n } from '../../hooks/useI18n';
 import { useNodeEditor } from '../../hooks/useNodeEditor';
 import type { Locale } from '../../i18n/locales/zh-CN';
 import {
+  OptimizeConfig,
   OptimizeRequest,
   OptimizeResponse,
   TaskNodeMinimal,
@@ -54,7 +63,11 @@ interface CustomNodeProps {
     parentId?: string;
     children: string[];
   }>;
-  // AI 优化请求回调
+  // AI 优化配置（简化模式）
+  optimizeConfig?: OptimizeConfig;
+  // 是否自动开始优化
+  autoOptimize?: boolean;
+  // AI 优化请求回调（高级模式）
   onOptimizeRequest?: (
     request: OptimizeRequest,
     callbacks: {
@@ -64,6 +77,8 @@ interface CustomNodeProps {
   ) => void;
   // AI 优化完成回调
   onNodeOptimize?: (nodeId: string, result: OptimizeResponse) => void;
+  // 用户点击"应用"按钮回调
+  onOptimizeApply?: (nodeId: string, optimizedContent: string) => void;
   // AI 优化点赞回调
   onLike?: (messageId: string) => void;
   // AI 优化点踩回调
@@ -94,8 +109,11 @@ export const Node: React.FC<CustomNodeProps> = memo(
     expandedNodes,
     onToggleChildren,
     availableNodes,
+    optimizeConfig,
+    autoOptimize = true,
     onOptimizeRequest,
     onNodeOptimize,
+    onOptimizeApply,
     onLike,
     onDislike,
     previewMode = false,
@@ -111,6 +129,18 @@ export const Node: React.FC<CustomNodeProps> = memo(
     const isEditorExpanded = expandedEditorId === nodeData.id;
     // 判断子节点是否展开
     const isChildrenExpanded = expandedNodes.has(nodeData.id);
+
+    // 屏幕尺寸检测：小屏显示下拉菜单，大屏显示独立按钮
+    // 使用 useEffect 在客户端检测，避免 SSR 问题
+    const [isMobile, setIsMobile] = React.useState(false);
+    React.useEffect(() => {
+      const checkMobile = () => {
+        setIsMobile(window.innerWidth < 640); // sm breakpoint = 640px
+      };
+      checkMobile(); // 初始检测
+      window.addEventListener('resize', checkMobile);
+      return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     // AI 优化相关状态
     const [optimizeModalOpen, setOptimizeModalOpen] = React.useState(false);
@@ -232,6 +262,51 @@ export const Node: React.FC<CustomNodeProps> = memo(
       [nodeData.content, selectedContent],
     );
 
+    // 下拉菜单项
+    const menuItems = [
+      {
+        key: 'addChild',
+        label: t('editor.childTitle'),
+        icon: <PlusOutlined />,
+        disabled: nodeData.isLocked,
+        onClick: (info: any) => {
+          info.domEvent.stopPropagation();
+          handleAddChild(info.domEvent);
+        },
+      },
+      {
+        key: 'lock',
+        label: nodeData.isLocked ? t('editor.unlock') : t('editor.lock'),
+        icon: nodeData.isLocked ? <UnlockOutlined /> : <LockOutlined />,
+        disabled: !nodeData.hasRun,
+        onClick: (info: any) => {
+          info.domEvent.stopPropagation();
+          handleLock(info.domEvent);
+        },
+      },
+      {
+        type: 'divider' as const,
+      },
+      {
+        key: 'delete',
+        label: t('editor.deleteNode'),
+        icon: <DeleteOutlined />,
+        danger: true,
+        disabled: nodeData.isLocked,
+        onClick: (info: any) => {
+          info.domEvent.stopPropagation();
+          Modal.confirm({
+            title: t('editor.deleteNode'),
+            content: t('editor.confirmDeleteNode'),
+            okText: t('common.ok'),
+            cancelText: t('common.cancel'),
+            okButtonProps: { danger: true },
+            onOk: () => handleDelete(),
+          });
+        },
+      },
+    ];
+
     return (
       <div
         className="prompt-editor-node arborist-node group mb-1"
@@ -242,7 +317,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
           {/* 节点头部和编辑器容器 */}
           <div className="flex flex-col gap-2">
             {/* 节点头部 */}
-            <div className="relative z-10 flex flex-shrink-0 items-center justify-between gap-2 rounded-md bg-gray-50 px-3 py-2 transition-colors hover:bg-gray-100 dark:bg-gray-800/80 dark:hover:bg-gray-700/50">
+            <div className="relative z-10 flex items-center justify-between gap-2 rounded-md bg-gray-50 px-3 py-2 transition-colors hover:bg-gray-100 dark:bg-gray-800/80 dark:hover:bg-gray-700/50">
               <div className="flex min-w-0 flex-1 items-center gap-2">
                 {/* 三角按钮 - 只控制子节点展开/折叠 */}
                 {isInternal ? (
@@ -272,52 +347,54 @@ export const Node: React.FC<CustomNodeProps> = memo(
                 )}
 
                 {/* 节点序号和标题 */}
-                <EditableTitle
-                  nodeId={nodeData.id}
-                  title={nodeData.title}
-                  number={getNodeNumber(nodeData.id)}
-                  isLocked={nodeData.isLocked}
-                  content={nodeData.content}
-                  onTitleChange={onUpdateTitle}
-                  onContentChange={onContentChange}
-                  previewMode={previewMode}
-                  locale={locale}
-                  onClick={() => {
-                    // 预览模式下：点击标题展开/折叠编辑器
-                    // 编辑模式下：只展开/折叠子节点
-                    if (previewMode) {
-                      onToggleEditor(nodeData.id);
-                    } else if (isInternal) {
-                      onToggleChildren(nodeData.id);
-                    }
-                  }}
-                />
-
-                {/* 状态图标 */}
-                {nodeData.isLocked && (
-                  <Tooltip title={t('editor.nodeLocked')}>
-                    <LockOutlined
-                      style={{ fontSize: 12, color: '#faad14' }}
-                      className="dark:text-yellow-500"
+                <div className="flex min-w-0 flex-1 items-center gap-1.5">
+                  <div className="min-w-0 flex-1">
+                    <EditableTitle
+                      nodeId={nodeData.id}
+                      title={nodeData.title}
+                      number={getNodeNumber(nodeData.id)}
+                      isLocked={nodeData.isLocked}
+                      content={nodeData.content}
+                      onTitleChange={onUpdateTitle}
+                      onContentChange={onContentChange}
+                      previewMode={previewMode}
+                      locale={locale}
+                      onClick={() => {
+                        // 预览模式下：点击标题展开/折叠编辑器
+                        // 编辑模式下：只展开/折叠子节点
+                        if (previewMode) {
+                          onToggleEditor(nodeData.id);
+                        } else if (isInternal) {
+                          onToggleChildren(nodeData.id);
+                        }
+                      }}
                     />
-                  </Tooltip>
-                )}
-                {!nodeData.hasRun && !previewMode && (
-                  <Tag
-                    color="default"
-                    title={t('editor.notRun')}
-                    style={{ fontSize: 10 }}
-                    className="dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                  >
-                    {t('editor.notRun')}
-                  </Tag>
-                )}
+                  </div>
+
+                  {/* 状态指示：放在标题后面，更紧凑 */}
+                  {!previewMode && (
+                    <div className="flex flex-shrink-0 items-center gap-1.5">
+                      {nodeData.isLocked ? (
+                        <Tooltip title={t('editor.nodeLocked')}>
+                          <LockOutlined className="text-xs text-green-500" />
+                        </Tooltip>
+                      ) : !nodeData.hasRun ? (
+                        <Tooltip title={t('editor.notRun')}>
+                          <span className="flex items-center gap-1 text-xs text-gray-400">
+                            <span className="inline-block h-1.5 w-1.5 rounded-full bg-gray-400" />
+                            <span className="text-[11px] leading-none">{t('editor.notRun')}</span>
+                          </span>
+                        </Tooltip>
+                      ) : null}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* 操作按钮 - 预览模式下隐藏 */}
               {!previewMode && (
-                <div className="relative z-20 flex flex-shrink-0 items-center gap-1.5">
-                  {/* 编辑按钮 - 只控制编辑器展开/折叠 */}
+                <div className="relative z-20 flex flex-shrink-0 items-center gap-1">
+                  {/* 编辑按钮 */}
                   <Tooltip
                     title={
                       isEditorExpanded
@@ -326,91 +403,107 @@ export const Node: React.FC<CustomNodeProps> = memo(
                     }
                   >
                     <Button
-                      type={isEditorExpanded ? 'primary' : 'default'}
+                      type={isEditorExpanded ? 'primary' : 'text'}
                       size="small"
                       icon={<EditOutlined />}
                       onClick={handleToggleEditor}
-                      style={{
-                        background: isEditorExpanded ? undefined : '#fff',
-                      }}
-                    >
-                      <span className="hidden sm:inline">
-                        {t('editor.editPrompt')}
-                      </span>
-                    </Button>
-                  </Tooltip>
-                  <Tooltip
-                    title={
-                      nodeData.isLocked
-                        ? t('editor.lockedCannotAddChild')
-                        : t('editor.addChildNode')
-                    }
-                  >
-                    <Button
-                      size="small"
-                      icon={<PlusOutlined />}
-                      onClick={handleAddChild}
-                      disabled={nodeData.isLocked}
-                    >
-                      <span className="hidden sm:inline">
-                        {t('editor.childTitle')}
-                      </span>
-                    </Button>
-                  </Tooltip>
-                  <Tooltip
-                    title={
-                      nodeData.hasRun
-                        ? nodeData.isLocked
-                          ? t('editor.unlockNode')
-                          : t('editor.lockNode')
-                        : t('editor.runFirst')
-                    }
-                  >
-                    <Button
-                      size="small"
-                      icon={
-                        nodeData.isLocked ? (
-                          <UnlockOutlined className="text-gray-600 dark:text-gray-300" />
-                        ) : (
-                          <LockOutlined className="text-gray-600 dark:text-gray-300" />
-                        )
+                      className={
+                        isEditorExpanded
+                          ? ''
+                          : 'text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700'
                       }
-                      onClick={handleLock}
-                      disabled={!nodeData.hasRun}
-                      className="border-gray-300 text-gray-700 hover:border-gray-400 hover:text-gray-900 disabled:border-gray-200 disabled:text-gray-400 dark:border-gray-600 dark:text-gray-200 dark:hover:border-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-100 dark:disabled:border-gray-700 dark:disabled:text-gray-600"
-                    >
-                      <span className="hidden sm:inline">
-                        {nodeData.isLocked
-                          ? t('editor.unlock')
-                          : t('editor.lock')}
-                      </span>
-                    </Button>
+                    />
                   </Tooltip>
 
-                  <Popconfirm
-                    title={t('editor.deleteNode')}
-                    description={t('editor.confirmDeleteNode')}
-                    onConfirm={handleDelete}
-                    onCancel={() => message.info(t('editor.cancelledDelete'))}
-                    okText={t('common.ok')}
-                    cancelText={t('common.cancel')}
-                    disabled={nodeData.isLocked}
-                  >
+                  {/* 桌面端显示所有按钮 - 大屏时显示 */}
+                  {!isMobile && (
+                    <div className="flex items-center gap-1">
                     <Tooltip
                       title={
                         nodeData.isLocked
-                          ? t('editor.lockedCannotDelete')
-                          : t('editor.deleteNode')
+                          ? t('editor.lockedCannotAddChild')
+                          : t('editor.addChildNode')
                       }
                     >
                       <Button
+                        type="text"
                         size="small"
-                        danger
-                        icon={<DeleteOutlined />}
+                        icon={<PlusOutlined />}
+                        onClick={handleAddChild}
                         disabled={nodeData.isLocked}
+                        className="text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
                       />
                     </Tooltip>
-                  </Popconfirm>
+
+                    <Tooltip
+                      title={
+                        nodeData.hasRun
+                          ? nodeData.isLocked
+                            ? t('editor.unlockNode')
+                            : t('editor.lockNode')
+                          : t('editor.runFirst')
+                      }
+                    >
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={
+                          nodeData.isLocked ? (
+                            <UnlockOutlined />
+                          ) : (
+                            <LockOutlined />
+                          )
+                        }
+                        onClick={handleLock}
+                        disabled={!nodeData.hasRun}
+                        className="text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
+                      />
+                    </Tooltip>
+
+                    <Popconfirm
+                      title={t('editor.deleteNode')}
+                      description={t('editor.confirmDeleteNode')}
+                      onConfirm={handleDelete}
+                      onCancel={() => message.info(t('editor.cancelledDelete'))}
+                      okText={t('common.ok')}
+                      cancelText={t('common.cancel')}
+                      disabled={nodeData.isLocked}
+                    >
+                      <Tooltip
+                        title={
+                          nodeData.isLocked
+                            ? t('editor.lockedCannotDelete')
+                            : t('editor.deleteNode')
+                        }
+                      >
+                        <Button
+                          type="text"
+                          size="small"
+                          danger
+                          icon={<DeleteOutlined />}
+                          disabled={nodeData.isLocked}
+                          className="hover:bg-red-50 dark:hover:bg-red-900/20"
+                        />
+                      </Tooltip>
+                    </Popconfirm>
+                  </div>
+                  )}
+
+                  {/* 移动端/小屏幕显示下拉菜单 - 小屏时显示 */}
+                  {isMobile && (
+                    <Dropdown
+                      menu={{ items: menuItems }}
+                      trigger={['click']}
+                      placement="bottomRight"
+                    >
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={<MoreOutlined />}
+                        className="text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
+                      />
+                    </Dropdown>
+                  )}
                 </div>
               )}
             </div>
@@ -460,20 +553,22 @@ export const Node: React.FC<CustomNodeProps> = memo(
                 {/* 编辑器底部操作按钮 - 预览模式下隐藏 */}
                 {!previewMode && (
                   <div className="flex items-center justify-end gap-2 border-t border-indigo-200 bg-white px-3 py-2 dark:border-indigo-800 dark:bg-gray-900">
-                    <Button
-                      type="primary"
-                      icon={<PlayCircleOutlined />}
-                      onClick={handleRun}
-                    >
-                      {t('editor.run')}
-                    </Button>
+                    <Tooltip title={t('editor.run')}>
+                      <Button
+                        type="primary"
+                        icon={<PlayCircleOutlined />}
+                        onClick={handleRun}
+                        size="small"
+                      />
+                    </Tooltip>
 
-                    <Button
-                      icon={<ThunderboltOutlined />}
-                      onClick={handleOptimize}
-                    >
-                      {t('editor.aiOptimize')}
-                    </Button>
+                    <Tooltip title={t('editor.aiOptimize')}>
+                      <Button
+                        icon={<ThunderboltOutlined />}
+                        onClick={handleOptimize}
+                        size="small"
+                      />
+                    </Tooltip>
                   </div>
                 )}
 
@@ -489,6 +584,8 @@ export const Node: React.FC<CustomNodeProps> = memo(
                     }}
                     originalContent={nodeData.content}
                     selectedContent={selectedContent}
+                    autoStart={autoOptimize}
+                    optimizeConfig={optimizeConfig}
                     onOptimizeRequest={onOptimizeRequest}
                     onApply={(optimizedContent: string) => {
                       // 如果有选中范围，替换选中部分
@@ -526,6 +623,9 @@ export const Node: React.FC<CustomNodeProps> = memo(
                           thinkingProcess: '优化完成',
                         });
                       }
+
+                      // 调用应用回调
+                      onOptimizeApply?.(nodeData.id, optimizedContent);
 
                       setOptimizeModalOpen(false);
                       setSelectedContent(undefined);

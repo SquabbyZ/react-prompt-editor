@@ -18,9 +18,12 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   value,
   onChange,
   onRunRequest,
+  optimizeConfig,
+  autoOptimize = true,
   onOptimizeRequest,
   onNodeRun,
   onNodeOptimize,
+  onOptimizeApply,
   onNodeLock,
   className,
   style,
@@ -282,8 +285,11 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
             expandedNodes={expandedNodes}
             onToggleChildren={handleToggleChildrenAnimated}
             availableNodes={getAvailableNodes()}
+            optimizeConfig={optimizeConfig}
+            autoOptimize={autoOptimize}
             onOptimizeRequest={onOptimizeRequest}
             onNodeOptimize={onNodeOptimize}
+            onOptimizeApply={onOptimizeApply}
             onLike={onLike}
             onDislike={onDislike}
             previewMode={previewMode}

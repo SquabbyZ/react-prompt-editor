@@ -100,6 +100,8 @@ const AppDark = () => <PromptEditor theme="dark" />;
 | value             | Tree data (controlled mode)                                                                | `TaskNode[]`                                                             | -       |
 | onChange          | Data change callback                                                                       | `(data: TaskNode[]) => void`                                             | -       |
 | onRunRequest      | Run request callback (called when triggered, user handles async requests)                  | `(request: RunTaskRequest) => void`                                      | -       |
+| optimizeConfig    | AI optimization config (simplified mode, component handles SSE requests automatically)    | `OptimizeConfig`                                                         | -       |
+| autoOptimize      | Whether to automatically start optimization when opening the modal                         | `boolean`                                                                | `true`  |
 | onOptimizeRequest | Optimize request callback (called when triggered, user returns result via onResponse)      | `(request: OptimizeRequest, callbacks: { onResponse, onError }) => void` | -       |
 | onNodeRun         | Node run completion callback (user calls after completing run request to notify component) | `(nodeId: string, result: RunTaskResponse) => void`                      | -       |
 | onNodeOptimize    | Node optimize completion callback (user calls after completing optimize request)           | `(nodeId: string, result: OptimizeResponse) => void`                     | -       |
@@ -156,9 +158,23 @@ interface DependencyInfo {
 interface OptimizeRequest {
   content: string; // Original content
   selectedText?: string; // Selected text (if any)
-  instruction?: string; // Optimization instruction
+  instruction?: string; // Optimization instruction (including context concatenation)
+  messages?: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>; // Structured conversation history
+  signal?: AbortSignal; // Abort signal for canceling the request
   meta?: Record<string, unknown>;
 }
+
+### OptimizeConfig (Simplified Mode Config)
+
+```typescript
+interface OptimizeConfig {
+  url: string; // API endpoint (OpenAI compatible format supported)
+  headers?: Record<string, string>; // Request headers
+  model?: string; // Model name, default: gpt-3.5-turbo
+  temperature?: number; // Temperature parameter, default: 0.7
+  extraParams?: Record<string, unknown>; // Other custom parameters
+}
+```
 ```
 
 ## Usage Guide
@@ -258,6 +274,55 @@ const handleOptimizeRequest = (
       return readStream();
     })
     .catch((error) => callbacks.onError(error));
+};
+```
+
+### AI Optimization (Two Ways to Integrate)
+
+The component supports two ways to integrate AI optimization capabilities:
+
+#### 1. Simplified Mode (Configuration-based)
+
+If you are using a backend that follows the OpenAI API specification (supports SSE streaming), you can configure it directly via `optimizeConfig`. The component will automatically handle request initiation, streaming parsing, and conversation display.
+
+```tsx | pure
+<PromptEditor
+  optimizeConfig={{
+    url: '/api/ai/optimize',
+    headers: { Authorization: 'Bearer your_token' },
+    model: 'gpt-4',
+    temperature: 0.8
+  }}
+/>
+```
+
+#### 2. Advanced Mode (Callback-based)
+
+If you need full control over the request process (e.g., non-standard APIs, complex streaming, custom encryption), use `onOptimizeRequest`.
+
+Now with support for **Structured Messages** and **Abort Signals**, implementation is even simpler:
+
+```typescript
+const handleOptimizeRequest = (
+  request: OptimizeRequest,
+  callbacks: { onResponse; onError },
+) => {
+  // 1. Get structured messages directly without manual parsing
+  const { messages, signal } = request;
+
+  // 2. Pass the signal to fetch for automatic request cancellation on modal close
+  fetch('/api/optimize', {
+    method: 'POST',
+    body: JSON.stringify({ messages }),
+    signal, // Abort support
+  })
+    .then((response) => {
+      // ... Streaming logic (see example below)
+    })
+    .catch((error) => {
+      if (error.name === 'AbortError') return; // Ignore manual cancellation
+      callbacks.onError(error);
+    });
 };
 ```
 

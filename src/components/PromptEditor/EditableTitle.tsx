@@ -136,7 +136,7 @@ export const EditableTitle: React.FC<EditableTitleProps> = memo(
         className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100"
         title={!isEditing ? title : undefined}
       >
-        <Tag color="default" className="px-1 text-xs">
+        <Tag color="default" className="flex-shrink-0 px-1 text-xs">
           {number}
         </Tag>
         {isEditing ? (

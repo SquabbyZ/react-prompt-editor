@@ -99,6 +99,8 @@ const AppDark = () => <PromptEditor theme="dark" />;
 | value             | 树形数据（受控模式）                                           | `TaskNode[]`                                                             | -       |
 | onChange          | 数据变化回调                                                   | `(data: TaskNode[]) => void`                                             | -       |
 | onRunRequest      | 运行请求回调（触发运行时调用，用户自行处理异步请求）           | `(request: RunTaskRequest) => void`                                      | -       |
+| optimizeConfig    | AI 优化配置（简化模式，提供此项后组件自动处理 SSE 请求）       | `OptimizeConfig`                                                         | -       |
+| autoOptimize      | 是否在打开优化弹窗时自动开始优化                               | `boolean`                                                                | `true`  |
 | onOptimizeRequest | 优化请求回调（触发优化时调用，用户通过 onResponse 返回结果）   | `(request: OptimizeRequest, callbacks: { onResponse, onError }) => void` | -       |
 | onNodeRun         | 节点运行完成回调（用户执行完运行请求后调用，通知组件更新状态） | `(nodeId: string, result: RunTaskResponse) => void`                      | -       |
 | onNodeOptimize    | 节点优化完成回调（用户执行完优化请求后调用，通知组件）         | `(nodeId: string, result: OptimizeResponse) => void`                     | -       |
@@ -155,9 +157,23 @@ interface DependencyInfo {
 interface OptimizeRequest {
   content: string; // 原始内容
   selectedText?: string; // 选中的文本（如果有）
-  instruction?: string; // 优化指令
+  instruction?: string; // 优化指令（包含上下文拼接）
+  messages?: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>; // 结构化对话历史
+  signal?: AbortSignal; // 取消请求的信号
   meta?: Record<string, unknown>;
 }
+
+### OptimizeConfig (简化模式配置)
+
+```typescript
+interface OptimizeConfig {
+  url: string; // API 请求地址（支持 OpenAI 兼容格式）
+  headers?: Record<string, string>; // 请求头
+  model?: string; // 模型名称，默认 gpt-3.5-turbo
+  temperature?: number; // 温度参数，默认 0.7
+  extraParams?: Record<string, unknown>; // 其他自定义参数
+}
+```
 ```
 
 ## 使用指南
@@ -257,6 +273,55 @@ const handleOptimizeRequest = (
       return readStream();
     })
     .catch((error) => callbacks.onError(error));
+};
+```
+
+### AI 优化 (两种接入方式)
+
+组件支持两种方式接入 AI 优化能力：
+
+#### 1. 简化模式 (配置式)
+
+如果您使用的是符合 OpenAI 接口规范的后端（支持 SSE 流式响应），可以直接通过 `optimizeConfig` 配置。组件将自动处理所有的请求发起、流式解析和对话展示。
+
+```tsx | pure
+<PromptEditor
+  optimizeConfig={{
+    url: '/api/ai/optimize',
+    headers: { Authorization: 'Bearer your_token' },
+    model: 'gpt-4',
+    temperature: 0.8
+  }}
+/>
+```
+
+#### 2. 高级模式 (回调式)
+
+如果您需要完全控制请求过程（如：非标准接口、复杂的流式处理、自定义加密等），可以使用 `onOptimizeRequest`。
+
+现在支持**结构化消息**和**中断信号**，让实现更加简单：
+
+```typescript
+const handleOptimizeRequest = (
+  request: OptimizeRequest,
+  callbacks: { onResponse; onError },
+) => {
+  // 1. 直接获取结构化的 messages，无需手动解析字符串
+  const { messages, signal } = request;
+
+  // 2. 发起请求并透传 signal，实现关闭弹窗时自动取消请求
+  fetch('/api/optimize', {
+    method: 'POST',
+    body: JSON.stringify({ messages }),
+    signal, // 自动取消支持
+  })
+    .then((response) => {
+      // ... 流式处理逻辑 (详见下方示例)
+    })
+    .catch((error) => {
+      if (error.name === 'AbortError') return; // 忽略用户手动取消
+      callbacks.onError(error);
+    });
 };
 ```
 

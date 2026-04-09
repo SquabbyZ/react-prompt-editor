@@ -13,7 +13,7 @@ import React, { memo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useI18n } from '../../hooks/useI18n';
 import { createOptimizeStore, OptimizeStoreType } from '../../stores';
-import { OptimizeRequest, OptimizeResponse } from '../../types';
+import { OptimizeConfig, OptimizeRequest, OptimizeResponse } from '../../types';
 
 interface AIOptimizeModalProps {
   /** 是否显示弹窗 */
@@ -24,7 +24,11 @@ interface AIOptimizeModalProps {
   originalContent: string;
   /** 选中的内容（如果有） */
   selectedContent?: string;
-  /** AI 优化请求回调 */
+  /** 自动开始优化过程（首次打开时自动发送第一条指令） */
+  autoStart?: boolean;
+  /** AI 优化配置（简化模式） */
+  optimizeConfig?: OptimizeConfig;
+  /** AI 优化请求回调（高级模式） */
   onOptimizeRequest?: (
     request: OptimizeRequest,
     callbacks: {
@@ -45,6 +49,8 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
   onClose,
   originalContent,
   selectedContent,
+  autoStart = true,
+  optimizeConfig,
   onOptimizeRequest,
   onApply,
   onLike,
@@ -68,13 +74,6 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-
-  // 初始化 store
-  useEffect(() => {
-    if (open) {
-      store.getState().initialize(originalContent, selectedContent);
-    }
-  }, [open, originalContent, selectedContent, store]);
 
   // 流式输出状态追踪
   const streamingStateRef = useRef({
@@ -184,13 +183,8 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
   };
 
   const handleSendMessageFromContent = (content: string) => {
-    if (!onOptimizeRequest) {
-      message.error(t('optimize.provideCallback'));
-      store.getState().stopStreaming();
-      return;
-    }
-
     abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
 
     const conversationHistory = messages
       .map(
@@ -199,24 +193,183 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
       )
       .join('\n\n');
 
-    // 触发优化请求回调，用户通过 onResponse 返回结果
-    onOptimizeRequest(
+    // 构造结构化消息数组
+    const structuredMessages: Array<{
+      role: 'user' | 'assistant' | 'system';
+      content: string;
+    }> = [
       {
-        content: originalContent,
-        instruction: `${conversationHistory}\n\n用户: ${content}`,
+        role: 'system',
+        content: `你是一个专业的提示词优化助手。请根据用户的指令优化以下内容：\n\n${originalContent}`,
       },
+      ...messages.map((msg) => ({
+        role: msg.role as 'user' | 'assistant',
+        content: msg.content,
+      })),
       {
-        onResponse: (response) => {
-          handleStreamingResponse(response);
+        role: 'user',
+        content: content,
+      },
+    ];
+
+    // 优先使用 onOptimizeRequest（高级模式）
+    if (onOptimizeRequest) {
+      onOptimizeRequest(
+        {
+          content: originalContent,
+          selectedText: selectedContent,
+          instruction: `${conversationHistory}\n\n用户: ${content}`,
+          messages: structuredMessages,
+          signal: signal,
         },
-        onError: (error) => {
-          console.error('Optimize failed:', error);
+        {
+          onResponse: (response) => {
+            if (signal.aborted) return;
+            handleStreamingResponse(response);
+          },
+          onError: (error) => {
+            if (signal.aborted) return;
+            console.error('Optimize failed:', error);
+            message.error(t('optimize.optimizeFailed'));
+            store.getState().stopStreaming();
+            streamingStateRef.current.isStarted = false;
+          },
+        },
+      );
+      return;
+    }
+
+    // 使用 optimizeConfig（简化模式）
+    if (!optimizeConfig?.url) {
+      message.error(t('optimize.provideConfigOrCallback'));
+      store.getState().stopStreaming();
+      return;
+    }
+
+    const {
+      url,
+      headers = {},
+      model,
+      temperature,
+      extraParams,
+    } = optimizeConfig;
+
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...headers,
+      },
+      body: JSON.stringify({
+        model: model || 'gpt-3.5-turbo',
+        messages: structuredMessages,
+        temperature: temperature ?? 0.7,
+        stream: true,
+        ...extraParams,
+      }),
+      signal: signal,
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const reader = response.body?.getReader();
+        if (!reader) {
+          throw new Error('ReadableStream not supported');
+        }
+
+        const decoder = new TextDecoder();
+        let accumulatedContent = '';
+
+        const readStream = () => {
+          reader
+            .read()
+            .then(({ done, value }) => {
+              if (done) {
+                handleStreamingResponse({
+                  optimizedContent: accumulatedContent,
+                  done: true,
+                });
+                return;
+              }
+
+              const chunk = decoder.decode(value, { stream: true });
+              const lines = chunk.split('\n');
+
+              lines.forEach((line) => {
+                const trimmedLine = line.trim();
+                if (trimmedLine.startsWith('data: ')) {
+                  const data = trimmedLine.slice(6);
+                  if (data === '[DONE]') {
+                    handleStreamingResponse({
+                      optimizedContent: accumulatedContent,
+                      done: true,
+                    });
+                    return;
+                  }
+
+                  try {
+                    const parsed = JSON.parse(data);
+                    const delta = parsed.choices?.[0]?.delta?.content;
+                    if (delta) {
+                      accumulatedContent += delta;
+                      handleStreamingResponse({
+                        optimizedContent: accumulatedContent,
+                      });
+                    }
+                  } catch (e) {
+                    console.warn('Failed to parse SSE data:', e);
+                  }
+                }
+              });
+
+              readStream();
+            })
+            .catch((error) => {
+              if (error.name !== 'AbortError') {
+                console.error('Stream reading failed:', error);
+                message.error(t('optimize.optimizeFailed'));
+                store.getState().stopStreaming();
+                streamingStateRef.current.isStarted = false;
+              }
+            });
+        };
+
+        readStream();
+      })
+      .catch((error) => {
+        if (error.name !== 'AbortError') {
+          console.error('Optimize request failed:', error);
           message.error(t('optimize.optimizeFailed'));
           store.getState().stopStreaming();
           streamingStateRef.current.isStarted = false;
-        },
-      },
-    );
+        }
+      });
+  };
+
+  const handleSendMessage = async (forcedContent?: string) => {
+    const userMessageContent =
+      typeof forcedContent === 'string' ? forcedContent : inputValue.trim();
+    if (!userMessageContent || isGenerating) return;
+
+    const userMessage = {
+      id: `user-${Date.now()}`,
+      role: 'user' as const,
+      content: userMessageContent,
+      timestamp: Date.now(),
+    };
+    store.getState().addMessage(userMessage);
+    store.getState().clearInput();
+
+    store.getState().startStreaming();
+
+    // 构建发送给 AI 的完整内容（包含上下文）
+    const fullContent = selectedContent
+      ? `${userMessageContent}\n\n选中的内容：\n\n${selectedContent}`
+      : userMessageContent;
+
+    await handleSendMessageFromContent(fullContent);
   };
 
   const handleCopy = (content: string) => {
@@ -251,28 +404,28 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
     onClose();
   };
 
-  const handleSendMessage = async () => {
-    if (!inputValue.trim() || isGenerating) return;
+  // 初始化 store
+  useEffect(() => {
+    if (open) {
+      store.getState().initialize(originalContent, selectedContent);
 
-    const userMessageContent = inputValue.trim();
-    const userMessage = {
-      id: `user-${Date.now()}`,
-      role: 'user' as const,
-      content: userMessageContent,
-      timestamp: Date.now(),
-    };
-    store.getState().addMessage(userMessage);
-    store.getState().clearInput();
+      // 自动开始优化
+      if (autoStart && store.getState().messages.length === 0) {
+        // 使用默认指令
+        const defaultInstruction = selectedContent
+          ? t('optimize.autoOptimizeWithSelection', {
+              length: selectedContent.length,
+            })
+          : t('optimize.autoOptimize');
 
-    store.getState().startStreaming();
-
-    // 构建发送给 AI 的完整内容（包含上下文）
-    const fullContent = selectedContent
-      ? `${userMessageContent}\n\n选中的内容：\n\n${selectedContent}`
-      : userMessageContent;
-
-    await handleSendMessageFromContent(fullContent);
-  };
+        // 延迟一小会儿发送，等待弹窗动画完成，体验更好
+        const timer = setTimeout(() => {
+          handleSendMessage(defaultInstruction);
+        }, 300);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [open, originalContent, selectedContent, store, autoStart, t]);
 
   const handleApply = () => {
     // 获取最新的 AI 回复内容
@@ -464,9 +617,9 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
           onClick={handleClose}
         />
 
-        {/* 弹窗内容 */}
-        <div className="absolute inset-x-0 bottom-0 flex justify-center p-4 pt-20">
-          <div className="relative flex max-h-[80vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+        {/* 弹窗内容 - 垂直居中 */}
+        <div className="absolute inset-0 flex items-center justify-center p-4">
+          <div className="relative flex h-[70vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
             {/* 顶部操作栏 */}
             <div className="flex flex-shrink-0 items-center justify-between border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-900">
               <div className="flex items-center gap-3">
@@ -507,12 +660,14 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
                 </div>
               )}
 
-              <div className="p-4">
-                <Bubble.List
-                  items={bubbleItems}
-                  style={{ maxHeight: 'calc(100vh - 300px)' }}
-                />
-              </div>
+              {bubbleItems.length > 0 && (
+                <div className="p-4">
+                  <Bubble.List
+                    items={bubbleItems}
+                    style={{ maxHeight: 'calc(100vh - 300px)' }}
+                  />
+                </div>
+              )}
 
               {messages.length === 0 && !isGenerating && !selectedContent && (
                 <div className="flex h-64 flex-col items-center justify-center text-gray-400 dark:text-gray-500">

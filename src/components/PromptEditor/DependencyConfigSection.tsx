@@ -90,15 +90,21 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
             if (!childNode) return null;
             return {
               title: (
-                <span>
-                  <span className="mr-1 font-bold">[{childNode.number}]</span>
-                  {childNode.title}
+                <div className="flex w-full items-center justify-between gap-1">
+                  <span className="flex-1 truncate">
+                    <span className="mr-1 font-bold">[{childNode.number}]</span>
+                    {childNode.title}
+                  </span>
                   {childNode.hasRun && (
-                    <Tag color="green" className="px-2 py-1 text-xs font-bold">
+                    <Tag
+                      color="green"
+                      className="flex-shrink-0 px-1 py-0 text-xs font-bold"
+                      style={{ fontSize: '10px', lineHeight: '18px' }}
+                    >
                       {t('editor.nodeLocked')}
                     </Tag>
                   )}
-                </span>
+                </div>
               ),
               value: childNode.id,
               key: childNode.id,
@@ -125,15 +131,21 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
           .filter((node) => !node.parentId)
           .map((rootNode) => ({
             title: (
-              <span>
-                <span className="mr-1 font-bold">[{rootNode.number}]</span>
-                {rootNode.title}
+              <div className="flex w-full items-center justify-between gap-1">
+                <span className="flex-1 truncate">
+                  <span className="mr-1 font-bold">[{rootNode.number}]</span>
+                  {rootNode.title}
+                </span>
                 {rootNode.hasRun && (
-                  <Tag color="green" className="px-2 py-1 text-xs font-bold">
+                  <Tag
+                    color="green"
+                    className="flex-shrink-0 px-1 py-0 text-xs font-bold"
+                    style={{ fontSize: '10px', lineHeight: '18px' }}
+                  >
                     {t('editor.nodeLocked')}
                   </Tag>
                 )}
-              </span>
+              </div>
             ),
             value: rootNode.id,
             key: rootNode.id,
@@ -196,7 +208,7 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
             placeholder={t('dependency.selectDependencyPlaceholder')}
             allowClear
             treeDefaultExpandAll
-            dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
+            styles={{ popup: { root: { maxHeight: 400, overflow: 'auto' } } }}
             onChange={(value) => {
               if (value) {
                 handleAddDependency(value as string);
