@@ -14,7 +14,7 @@ Tree-structured prompt editor component providing hierarchical prompt management
 
 ```typescript
 import { PromptEditor } from 'react-prompt-editor';
-import 'react-prompt-editor/dist/styles/tailwind.css'; // Required
+import 'react-prompt-editor/styles/index.css'; // Required
 ```
 
 If you don't import the style file, the component will lose all styles and display as unformatted raw content.
@@ -63,6 +63,33 @@ const AppEn = () => <PromptEditor locale={enUS} />;
 
 For more internationalization details, please refer to: [Internationalization Documentation](../i18n)
 
+## 🎨 Theme Mode
+
+The component supports light/dark theme switching, which can follow the system or be manually specified:
+
+<code src="../examples/theme-demo.tsx" title="Theme Mode Demo"></code>
+
+### Usage
+
+```tsx
+import { PromptEditor } from 'react-prompt-editor';
+
+// Follow system (default)
+const App = () => <PromptEditor theme="system" />;
+
+// Force light mode
+const AppLight = () => <PromptEditor theme="light" />;
+
+// Force dark mode
+const AppDark = () => <PromptEditor theme="dark" />;
+```
+
+**Theme Mode Description:**
+
+- `system`: Follows system settings, automatically detects user's system theme preference
+- `light`: Forces light theme, does not change with system
+- `dark`: Forces dark theme, does not change with system
+
 ## API
 
 ### PromptEditor Props
@@ -85,6 +112,7 @@ For more internationalization details, please refer to: [Internationalization Do
 | onDislike         | AI optimization message dislike callback                                                   | `(messageId: string) => void`                                            | -       |
 | previewMode       | Preview mode (read-only, hides editing features)                                           | `boolean`                                                                | `false` |
 | locale            | Internationalization configuration (similar to Ant Design's language pack)                 | `Locale`                                                                 | `zhCN`  |
+| theme             | Theme mode (controls light/dark theme)                                                     | `'system' \| 'light' \| 'dark'`                                          | `'system'` |
 
 ## Data Types
 

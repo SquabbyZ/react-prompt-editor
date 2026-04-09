@@ -3,8 +3,19 @@
   "version": "0.0.1",
   "description": "react prompt editor",
   "license": "MIT",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/lib/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "style": "dist/styles/index.css",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/lib/index.js",
+      "types": "./dist/esm/index.d.ts"
+    },
+    "./dist/*": "./dist/*",
+    "./styles/index.css": "./dist/styles/index.css"
+  },
   "files": [
     "dist"
   ],
@@ -61,6 +72,7 @@
     "clsx": "^2.1.1",
     "lucide-react": "^1.7.0",
     "react-arborist": "^3.4.3",
+    "react-prompt-editor": "link:",
     "react-window": "^2.2.7",
     "tailwind-merge": "^3.5.0",
     "tailwind-scrollbar": "^4.0.2",

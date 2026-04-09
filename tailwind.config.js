@@ -4,6 +4,8 @@ module.exports = {
     './src/**/*.{js,jsx,ts,tsx}',
     './docs/**/*.{md,mdx,ts,tsx}',
   ],
+  // 配置暗色模式：支持 data-theme 属性
+  darkMode: ['class', '[data-theme="dark"]'],
   theme: {
     extend: {
       animation: {

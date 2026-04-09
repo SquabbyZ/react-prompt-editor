@@ -8,7 +8,7 @@ import {
   ThunderboltOutlined,
 } from '@ant-design/icons';
 import { Bubble, Sender, XProvider } from '@ant-design/x';
-import { Button, message, theme } from 'antd';
+import { Button, message } from 'antd';
 import React, { memo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useI18n } from '../../hooks/useI18n';
@@ -292,7 +292,7 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
   // 消息内容渲染
   const renderMessageContent = (content: string) => {
     return (
-      <div className="whitespace-pre-wrap text-sm leading-relaxed">
+      <div className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800 dark:text-gray-200">
         {content.split('\n').map((line, index) => {
           // 处理标题
           if (line.startsWith('### ')) {
@@ -450,7 +450,7 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
   }, [messages, currentResponse]);
 
   return createPortal(
-    <XProvider theme={{ algorithm: theme.darkAlgorithm }}>
+    <XProvider>
       <div
         className={`fixed inset-0 z-[9999] transition-opacity ${
           open

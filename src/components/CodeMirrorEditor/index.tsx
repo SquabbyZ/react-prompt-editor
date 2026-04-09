@@ -28,6 +28,7 @@ export const CodeMirrorEditor = memo(
         className,
         style,
         locale = defaultLocale,
+        theme = 'system',
       },
       ref,
     ) => {
@@ -37,32 +38,45 @@ export const CodeMirrorEditor = memo(
       // 检测暗色模式
       useEffect(() => {
         const checkDarkMode = () => {
-          const htmlElement = document.documentElement;
-          const isDark =
-            htmlElement.classList.contains('dark') ||
-            htmlElement.getAttribute('data-theme') === 'dark' ||
-            window.matchMedia('(prefers-color-scheme: dark)').matches;
+          let isDark = false;
+
+          if (theme === 'light') {
+            isDark = false;
+          } else if (theme === 'dark') {
+            isDark = true;
+          } else {
+            // system: 跟随系统
+            const htmlElement = document.documentElement;
+            isDark =
+              htmlElement.classList.contains('dark') ||
+              htmlElement.getAttribute('data-theme') === 'dark' ||
+              window.matchMedia('(prefers-color-scheme: dark)').matches;
+          }
+
           setIsDarkMode(isDark);
         };
 
         checkDarkMode();
 
-        // 监听类名变化
-        const observer = new MutationObserver(checkDarkMode);
-        observer.observe(document.documentElement, {
-          attributes: true,
-          attributeFilter: ['class', 'data-theme'],
-        });
+        // 只有在 system 模式下才监听变化
+        if (theme === 'system') {
+          // 监听类名变化
+          const observer = new MutationObserver(checkDarkMode);
+          observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['class', 'data-theme'],
+          });
 
-        // 监听系统主题变化
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        mediaQuery.addEventListener('change', checkDarkMode);
+          // 监听系统主题变化
+          const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+          mediaQuery.addEventListener('change', checkDarkMode);
 
-        return () => {
-          observer.disconnect();
-          mediaQuery.removeEventListener('change', checkDarkMode);
-        };
-      }, []);
+          return () => {
+            observer.disconnect();
+            mediaQuery.removeEventListener('change', checkDarkMode);
+          };
+        }
+      }, [theme]);
 
       // 获取 CodeMirror 国际化配置
       const phrases = getCodeMirrorPhrases(locale);

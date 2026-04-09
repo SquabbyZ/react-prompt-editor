@@ -29,6 +29,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   onDislike,
   previewMode = false,
   locale,
+  theme = 'system',
 }) => {
   // 国际化 Hook
   const { t } = useI18n(locale);
@@ -287,6 +288,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
             onDislike={onDislike}
             previewMode={previewMode}
             locale={locale}
+            theme={theme}
           />
           {/* 递归渲染子节点 - 根据 expandedNodes 判断是否显示 */}
           {node.children &&
@@ -309,6 +311,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       className={`prompt-editor-container scroll-thin h-full w-full overflow-auto bg-white dark:bg-gray-900 ${className || ''}`}
       data-prompt-editor="true"
       style={style}
+      data-theme={theme === 'system' ? undefined : theme}
     >
       {/* 顶部工具栏 - 预览模式下隐藏 */}
       {!previewMode && (

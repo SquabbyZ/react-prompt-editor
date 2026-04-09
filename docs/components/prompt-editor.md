@@ -13,7 +13,7 @@ demo:
 
 ```typescript
 import { PromptEditor } from 'react-prompt-editor';
-import 'react-prompt-editor/dist/styles/tailwind.css'; // 必须引入
+import 'react-prompt-editor/styles/index.css'; // 必须引入
 ```
 
 如果不引入样式文件，组件将失去所有样式，显示为未格式化的原始内容。
@@ -62,6 +62,33 @@ const AppEn = () => <PromptEditor locale={enUS} />;
 
 更多国际化详情请参考：[国际化文档](../i18n)
 
+## 🎨 主题模式
+
+组件支持明亮/暗色主题切换，可以跟随系统或手动指定：
+
+<code src="../examples/theme-demo.tsx" title="主题模式演示"></code>
+
+### 使用方式
+
+```tsx
+import { PromptEditor } from 'react-prompt-editor';
+
+// 跟随系统（默认）
+const App = () => <PromptEditor theme="system" />;
+
+// 强制明亮模式
+const AppLight = () => <PromptEditor theme="light" />;
+
+// 强制暗色模式
+const AppDark = () => <PromptEditor theme="dark" />;
+```
+
+**主题模式说明：**
+
+- `system`: 跟随系统设置，自动检测用户的系统主题偏好
+- `light`: 强制使用明亮主题，不随系统变化
+- `dark`: 强制使用暗色主题，不随系统变化
+
 ## API
 
 ### PromptEditor Props
@@ -84,6 +111,7 @@ const AppEn = () => <PromptEditor locale={enUS} />;
 | onDislike         | AI 优化消息点踩回调                                            | `(messageId: string) => void`                                            | -       |
 | previewMode       | 预览模式（只读，隐藏编辑功能）                                 | `boolean`                                                                | `false` |
 | locale            | 国际化配置（类似 Ant Design 的语言包）                         | `Locale`                                                                 | `zhCN`  |
+| theme             | 主题模式（控制明亮/暗色主题）                                  | `'system' \| 'light' \| 'dark'`                                          | `'system'` |
 
 ## 数据类型
 

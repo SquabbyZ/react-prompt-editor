@@ -138,6 +138,7 @@ const App: React.FC = () => {
           onLike={handleLike}
           onDislike={handleDislike}
           className="rounded-lg border border-gray-300"
+          theme="system" // 可以修改为 'light' 或 'dark' 进行测试
         />
       </div>
     </ConfigProvider>

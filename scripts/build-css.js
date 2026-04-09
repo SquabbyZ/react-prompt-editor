@@ -14,12 +14,14 @@ if (!fs.existsSync(outputPath)) {
 }
 
 // Compile Tailwind CSS using CLI with explicit config to ensure animations are included
+// Output to styles/index.css for cleaner import path
 try {
     execSync(
-        `npx tailwindcss -i ${srcPath} -o ${path.resolve(outputPath, 'tailwind.css')} --minify --config ./tailwind.config.js`,
+        `npx tailwindcss -i ${srcPath} -o ${path.resolve(outputPath, 'index.css')} --minify --config ./tailwind.config.js`,
         { stdio: 'inherit' }
     );
     console.log('✅ Tailwind CSS compiled successfully!');
+    console.log('📁 Output: dist/styles/index.css');
 } catch (error) {
     console.error('❌ Failed to compile Tailwind CSS:', error.message);
     process.exit(1);

@@ -72,6 +72,8 @@ interface CustomNodeProps {
   previewMode?: boolean;
   // 国际化配置
   locale?: Locale;
+  // 主题模式
+  theme?: 'system' | 'light' | 'dark';
 }
 
 export const Node: React.FC<CustomNodeProps> = memo(
@@ -98,6 +100,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
     onDislike,
     previewMode = false,
     locale,
+    theme = 'system',
   }) => {
     // 国际化 Hook
     const { t } = useI18n(locale);
@@ -438,6 +441,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
                     onChange={handleContentChange}
                     isReadOnly={nodeData.isLocked || previewMode}
                     locale={locale}
+                    theme={theme}
                   />
                 </div>
 
