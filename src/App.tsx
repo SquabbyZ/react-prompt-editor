@@ -42,7 +42,6 @@ const App: React.FC = () => {
 
   const handleNodeRun = (nodeId: string, result: any) => {
     console.log('Node run callback:', nodeId, result);
-    alert(`节点 ${nodeId} 运行完成！\n结果：${result.result}`);
   };
 
   // 运行请求回调 - 用户自行处理异步请求

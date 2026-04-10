@@ -507,9 +507,6 @@ export const Node: React.FC<CustomNodeProps> = memo(
                           const newContent = before + optimizedContent + after;
 
                           onContentChange(nodeData.id, newContent);
-                          message.success(
-                            t('aiOptimize.replacedSelectedContent'),
-                          );
                         } catch (error) {
                           console.error('替换失败:', error);
                           message.error(t('aiOptimize.replaceFailed'));

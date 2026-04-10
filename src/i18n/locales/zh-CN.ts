@@ -110,8 +110,8 @@ export default {
 
   // CodeMirror 编辑器
   editor_toolbar: {
-    undo: '撤回 (Ctrl+Z)',
-    redo: '还原 (Ctrl+Y)',
+    undo: '撤回',
+    redo: '还原',
   },
 
   // CodeMirror 界面文本

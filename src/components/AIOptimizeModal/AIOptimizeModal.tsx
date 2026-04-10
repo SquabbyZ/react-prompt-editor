@@ -39,6 +39,14 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
   onDislike,
 }) => {
   const { t } = useI18n();
+
+  // 先定义 handleClose，以便 useOptimizeLogic 使用
+  const handleClose = () => {
+    // 注意：这里还不能调用 handleStopResponse 和 store，因为它们来自 useOptimizeLogic
+    // 所以在 useOptimizeLogic 中传递的 onClose 需要单独处理
+    onClose();
+  };
+
   const {
     store,
     messages,
@@ -51,7 +59,13 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
     handleScroll,
     handleSendMessage,
     handleStopResponse,
-    handleApply: handleApplyLogic,
+    // 选区相关
+    selectedTexts,
+    toolbarVisible,
+    toolbarPosition,
+    handleTextSelection,
+    clearSelection,
+    handleSelectionReplace,
   } = useOptimizeLogic({
     originalContent,
     selectedContent,
@@ -59,17 +73,16 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
     onOptimizeRequest,
     onLike,
     onDislike,
+    onApply,
+    onClose,
   });
 
-  const handleClose = () => {
+  // 重新定义 handleClose，包含完整的清理逻辑
+  const handleFullClose = () => {
     handleStopResponse();
     store.getState().clearMessages();
     store.getState().clearInput();
     onClose();
-  };
-
-  const handleApply = () => {
-    handleApplyLogic(onApply, handleClose);
   };
 
   useEffect(() => {
@@ -128,6 +141,15 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
               messagesEndRef={messagesEndRef}
               scrollContainerRef={scrollContainerRef}
               onScroll={handleScroll}
+              // 选区相关
+              selectedTexts={selectedTexts}
+              toolbarVisible={toolbarVisible}
+              toolbarPosition={toolbarPosition}
+              handleTextSelection={handleTextSelection}
+              clearSelection={clearSelection}
+              handleSelectionReplace={() =>
+                handleSelectionReplace(onApply, handleFullClose)
+              }
             />
 
             {/* 底部输入区 */}
@@ -136,8 +158,6 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
               onChange={(value) => store.getState().setInputValue(value)}
               onSubmit={handleSendMessage}
               onCancel={handleStopResponse}
-              onApply={handleApply}
-              onClose={handleClose}
               isStreaming={isStreaming}
               isGenerating={isGenerating}
               hasMessages={messages.length > 0}
@@ -149,8 +169,6 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
                   : t('optimize.inputPlaceholder')
               }
               disclaimerText={t('optimize.disclaimer')}
-              applyButtonText={t('optimize.apply')}
-              exitButtonText={t('optimize.exit')}
             />
           </div>
         </div>

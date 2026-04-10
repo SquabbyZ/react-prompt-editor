@@ -3,10 +3,11 @@ import {
   DislikeOutlined,
   LikeOutlined,
   ReloadOutlined,
+  SwapOutlined,
 } from '@ant-design/icons';
 import { Bubble } from '@ant-design/x';
 import { Button, message } from 'antd';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useI18n } from '../../hooks/useI18n';
 import { useStreamParser } from '../../hooks/useStreamParser';
 import { createOptimizeStore, OptimizeStoreType } from '../../stores';
@@ -26,6 +27,8 @@ export interface UseOptimizeLogicProps {
   ) => void;
   onLike?: (messageId: string) => void;
   onDislike?: (messageId: string) => void;
+  onApply?: (content: string) => void;
+  onClose?: () => void;
 }
 
 export interface UseOptimizeLogicReturn {
@@ -47,7 +50,24 @@ export interface UseOptimizeLogicReturn {
     onApply: (content: string) => void,
     onClose: () => void,
   ) => void;
-  renderMessageContent: (content: string) => React.ReactNode;
+  renderMessageContent: (
+    content: string,
+    key?: React.Key,
+    onFullReplace?: (content: string) => void,
+  ) => React.ReactNode;
+  // 选区相关
+  selectedTexts: string[];
+  toolbarVisible: boolean;
+  toolbarPosition: { top: number; left: number } | null;
+  handleTextSelection: (
+    texts: string[],
+    position: { top: number; left: number },
+  ) => void;
+  clearSelection: () => void;
+  handleSelectionReplace: (
+    onApply: (content: string) => void,
+    onClose: () => void,
+  ) => void;
 }
 
 export const useOptimizeLogic = ({
@@ -57,6 +77,8 @@ export const useOptimizeLogic = ({
   onOptimizeRequest,
   onLike,
   onDislike,
+  onApply,
+  onClose,
 }: UseOptimizeLogicProps): UseOptimizeLogicReturn => {
   const { t } = useI18n();
   const { parseLine, reset: resetParser } = useStreamParser();
@@ -78,6 +100,14 @@ export const useOptimizeLogic = ({
   const shouldAutoScrollRef = useRef(true); // 是否应该自动滚动
   const abortControllerRef = useRef<AbortController | null>(null);
   const streamingStateRef = useRef({ isStarted: false });
+
+  // 选区状态
+  const [selectedTexts, setSelectedTexts] = useState<string[]>([]);
+  const [toolbarVisible, setToolbarVisible] = useState(false);
+  const [toolbarPosition, setToolbarPosition] = useState<{
+    top: number;
+    left: number;
+  } | null>(null);
 
   const handleStreamingResponse = (response: OptimizeResponse) => {
     const newText = response.optimizedContent || '';
@@ -318,7 +348,67 @@ export const useOptimizeLogic = ({
     }
   };
 
-  const renderMessageContent = (content: string, key?: React.Key) => {
+  // 整段替换：替换完整的 AI 回复
+  const handleFullReplace = (
+    content: string,
+    onApply: (content: string) => void,
+    onClose: () => void,
+  ) => {
+    if (!content) {
+      message.warning(t('optimize.noOptimizeContent'));
+      return;
+    }
+    onApply(content);
+    message.success(t('optimize.contentApplied'));
+    onClose();
+  };
+
+  // 处理文本选中
+  const handleTextSelection = (
+    texts: string[],
+    position: { top: number; left: number },
+  ) => {
+    setSelectedTexts(texts);
+    setToolbarPosition(position);
+    setToolbarVisible(true);
+  };
+
+  // 清除选区
+  const clearSelection = () => {
+    setSelectedTexts([]);
+    setToolbarVisible(false);
+    setToolbarPosition(null);
+  };
+
+  // 选中替换：替换选中的文本（支持多段拼接）
+  const handleSelectionReplace = (
+    onApply: (content: string) => void,
+    onClose: () => void,
+  ) => {
+    if (selectedTexts.length === 0) {
+      message.warning('请先选择要替换的内容');
+      return;
+    }
+
+    try {
+      // 拼接多段文本，用换行符分隔
+      const combinedText = selectedTexts.join('\n');
+      onApply(combinedText);
+      message.success(t('optimize.contentApplied'));
+    } catch (error) {
+      console.error('🔴 替换操作失败:', error);
+      message.error('替换失败，请重试');
+    } finally {
+      // 确保无论成功还是失败，都关闭弹窗
+      onClose();
+    }
+  };
+
+  const renderMessageContent = (
+    content: string,
+    key?: React.Key,
+    onFullReplace?: (content: string) => void,
+  ) => {
     const showActions = key !== undefined && key !== null;
     return (
       <div>
@@ -352,6 +442,14 @@ export const useOptimizeLogic = ({
               icon={<DislikeOutlined />}
               onClick={() => onDislike?.(key as string)}
               className="h-6 text-gray-500 hover:text-red-500"
+            />
+            <Button
+              type="text"
+              size="small"
+              icon={<SwapOutlined />}
+              onClick={() => onFullReplace?.(content)}
+              className="h-6 text-gray-500 hover:text-indigo-500"
+              title="替换整段内容"
             />
           </div>
         )}
@@ -409,7 +507,13 @@ export const useOptimizeLogic = ({
       key: msg.id,
       content:
         msg.role === 'assistant'
-          ? renderMessageContent(msg.content, msg.id)
+          ? renderMessageContent(
+              msg.content,
+              msg.id,
+              onApply && onClose
+                ? (content) => handleFullReplace(content, onApply, onClose)
+                : undefined,
+            )
           : msg.content,
       role: msg.role,
       ...config,
@@ -487,5 +591,11 @@ export const useOptimizeLogic = ({
     handleRegenerate,
     handleApply,
     renderMessageContent,
+    selectedTexts,
+    toolbarVisible,
+    toolbarPosition,
+    handleTextSelection,
+    clearSelection,
+    handleSelectionReplace,
   };
 };
