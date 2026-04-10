@@ -58,8 +58,6 @@ interface CustomNodeProps {
   }>;
   // AI 优化配置（简化模式）
   optimizeConfig?: OptimizeConfig;
-  // 是否自动开始优化
-  autoOptimize?: boolean;
   // AI 优化请求回调（高级模式）
   onOptimizeRequest?: (
     request: OptimizeRequest,
@@ -103,7 +101,6 @@ export const Node: React.FC<CustomNodeProps> = memo(
     onToggleChildren,
     availableNodes,
     optimizeConfig,
-    autoOptimize = true,
     onOptimizeRequest,
     onNodeOptimize,
     onOptimizeApply,
@@ -492,7 +489,6 @@ export const Node: React.FC<CustomNodeProps> = memo(
                     }}
                     originalContent={nodeData.content}
                     selectedContent={selectedContent}
-                    autoStart={autoOptimize}
                     optimizeConfig={optimizeConfig}
                     onOptimizeRequest={onOptimizeRequest}
                     onApply={(optimizedContent: string) => {

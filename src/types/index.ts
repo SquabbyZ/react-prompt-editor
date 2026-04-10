@@ -69,6 +69,12 @@ export interface OptimizeRequest {
   messages?: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>;
   /** 取消请求的信号，当用户停止生成或关闭弹窗时触发 */
   signal?: AbortSignal;
+  /**
+   * optimizeConfig 配置（如果提供了 optimizeConfig 参数）
+   * 包含 url、headers、model、temperature、extraParams 等配置信息
+   * 用户可以在 onOptimizeRequest 中使用这些配置来自定义请求
+   */
+  config?: OptimizeConfig;
   /** 其他自定义参数 */
   meta?: Record<string, unknown>;
 }
@@ -80,7 +86,7 @@ export interface OptimizeRequest {
 export interface OptimizeConfig {
   /** API 请求地址（支持 OpenAI 兼容格式） */
   url: string;
-  /** 
+  /**
    * 请求头（通常用于鉴权）
    * 建议通过后端代理转发以保护 API Key，避免在前端直接暴露敏感信息
    */
@@ -91,6 +97,25 @@ export interface OptimizeConfig {
   temperature?: number;
   /** 其他自定义参数 */
   extraParams?: Record<string, unknown>;
+  /**
+   * 是否开启流式输出 (默认 true)
+   * 如果后端不支持 SSE，设为 false，前端会自动使用 Bubble 的打字机效果模拟
+   */
+  stream?: boolean;
+  /**
+   * 平台类型适配 (默认 'auto')
+   * 'openai': 优先解析 choices[0].delta.content
+   * 'dify': 优先解析 event: message 和 answer 字段
+   * 'bailian': 优先解析阿里百炼的 text 字段和 usage 判断
+   * 'auto': 自动探测
+   */
+  platform?: 'auto' | 'openai' | 'dify' | 'bailian';
+  /**
+   * 系统提示词模板 (支持 {selectedContent} 和 {userInstruction} 占位符)
+   * 默认格式:
+   * "选中的内容:\n\n# 原始内容\n\n请尝试使用您的后端接口来优化这段文本。\n\n需求的内容：{userInstruction}"
+   */
+  systemPrompt?: string;
 }
 
 export interface OptimizeResponse {

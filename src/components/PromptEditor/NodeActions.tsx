@@ -83,8 +83,8 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
           />
         </Tooltip>
 
-        {/* 根据可用宽度显示不同按钮组合 */}
-        {showAllButtons && (
+        {/* 大屏显示独立按钮 - 宽度大于 650px 且非移动端 */}
+        {showAllButtons && !isMobile && (
           <div className="flex items-center gap-1">
             <Tooltip
               title={

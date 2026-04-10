@@ -99,9 +99,8 @@ const AppDark = () => <PromptEditor theme="dark" />;
 | value             | 树形数据（受控模式）                                           | `TaskNode[]`                                                             | -          |
 | onChange          | 数据变化回调                                                   | `(data: TaskNode[]) => void`                                             | -          |
 | onRunRequest      | 运行请求回调（触发运行时调用，用户自行处理异步请求）           | `(request: RunTaskRequest) => void`                                      | -          |
-| optimizeConfig    | AI 优化配置（简化模式，提供此项后组件自动处理 SSE 请求）       | `OptimizeConfig`                                                         | -          |
-| autoOptimize      | 是否在打开优化弹窗时自动开始优化                               | `boolean`                                                                | `true`     |
-| onOptimizeRequest | 优化请求回调（触发优化时调用，用户通过 onResponse 返回结果）   | `(request: OptimizeRequest, callbacks: { onResponse, onError }) => void` | -          |
+| optimizeConfig    | AI 优化配置（提供此项后组件自动处理请求与流式/非流式渲染）     | `OptimizeConfig`                                                         | -          |
+| onOptimizeRequest | 优化请求回调（高级模式，用户自行处理请求并通过 onResponse 返回） | `(request: OptimizeRequest, callbacks: { onResponse, onError }) => void` | -          |
 | onNodeRun         | 节点运行完成回调（用户执行完运行请求后调用，通知组件更新状态） | `(nodeId: string, result: RunTaskResponse) => void`                      | -          |
 | onNodeOptimize    | 节点优化完成回调（用户执行完优化请求后调用，通知组件）         | `(nodeId: string, result: OptimizeResponse) => void`                     | -          |
 | onNodeLock        | 节点锁定回调                                                   | `(nodeId: string, isLocked: boolean) => void`                            | -          |
@@ -167,13 +166,23 @@ interface OptimizeRequest {
 
 ```typescript
 interface OptimizeConfig {
-  url: string; // API 请求地址（支持 OpenAI 兼容格式）
-  headers?: Record<string, string>; // 请求头
+  url: string; // API 请求地址（支持 OpenAI 兼容格式或后端代理）
+  headers?: Record<string, string>; // 请求头（通常用于鉴权）
   model?: string; // 模型名称，默认 gpt-3.5-turbo
   temperature?: number; // 温度参数，默认 0.7
+  stream?: boolean; // 是否开启流式输出，默认 true。设为 false 时前端会自动模拟打字机效果
+  platform?: 'auto' | 'openai' | 'dify' | 'bailian'; // 平台类型适配，默认 'auto' 自动探测
   extraParams?: Record<string, unknown>; // 其他自定义参数
 }
-````
+```
+
+**平台适配说明：**
+
+- **OpenAI 标准**: 自动解析 `choices[0].delta.content`。
+- **Dify 平台**: 自动监听 `event: message` 事件并提取 `answer` 字段。
+- **阿里百炼**: 自动解析 `text` 字段，通过 `usage` 字段识别百炼格式，通过 `finish_reason: "stop"` 判断结束。
+- **通用 JSON**: 兜底尝试提取根节点的 `content`, `text` 等字段。
+- **容错处理**: 遇到非标准 JSON 行时会自动跳过，连续错误超过阈值会终止流式并提示用户。`
 
 ````
 

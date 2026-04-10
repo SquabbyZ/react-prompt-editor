@@ -76,9 +76,10 @@ export const NodeStatusIndicator: React.FC<NodeStatusIndicatorProps> = memo(
             <span
               className={
                 config.showText
-                  ? `flex items-center gap-1 text-xs ${config.color}`
-                  : `inline-block h-1.5 w-1.5 rounded-full ${config.bgColor}`
+                  ? 'flex items-center gap-1 text-xs'
+                  : 'inline-flex items-center'
               }
+              style={{ color: status === NodeStatus.HasRun ? '#3b82f6' : '#9ca3af' }}
             >
               <span
                 className={`inline-block h-1.5 w-1.5 rounded-full ${config.bgColor}`}

@@ -100,9 +100,8 @@ const AppDark = () => <PromptEditor theme="dark" />;
 | value             | Tree data (controlled mode)                                                                | `TaskNode[]`                                                             | -          |
 | onChange          | Data change callback                                                                       | `(data: TaskNode[]) => void`                                             | -          |
 | onRunRequest      | Run request callback (called when triggered, user handles async requests)                  | `(request: RunTaskRequest) => void`                                      | -          |
-| optimizeConfig    | AI optimization config (simplified mode, component handles SSE requests automatically)     | `OptimizeConfig`                                                         | -          |
-| autoOptimize      | Whether to automatically start optimization when opening the modal                         | `boolean`                                                                | `true`     |
-| onOptimizeRequest | Optimize request callback (called when triggered, user returns result via onResponse)      | `(request: OptimizeRequest, callbacks: { onResponse, onError }) => void` | -          |
+| optimizeConfig    | AI optimization config (component handles requests and streaming/non-streaming rendering)  | `OptimizeConfig`                                                         | -          |
+| onOptimizeRequest | Optimize request callback (advanced mode, user handles requests and returns via onResponse)| `(request: OptimizeRequest, callbacks: { onResponse, onError }) => void` | -          |
 | onNodeRun         | Node run completion callback (user calls after completing run request to notify component) | `(nodeId: string, result: RunTaskResponse) => void`                      | -          |
 | onNodeOptimize    | Node optimize completion callback (user calls after completing optimize request)           | `(nodeId: string, result: OptimizeResponse) => void`                     | -          |
 | onNodeLock        | Node lock callback                                                                         | `(nodeId: string, isLocked: boolean) => void`                            | -          |
@@ -168,13 +167,23 @@ interface OptimizeRequest {
 
 ```typescript
 interface OptimizeConfig {
-  url: string; // API endpoint (OpenAI compatible format supported)
-  headers?: Record<string, string>; // Request headers
+  url: string; // API endpoint (OpenAI compatible or backend proxy)
+  headers?: Record<string, string>; // Request headers (usually for auth)
   model?: string; // Model name, default: gpt-3.5-turbo
   temperature?: number; // Temperature parameter, default: 0.7
+  stream?: boolean; // Enable streaming output, default true. If false, frontend simulates typing effect
+  platform?: 'auto' | 'openai' | 'dify' | 'bailian'; // Platform adaptation, default 'auto'
   extraParams?: Record<string, unknown>; // Other custom parameters
 }
-````
+```
+
+**Platform Adaptation:**
+
+- **OpenAI Standard**: Automatically parses `choices[0].delta.content`.
+- **Dify Platform**: Listens for `event: message` and extracts the `answer` field.
+- **Ali Bailian**: Automatically parses `text` field, detects format via `usage` field, ends when `finish_reason: "stop"`.
+- **Generic JSON**: Fallback to extract `content`, `text`, etc., from the root node.
+- **Error Tolerance**: Skips non-standard JSON lines; terminates streaming with a warning if errors exceed the threshold.`
 
 ````
 
