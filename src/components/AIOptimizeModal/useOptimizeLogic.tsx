@@ -10,7 +10,11 @@ import { Button, message } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { useI18n } from '../../hooks/useI18n';
 import { useStreamParser } from '../../hooks/useStreamParser';
-import { createOptimizeStore, OptimizeStoreType } from '../../stores';
+import {
+  ChatMessage,
+  createOptimizeStore,
+  OptimizeStoreType,
+} from '../../stores';
 import { OptimizeConfig, OptimizeRequest, OptimizeResponse } from '../../types';
 import { MarkdownRenderer } from './MarkdownRenderer';
 
@@ -33,11 +37,11 @@ export interface UseOptimizeLogicProps {
 
 export interface UseOptimizeLogicReturn {
   store: OptimizeStoreType;
-  messages: ReturnType<OptimizeStoreType>['messages'];
-  inputValue: ReturnType<OptimizeStoreType>['inputValue'];
-  isStreaming: ReturnType<OptimizeStoreType>['isStreaming'];
-  isGenerating: ReturnType<OptimizeStoreType>['isGenerating'];
-  currentResponse: ReturnType<OptimizeStoreType>['currentResponse'];
+  messages: ChatMessage[];
+  inputValue: string;
+  isStreaming: boolean;
+  isGenerating: boolean;
+  currentResponse: string;
   bubbleItems: any[];
   messagesEndRef: React.RefObject<HTMLDivElement>;
   scrollContainerRef: React.RefObject<HTMLDivElement>;

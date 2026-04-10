@@ -58,6 +58,8 @@ interface CustomNodeProps {
   }>;
   // AI 优化配置（简化模式）
   optimizeConfig?: OptimizeConfig;
+  // 是否在打开优化弹窗时自动开始优化
+  autoOptimize?: boolean;
   // AI 优化请求回调（高级模式）
   onOptimizeRequest?: (
     request: OptimizeRequest,
