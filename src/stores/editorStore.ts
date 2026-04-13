@@ -109,7 +109,7 @@ export function createEditorStore(initialValue: TaskNode[] = []) {
       let newNodeId = '';
       set((state) => {
         const store = new Map(state.store);
-        newNodeId = `root-${uuidv4()}`;
+        newNodeId = `${uuidv4()}`;
         const newNode: TaskNodeMinimal = {
           id: newNodeId,
           title: '新标题',

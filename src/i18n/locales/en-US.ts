@@ -19,7 +19,7 @@ export default {
 
   // PromptEditor Component
   editor: {
-    addRootNode: 'Add Root Title',
+    addRootNode: 'Add Title',
     nodeLocked: 'Node locked',
     nodeUnlocked: 'Node unlocked',
     nodeDeleted: 'Node deleted',
@@ -38,13 +38,14 @@ export default {
     lockedCannotEdit: 'Node is locked, cannot edit',
     previewModeNoEdit: 'Cannot edit in preview mode',
     notRun: 'Not Run',
-    hasRun: 'Has Run',
+    canLock: 'Can be locked',
     runFirst: 'Please run first',
     childTitle: 'Child Title',
     lock: 'Lock',
     unlock: 'Unlock',
     deleteConfirmTitle: 'Delete Node',
     deleteConfirmDesc: 'Are you sure you want to delete this node?',
+    confirmDeleteNode: 'Are you sure you want to delete this node?',
     cancelledDelete: 'Delete cancelled',
     editPrompt: 'Edit Prompt',
     run: 'Run',
@@ -113,6 +114,15 @@ export default {
     replacedSelectedContent: 'Selected content replaced',
     replacedAllContent: 'All content replaced',
     replaceFailed: 'Replacement failed, please retry',
+  },
+
+  // AI Optimize Message Action Buttons
+  optimizeActions: {
+    copy: 'Copy',
+    regenerate: 'Regenerate',
+    like: 'Like',
+    dislike: 'Dislike',
+    replace: 'Replace entire content',
   },
 
   // CodeMirror Editor

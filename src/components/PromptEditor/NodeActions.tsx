@@ -78,7 +78,7 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
             className={
               isEditorExpanded
                 ? ''
-                : 'text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700'
+                : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:!text-gray-100'
             }
           />
         </Tooltip>
@@ -99,7 +99,7 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
                 icon={<PlusOutlined />}
                 onClick={handleAddChild}
                 disabled={nodeData.isLocked}
-                className="text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
+                className="text-gray-500 hover:bg-gray-200 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:!text-gray-100"
               />
             </Tooltip>
 
@@ -118,7 +118,7 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
                 icon={nodeData.isLocked ? <UnlockOutlined /> : <LockOutlined />}
                 onClick={handleLock}
                 disabled={!nodeData.hasRun}
-                className="text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
+                className="!text-gray-500 hover:bg-gray-200 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:!text-gray-100"
               />
             </Tooltip>
 
@@ -162,7 +162,7 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
               type="text"
               size="small"
               icon={<MoreOutlined />}
-              className="text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
+              className="text-gray-500 hover:bg-gray-200 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-gray-100"
             />
           </Dropdown>
         )}

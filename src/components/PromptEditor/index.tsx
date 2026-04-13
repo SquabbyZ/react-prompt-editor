@@ -321,7 +321,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
     >
       {/* 顶部工具栏 - 预览模式下隐藏 */}
       {!previewMode && (
-        <div className="sticky top-0 z-10 border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-900">
+        <div className="z-5 sticky top-0 border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-900">
           {renderToolbar ? (
             renderToolbar({ addRootNode: handleAddRootNode })
           ) : (
@@ -330,13 +330,14 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
               icon={<PlusOutlined />}
               onClick={handleAddRootNode}
               block
+              className="dark:border-gray-700 dark:!bg-gray-800 dark:text-gray-300 dark:hover:border-indigo-500 dark:hover:text-indigo-400"
             >
               {t('editor.addRootNode')}
             </Button>
           )}
         </div>
       )}
-      <div className="arborist-tree p-4" ref={treeRef}>
+      <div className="arborist-tree p-4 dark:bg-gray-900" ref={treeRef}>
         {renderTreeNodes(tree)}
       </div>
     </div>

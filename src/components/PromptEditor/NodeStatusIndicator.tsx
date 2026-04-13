@@ -54,7 +54,7 @@ export const NodeStatusIndicator: React.FC<NodeStatusIndicatorProps> = memo(
       [NodeStatus.HasRun]: {
         color: 'text-blue-500',
         bgColor: 'bg-blue-500',
-        tooltip: t('editor.hasRun'),
+        tooltip: t('editor.canLock'),
         showText: true,
       },
       [NodeStatus.Locked]: {

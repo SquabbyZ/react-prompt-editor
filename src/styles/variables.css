@@ -1,48 +1,116 @@
+/* ========================================
+   Design Tokens - React Prompt Editor
+   基于 Ant Design 默认配色的设计系统
+   ======================================== */
+
 :root {
-  /* ========== 主色调（品牌色）========== */
-  --pe-color-primary: #6366f1;        /* Indigo 500 - 主要操作、按钮 */
-  --pe-color-primary-light: #818cf8;  /* Indigo 400 - 悬停状态 */
-  --pe-color-primary-dark: #4f46e5;   /* Indigo 600 - 激活状态 */
-  --pe-color-primary-bg: #eef2ff;     /* Indigo 50 - 浅色背景 */
-  --pe-color-primary-border: #c7d2fe; /* Indigo 200 - 边框 */
+  /* ========== 主色调（Primary - Ant Design Blue）========== */
+  --pe-color-primary: #1677ff;        /* Ant Design Blue */
+  --pe-color-primary-hover: #4096ff;  /* Hover 状态 */
+  --pe-color-primary-active: #0958d9; /* Active 状态 */
+  --pe-color-primary-bg: #e6f4ff;     /* 背景色 */
+  --pe-color-primary-border: #91caff; /* 边框色 */
+  --pe-color-primary-text-hover: #4096ff;
+  --pe-color-primary-text: #1677ff;
+  --pe-color-primary-text-active: #0958d9;
 
-  /* ========== 辅助色 ========== */
-  --pe-color-success: #10b981;        /* Emerald 500 - 成功状态 */
-  --pe-color-warning: #f59e0b;        /* Amber 500 - 警告状态 */
-  --pe-color-error: #ef4444;          /* Red 500 - 错误状态 */
-  --pe-color-info: #3b82f6;           /* Blue 500 - 信息提示 */
+  /* ========== 成功色（Success）========== */
+  --pe-color-success: #52c41a;
+  --pe-color-success-hover: #73d13d;
+  --pe-color-success-active: #389e0d;
+  --pe-color-success-bg: #f6ffed;
+  --pe-color-success-border: #b7eb8f;
 
-  /* ========== 中性色（灰度）========== */
-  --pe-color-text-primary: #111827;   /* Gray 900 - 主要文字 */
-  --pe-color-text-secondary: #6b7280; /* Gray 500 - 次要文字 */
-  --pe-color-text-tertiary: #9ca3af;  /* Gray 400 - 辅助文字 */
-  --pe-color-border: #e5e7eb;         /* Gray 200 - 边框 */
-  --pe-color-border-light: #f3f4f6;   /* Gray 100 - 浅色边框 */
-  --pe-color-bg-primary: #fff;        /* White - 主背景 */
-  --pe-color-bg-secondary: #f9fafb;   /* Gray 50 - 次级背景 */
-  --pe-color-bg-tertiary: #f3f4f6;    /* Gray 100 - 第三级背景 */
-  
-  /* ========== 功能色 ========== */
-  --pe-color-selected-bg: #eff6ff;    /* Blue 50 - 选中背景 */
-  --pe-color-selected-border: #bfdbfe;/* Blue 200 - 选中边框 */
-  --pe-color-selected-text: #1e40af;  /* Blue 800 - 选中文字 */
-  
-  /* ========== 间距 ========== */
-  --pe-spacing-xs: 4px;
-  --pe-spacing-sm: 8px;
-  --pe-spacing-md: 16px;
-  --pe-spacing-lg: 24px;
-  --pe-spacing-xl: 32px;
-  
-  /* ========== 圆角 ========== */
-  --pe-radius-sm: 4px;
-  --pe-radius-md: 8px;
-  --pe-radius-lg: 12px;
-  --pe-radius-xl: 16px;
-  
-  /* ========== 阴影 ========== */
-  --pe-shadow-sm: 0 1px 2px rgba(0, 0, 0, 5%);
-  --pe-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 10%);
-  --pe-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 10%);
-  --pe-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 10%);
+  /* ========== 警告色（Warning）========== */
+  --pe-color-warning: #faad14;
+  --pe-color-warning-hover: #ffc53d;
+  --pe-color-warning-active: #d48806;
+  --pe-color-warning-bg: #fffbe6;
+  --pe-color-warning-border: #ffe58f;
+
+  /* ========== 错误色（Error）========== */
+  --pe-color-error: #ff4d4f;
+  --pe-color-error-hover: #ff7875;
+  --pe-color-error-active: #cf1322;
+  --pe-color-error-bg: #fff2f0;
+  --pe-color-error-border: #ffccc7;
+
+  /* ========== 信息色（Info）========== */
+  --pe-color-info: #1677ff;
+  --pe-color-info-hover: #4096ff;
+  --pe-color-info-active: #0958d9;
+  --pe-color-info-bg: #e6f4ff;
+  --pe-color-info-border: #91caff;
+
+  /* ========== 文字颜色（Text）========== */
+  --pe-color-text: rgba(0, 0, 0, 88%);
+  --pe-color-text-secondary: rgba(0, 0, 0, 65%);
+  --pe-color-text-tertiary: rgba(0, 0, 0, 45%);
+  --pe-color-text-quaternary: rgba(0, 0, 0, 25%);
+
+  /* ========== 填充色（Fill）========== */
+  --pe-color-fill: rgba(0, 0, 0, 15%);
+  --pe-color-fill-secondary: rgba(0, 0, 0, 6%);
+  --pe-color-fill-tertiary: rgba(0, 0, 0, 4%);
+  --pe-color-fill-quaternary: rgba(0, 0, 0, 2%);
+
+  /* ========== 背景色（Background）========== */
+  --pe-color-bg-container: #fff;
+  --pe-color-bg-elevated: #fff;
+  --pe-color-bg-layout: #f5f5f5;
+  --pe-color-bg-spotlight: rgba(0, 0, 0, 85%);
+  --pe-color-bg-mask: rgba(0, 0, 0, 45%);
+
+  /* ========== 边框色（Border）========== */
+  --pe-color-border: #d9d9d9;
+  --pe-color-border-secondary: #f0f0f0;
+
+  /* ========== 圆角（BorderRadius）========== */
+  --pe-radius-sm: 2px;
+  --pe-radius: 6px;
+  --pe-radius-lg: 8px;
+  --pe-radius-xl: 12px;
+  --pe-radius-outer: 4px;
+
+  /* ========== 间距（Spacing）========== */
+  --pe-margin-xs: 4px;
+  --pe-margin-sm: 8px;
+  --pe-margin-md: 12px;
+  --pe-margin-lg: 16px;
+  --pe-margin-xl: 24px;
+  --pe-margin-xxl: 32px;
+
+  /* ========== 内边距（Padding）========== */
+  --pe-padding-xs: 4px;
+  --pe-padding-sm: 8px;
+  --pe-padding-md: 12px;
+  --pe-padding-lg: 16px;
+  --pe-padding-xl: 24px;
+  --pe-padding-xxl: 32px;
+
+  /* ========== 阴影（BoxShadow）========== */
+  --pe-box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 3%), 0 1px 6px -1px rgba(0, 0, 0, 2%), 0 2px 4px 0 rgba(0, 0, 0, 2%);
+  --pe-box-shadow-secondary: 0 1px 3px 0 rgba(0, 0, 0, 6%), 0 1px 2px -1px rgba(0, 0, 0, 6%);
+  --pe-box-shadow-tertiary: 0 1px 2px 0 rgba(0, 0, 0, 3%), 0 1px 6px -1px rgba(0, 0, 0, 2%), 0 2px 4px 0 rgba(0, 0, 0, 2%);
+
+  /* ========== 字体大小（FontSize）========== */
+  --pe-font-size-sm: 12px;
+  --pe-font-size: 14px;
+  --pe-font-size-lg: 16px;
+  --pe-font-size-xl: 20px;
+  --pe-font-size-heading-1: 38px;
+  --pe-font-size-heading-2: 30px;
+  --pe-font-size-heading-3: 24px;
+  --pe-font-size-heading-4: 20px;
+  --pe-font-size-heading-5: 16px;
+
+  /* ========== 行高（LineHeight）========== */
+  --pe-line-height: 1.5714;
+  --pe-line-height-lg: 1.5;
+  --pe-line-height-sm: 1.6667;
+
+  /* ========== 字体族（FontFamily）========== */
+  --pe-font-family: -apple-system, blinkmacsystemfont, 'Segoe UI', roboto, 'Helvetica Neue', arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --pe-font-family-code: 'SFMono-Regular', consolas, 'Liberation Mono', menlo, courier, monospace;
 }
+

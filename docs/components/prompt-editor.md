@@ -48,17 +48,6 @@ import 'react-prompt-editor/styles/index.css'; // 必须引入
 
 <code src="./examples/i18n-demo.tsx"></code>
 
-### 使用方式
-
-```tsx
-import { PromptEditor, zhCN, enUS } from 'react-prompt-editor';
-
-// 使用中文
-const App = () => <PromptEditor locale={zhCN} />;
-
-// 使用英文
-const AppEn = () => <PromptEditor locale={enUS} />;
-```
 
 更多国际化详情请参考：[国际化文档](../i18n)
 
@@ -68,20 +57,6 @@ const AppEn = () => <PromptEditor locale={enUS} />;
 
 <code src="../examples/theme-demo.tsx"></code>
 
-### 使用方式
-
-```tsx
-import { PromptEditor } from 'react-prompt-editor';
-
-// 跟随系统（默认）
-const App = () => <PromptEditor theme="system" />;
-
-// 强制明亮模式
-const AppLight = () => <PromptEditor theme="light" />;
-
-// 强制暗色模式
-const AppDark = () => <PromptEditor theme="dark" />;
-```
 
 **主题模式说明：**
 

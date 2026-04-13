@@ -12,7 +12,9 @@ const ThemeDemo: React.FC = () => {
     const html = document.documentElement;
 
     // 初始读取
-    const currentDumiTheme = html.getAttribute('data-prefers-color') as 'light' | 'dark';
+    const currentDumiTheme = html.getAttribute('data-prefers-color') as
+      | 'light'
+      | 'dark';
     if (currentDumiTheme) {
       setDumiTheme(currentDumiTheme);
     }
@@ -24,7 +26,9 @@ const ThemeDemo: React.FC = () => {
           mutation.type === 'attributes' &&
           mutation.attributeName === 'data-prefers-color'
         ) {
-          const newTheme = html.getAttribute('data-prefers-color') as 'light' | 'dark';
+          const newTheme = html.getAttribute('data-prefers-color') as
+            | 'light'
+            | 'dark';
           if (newTheme) {
             setDumiTheme(newTheme);
           }
@@ -102,8 +106,7 @@ const ThemeDemo: React.FC = () => {
               console.log('优化请求:', request);
               setTimeout(() => {
                 callbacks.onResponse({
-                  optimizedContent:
-                    request.content + '\n\n✨ [AI 优化完成]',
+                  optimizedContent: request.content + '\n\n✨ [AI 优化完成]',
                   thinkingProcess: '正在优化...',
                 });
               }, 1500);

@@ -332,7 +332,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
             {/* 节点头部 */}
             <div
               ref={headerRef}
-              className="relative z-10 flex items-center justify-between gap-2 rounded-md bg-gray-50 px-3 py-2 transition-colors hover:bg-gray-100 dark:bg-gray-800/80 dark:hover:bg-gray-700/50"
+              className="z-3 dark:!hover:border-indigo-500 relative flex items-center justify-between gap-2 rounded-md bg-gray-100 px-3 py-2 transition-colors hover:bg-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
             >
               <div className="flex min-w-0 flex-1 items-center gap-2">
                 {/* 三角按钮 - 只控制子节点展开/折叠 */}
@@ -418,7 +418,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
             {/* 编辑器区域 - 根据展开状态或预览模式决定显示 */}
             {isEditorExpanded && (
               <div
-                className={`relative z-0 overflow-hidden rounded-lg border-2 border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800 ${isEditorAnimating ? 'animate-expand-in' : ''}`}
+                className={`relative z-0 overflow-hidden rounded-lg border-2 border-gray-300 bg-gray-100 dark:!border-gray-600 dark:!bg-gray-800 ${isEditorAnimating ? 'animate-expand-in' : ''}`}
                 style={{
                   transformOrigin: 'top center',
                 }}
@@ -434,7 +434,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
                   />
                 )}
 
-                <div className="m-2 rounded-md bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                <div className="m-2 rounded-md bg-white p-3 dark:!bg-gray-900">
                   <CodeMirrorEditor
                     ref={editorRef}
                     value={nodeData.content}

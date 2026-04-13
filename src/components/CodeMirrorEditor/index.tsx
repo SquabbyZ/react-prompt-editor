@@ -83,6 +83,97 @@ export const CodeMirrorEditor = memo(
         }
       }, [theme]);
 
+      // 注入 CodeMirror 暗色模式样式（避免被 Tailwind purge）
+      useEffect(() => {
+        const styleId = 'codemirror-dark-mode-styles';
+        if (!document.getElementById(styleId)) {
+          const style = document.createElement('style');
+          style.id = styleId;
+          style.textContent = `
+            .dark .cm-editor,
+            [data-theme="dark"] .cm-editor,
+            [data-prefers-color="dark"] .cm-editor {
+              background-color: #27272a !important;
+            }
+            .dark .cm-editor .cm-content,
+            [data-theme="dark"] .cm-editor .cm-content,
+            [data-prefers-color="dark"] .cm-editor .cm-content {
+              background-color: #27272a !important;
+              color: #e4e4e7 !important;
+            }
+            .dark .cm-editor .cm-scroller,
+            [data-theme="dark"] .cm-editor .cm-scroller,
+            [data-prefers-color="dark"] .cm-editor .cm-scroller {
+              background-color: #27272a !important;
+              color: #e4e4e7 !important;
+            }
+            .dark .cm-editor .cm-line,
+            [data-theme="dark"] .cm-editor .cm-line,
+            [data-prefers-color="dark"] .cm-editor .cm-line {
+              background-color: transparent !important;
+              color: #e4e4e7 !important;
+            }
+            .dark .cm-editor .cm-placeholder,
+            [data-theme="dark"] .cm-editor .cm-placeholder,
+            [data-prefers-color="dark"] .cm-editor .cm-placeholder {
+              color: #71717a !important;
+            }
+            .dark .cm-editor .cm-cursor,
+            [data-theme="dark"] .cm-editor .cm-cursor,
+            [data-prefers-color="dark"] .cm-editor .cm-cursor {
+              border-left-color: #f59e0b !important;
+            }
+            .dark .cm-editor .cm-activeLine,
+            [data-theme="dark"] .cm-editor .cm-activeLine,
+            [data-prefers-color="dark"] .cm-editor .cm-activeLine {
+              background-color: #3f3f46 !important;
+            }
+            .dark .cm-editor .cm-selectionBackground,
+            [data-theme="dark"] .cm-editor .cm-selectionBackground,
+            [data-prefers-color="dark"] .cm-editor .cm-selectionBackground {
+              background-color: rgba(245, 158, 11, 0.2) !important;
+            }
+            .dark .cm-editor .cm-selectedMatchBackground,
+            [data-theme="dark"] .cm-editor .cm-selectedMatchBackground,
+            [data-prefers-color="dark"] .cm-editor .cm-selectedMatchBackground {
+              background-color: rgba(245, 158, 11, 0.3) !important;
+            }
+            .dark .cm-editor .cm-matchingBracket,
+            [data-theme="dark"] .cm-editor .cm-matchingBracket,
+            [data-prefers-color="dark"] .cm-editor .cm-matchingBracket {
+              background-color: rgba(245, 158, 11, 0.2) !important;
+            }
+            .dark .cm-editor .cm-panels,
+            [data-theme="dark"] .cm-editor .cm-panels,
+            [data-prefers-color="dark"] .cm-editor .cm-panels {
+              background-color: #27272a !important;
+              color: #e4e4e7 !important;
+              border-color: #3f3f46 !important;
+            }
+            .dark .cm-editor .cm-panel,
+            [data-theme="dark"] .cm-editor .cm-panel,
+            [data-prefers-color="dark"] .cm-editor .cm-panel {
+              background-color: #27272a !important;
+              color: #e4e4e7 !important;
+            }
+            .dark .cm-editor .cm-panel input,
+            [data-theme="dark"] .cm-editor .cm-panel input,
+            [data-prefers-color="dark"] .cm-editor .cm-panel input {
+              background-color: #3f3f46 !important;
+              color: #e4e4e7 !important;
+              border-color: #52525b !important;
+            }
+            .dark .cm-editor .cm-panel button,
+            [data-theme="dark"] .cm-editor .cm-panel button,
+            [data-prefers-color="dark"] .cm-editor .cm-panel button {
+              background-color: #3f3f46 !important;
+              color: #e4e4e7 !important;
+            }
+          `;
+          document.head.appendChild(style);
+        }
+      }, []);
+
       // 获取 CodeMirror 国际化配置
       const phrases = getCodeMirrorPhrases(locale);
 
@@ -101,6 +192,7 @@ export const CodeMirrorEditor = memo(
       return (
         <CodeMirror
           ref={cmRef}
+          key={isDarkMode ? 'dark' : 'light'}
           value={value}
           height="200px"
           extensions={extensions}

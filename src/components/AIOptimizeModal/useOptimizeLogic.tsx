@@ -6,7 +6,7 @@ import {
   SwapOutlined,
 } from '@ant-design/icons';
 import { Bubble } from '@ant-design/x';
-import { Button, message } from 'antd';
+import { Button, message, Tooltip } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { useI18n } from '../../hooks/useI18n';
 import { useStreamParser } from '../../hooks/useStreamParser';
@@ -17,6 +17,20 @@ import {
 } from '../../stores';
 import { OptimizeConfig, OptimizeRequest, OptimizeResponse } from '../../types';
 import { MarkdownRenderer } from './MarkdownRenderer';
+
+// 检测暗色模式
+const isDarkMode = () => {
+  if (typeof window !== 'undefined') {
+    const html = document.documentElement;
+    return (
+      html.classList.contains('dark') ||
+      html.getAttribute('data-theme') === 'dark' ||
+      html.getAttribute('data-prefers-color') === 'dark' ||
+      window.matchMedia('(prefers-color-scheme: dark)').matches
+    );
+  }
+  return false;
+};
 
 export interface UseOptimizeLogicProps {
   originalContent: string;
@@ -92,6 +106,34 @@ export const useOptimizeLogic = ({
     storeRef.current = createOptimizeStore();
   }
   const store = storeRef.current;
+
+  // 暗色模式状态
+  const [isDark, setIsDark] = useState(() => isDarkMode());
+
+  // 监听暗色模式变化
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDark(isDarkMode());
+    };
+
+    checkDarkMode();
+
+    // 监听类名变化
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class', 'data-theme', 'data-prefers-color'],
+    });
+
+    // 监听系统主题变化
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    mediaQuery.addEventListener('change', checkDarkMode);
+
+    return () => {
+      observer.disconnect();
+      mediaQuery.removeEventListener('change', checkDarkMode);
+    };
+  }, []);
 
   const messages = store((state) => state.messages);
   const inputValue = store((state) => state.inputValue);
@@ -419,42 +461,51 @@ export const useOptimizeLogic = ({
         <MarkdownRenderer content={content} />
         {showActions && (
           <div className="mt-2 flex items-center justify-end gap-1 border-t border-gray-100 pt-2 dark:border-gray-700">
-            <Button
-              type="text"
-              size="small"
-              icon={<CopyOutlined />}
-              onClick={() => handleCopy(content)}
-              className="h-6 text-gray-500 hover:text-indigo-500"
-            />
-            <Button
-              type="text"
-              size="small"
-              icon={<ReloadOutlined />}
-              onClick={handleRegenerate}
-              className="h-6 text-gray-500 hover:text-indigo-500"
-            />
-            <Button
-              type="text"
-              size="small"
-              icon={<LikeOutlined />}
-              onClick={() => onLike?.(key as string)}
-              className="h-6 text-gray-500 hover:text-green-500"
-            />
-            <Button
-              type="text"
-              size="small"
-              icon={<DislikeOutlined />}
-              onClick={() => onDislike?.(key as string)}
-              className="h-6 text-gray-500 hover:text-red-500"
-            />
-            <Button
-              type="text"
-              size="small"
-              icon={<SwapOutlined />}
-              onClick={() => onFullReplace?.(content)}
-              className="h-6 text-gray-500 hover:text-indigo-500"
-              title="替换整段内容"
-            />
+            <Tooltip title={t('optimizeActions.copy')}>
+              <Button
+                type="text"
+                size="small"
+                icon={<CopyOutlined />}
+                onClick={() => handleCopy(content)}
+                className="h-6 text-gray-500 hover:text-indigo-500"
+              />
+            </Tooltip>
+            <Tooltip title={t('optimizeActions.regenerate')}>
+              <Button
+                type="text"
+                size="small"
+                icon={<ReloadOutlined />}
+                onClick={handleRegenerate}
+                className="h-6 text-gray-500 hover:text-indigo-500"
+              />
+            </Tooltip>
+            <Tooltip title={t('optimizeActions.like')}>
+              <Button
+                type="text"
+                size="small"
+                icon={<LikeOutlined />}
+                onClick={() => onLike?.(key as string)}
+                className="h-6 text-gray-500 hover:text-green-500"
+              />
+            </Tooltip>
+            <Tooltip title={t('optimizeActions.dislike')}>
+              <Button
+                type="text"
+                size="small"
+                icon={<DislikeOutlined />}
+                onClick={() => onDislike?.(key as string)}
+                className="h-6 text-gray-500 hover:text-red-500"
+              />
+            </Tooltip>
+            <Tooltip title={t('optimizeActions.replace')}>
+              <Button
+                type="text"
+                size="small"
+                icon={<SwapOutlined />}
+                onClick={() => onFullReplace?.(content)}
+                className="h-6 text-gray-500 hover:text-indigo-500"
+              />
+            </Tooltip>
           </div>
         )}
       </div>
@@ -467,7 +518,7 @@ export const useOptimizeLogic = ({
       variant: 'filled',
       shape: 'corner',
       avatar: (
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-sm">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-sm dark:bg-gray-700">
           👤
         </div>
       ),
@@ -495,10 +546,13 @@ export const useOptimizeLogic = ({
           : false,
       styles: {
         content: {
-          backgroundColor: '#ffffff',
-          borderColor: '#e5e7eb',
+          backgroundColor: isDark ? '#1f2937' : '#ffffff',
+          borderColor: isDark ? '#374151' : '#e5e7eb',
+          color: isDark ? '#e5e7eb' : '#1f2937',
           borderRadius: '12px',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+          boxShadow: isDark
+            ? '0 1px 3px rgba(0, 0, 0, 0.3)'
+            : '0 1px 3px rgba(0, 0, 0, 0.05)',
         },
       },
       loadingRender: () => <Bubble loading={true} content="" />,

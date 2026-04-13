@@ -31,7 +31,7 @@ pnpm add react-prompt-editor
 
 ```tsx
 import { PromptEditor } from 'react-prompt-editor';
-import 'react-prompt-editor/dist/styles/tailwind.css';
+import 'react-prompt-editor/styles/index.css'; // 必须引入样式文件
 
 const App = () => {
   const handleTreeChange = (data) => {

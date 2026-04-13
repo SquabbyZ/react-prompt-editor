@@ -123,6 +123,20 @@ export const MessageList: React.FC<MessageListProps> = memo(
 
     return (
       <>
+        {/* 顶部固定区域：选中的内容展示 */}
+        {selectedContent && (
+          <div className="flex-shrink-0 border-b border-gray-200 bg-white px-6 py-3 dark:border-gray-700 dark:bg-gray-900">
+            <div className="flex items-center gap-1 text-xs font-medium text-primary">
+              <FileTextOutlined />
+              选中的内容（{selectedContent.length} 字）
+            </div>
+            <div className="scroll-thin mt-1 max-h-32 overflow-y-auto whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">
+              {selectedContent}
+            </div>
+          </div>
+        )}
+
+        {/* 滚动区域：消息气泡列表 */}
         <div
           className="scroll-thin flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950"
           ref={(node) => {
@@ -138,19 +152,6 @@ export const MessageList: React.FC<MessageListProps> = memo(
           onScroll={onScroll}
           onMouseUp={handleMouseUp}
         >
-          {/* 选中的内容展示 */}
-          {selectedContent && (
-            <div className="border-b border-gray-200 bg-white px-6 py-3 dark:border-gray-700 dark:bg-gray-900">
-              <div className="flex items-center gap-1 text-xs font-medium text-indigo-600 dark:text-indigo-400">
-                <FileTextOutlined />
-                选中的内容（{selectedContent.length} 字）
-              </div>
-              <div className="scroll-thin mt-1 max-h-32 overflow-y-auto whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">
-                {selectedContent}
-              </div>
-            </div>
-          )}
-
           {/* 消息气泡列表 */}
           {bubbleItems.length > 0 && (
             <div className="p-4">

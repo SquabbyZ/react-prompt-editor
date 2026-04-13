@@ -1,4 +1,4 @@
-@import './design-tokens.css';
+@import './variables.css';
 @import './prompt-editor-protect.css';
 
 @tailwind base;

@@ -1,7 +1,7 @@
 import { CloseOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { XProvider } from '@ant-design/x';
-import { Button } from 'antd';
-import React, { memo, useEffect } from 'react';
+import { Button, theme } from 'antd';
+import React, { memo, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useI18n } from '../../hooks/useI18n';
 import { OptimizeConfig, OptimizeRequest, OptimizeResponse } from '../../types';
@@ -39,6 +39,60 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
   onDislike,
 }) => {
   const { t } = useI18n();
+  const { darkAlgorithm, useToken } = theme;
+  const { token } = useToken();
+
+  // 使用 Ant Design 主题色生成渐变色
+  const primaryGradient = useMemo(
+    () =>
+      `linear-gradient(135deg, ${token.colorPrimary} 0%, ${token.colorPrimaryHover} 100%)`,
+    [token.colorPrimary, token.colorPrimaryHover],
+  );
+
+  // 检测暗色模式
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const html = document.documentElement;
+      return (
+        html.classList.contains('dark') ||
+        html.getAttribute('data-theme') === 'dark' ||
+        html.getAttribute('data-prefers-color') === 'dark' ||
+        window.matchMedia('(prefers-color-scheme: dark)').matches
+      );
+    }
+    return false;
+  });
+
+  // 监听暗色模式变化
+  useEffect(() => {
+    const checkDarkMode = () => {
+      if (typeof window !== 'undefined') {
+        const html = document.documentElement;
+        setIsDark(
+          html.classList.contains('dark') ||
+            html.getAttribute('data-theme') === 'dark' ||
+            html.getAttribute('data-prefers-color') === 'dark' ||
+            window.matchMedia('(prefers-color-scheme: dark)').matches,
+        );
+      }
+    };
+
+    checkDarkMode();
+
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class', 'data-theme', 'data-prefers-color'],
+    });
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    mediaQuery.addEventListener('change', checkDarkMode);
+
+    return () => {
+      observer.disconnect();
+      mediaQuery.removeEventListener('change', checkDarkMode);
+    };
+  }, []);
 
   // 先定义 handleClose，以便 useOptimizeLogic 使用
   const handleClose = () => {
@@ -92,9 +146,13 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
   }, [open, originalContent, selectedContent, store]);
 
   return createPortal(
-    <XProvider>
+    <XProvider
+      theme={{
+        algorithm: isDark ? [darkAlgorithm] : undefined,
+      }}
+    >
       <div
-        className={`fixed inset-0 z-[9999] transition-all duration-300 ${open ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}
+        className={`fixed inset-0 z-[1020] transition-all duration-300 ${open ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}
       >
         <div
           className={`absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0'}`}
@@ -107,7 +165,13 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
             {/* 顶部操作栏 */}
             <div className="flex flex-shrink-0 items-center justify-between border-b border-gray-200/70 bg-gradient-to-r from-white to-gray-50 px-6 py-4 dark:border-gray-700/70 dark:from-gray-900 dark:to-gray-800">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/25">
+                <div
+                  className="flex h-9 w-9 items-center justify-center rounded-xl shadow-lg"
+                  style={{
+                    background: primaryGradient,
+                    boxShadow: `0 4px 12px ${token.colorPrimary}40`,
+                  }}
+                >
                   <ThunderboltOutlined className="text-lg text-white" />
                 </div>
                 <div>

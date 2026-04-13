@@ -19,7 +19,7 @@ export default {
 
   // PromptEditor 组件
   editor: {
-    addRootNode: '添加一级标题',
+    addRootNode: '添加标题',
     nodeLocked: '节点已锁定',
     nodeUnlocked: '节点已解锁',
     nodeDeleted: '节点已删除',
@@ -38,13 +38,14 @@ export default {
     lockedCannotEdit: '节点已锁定，无法编辑',
     previewModeNoEdit: '预览模式下无法编辑',
     notRun: '未运行',
-    hasRun: '已运行',
+    canLock: '可锁定',
     runFirst: '请先运行',
     childTitle: '子标题',
     lock: '锁定',
     unlock: '解锁',
     deleteConfirmTitle: '删除节点',
     deleteConfirmDesc: '确定要删除这个节点吗？',
+    confirmDeleteNode: '确定要删除这个节点吗？',
     cancelledDelete: '已取消删除',
     editPrompt: '编辑提示词',
     run: '运行',
@@ -108,6 +109,15 @@ export default {
     replaceFailed: '替换失败，请重试',
   },
 
+  // AI 优化消息操作按钮
+  optimizeActions: {
+    copy: '复制',
+    regenerate: '重新生成',
+    like: '点赞',
+    dislike: '点踩',
+    replace: '替换整段内容',
+  },
+
   // CodeMirror 编辑器
   editor_toolbar: {
     undo: '撤回',
@@ -145,6 +155,8 @@ export type Locale = {
   node: Record<string, string>;
   dependency: Record<string, string>;
   optimize: Record<string, string>;
+  aiOptimize: Record<string, string>;
+  optimizeActions: Record<string, string>;
   editor_toolbar: Record<string, string>;
   codemirror: Record<string, string>;
   message: Record<string, string>;
