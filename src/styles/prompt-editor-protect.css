@@ -131,8 +131,61 @@
 }
 
 /* ========================================
-   Ant Design X Sender 组件暗色模式适配
+   Ant Design X Sender 组件样式适配
    ======================================== */
+
+/* 明亮模式下的 Sender 样式 */
+.ant-sender {
+  /* 输入框背景色和文字颜色 */
+  .ant-sender-input {
+    background-color: #fff !important;
+    color: rgba(0, 0, 0, 88%) !important;
+    border-color: #d9d9d9 !important;
+  }
+
+  .ant-sender-input:hover {
+    border-color: #4096ff !important;
+    border-radius: 4px !important;
+  }
+
+  .ant-sender-input:focus,
+  .ant-sender-input-focused {
+    border-color: #1677ff !important;
+    box-shadow: 0 0 0 2px rgba(22, 119, 255, 10%) !important;
+  }
+
+  .ant-sender-input::placeholder {
+    color: rgba(0, 0, 0, 25%) !important;
+  }
+
+  /* 提交按钮样式 */
+  .ant-sender-submit {
+    background-color: #1677ff !important;
+    border-color: #1677ff !important;
+    color: #fff !important;
+  }
+
+  .ant-sender-submit:hover {
+    background-color: #4096ff !important;
+    border-color: #4096ff !important;
+  }
+
+  .ant-sender-submit:active {
+    background-color: #0958d9 !important;
+    border-color: #0958d9 !important;
+  }
+
+  /* 取消按钮 */
+  .ant-sender-cancel {
+    color: rgba(0, 0, 0, 45%) !important;
+  }
+
+  .ant-sender-cancel:hover {
+    color: rgba(0, 0, 0, 88%) !important;
+  }
+}
+
+/* 暗色模式下的 Sender 样式 */
 .dark .ant-sender,
 [data-theme='dark'] .ant-sender,
 [data-prefers-color='dark'] .ant-sender {
@@ -145,11 +198,12 @@
 
   .ant-sender-input:hover {
     border-color: #4b5563 !important;
+    border-radius: 4px !important;
   }
 
   .ant-sender-input:focus,
   .ant-sender-input-focused {
-    border-color: #6366f1 !important;
+    border-color: #1677ff !important;
   }
 
   .ant-sender-input::placeholder {
@@ -158,14 +212,14 @@
 
   /* 按钮样式 */
   .ant-sender-submit {
-    background-color: #6366f1 !important;
-    border-color: #6366f1 !important;
+    background-color: #1677ff !important;
+    border-color: #1677ff !important;
     color: #fff !important;
   }
 
   .ant-sender-submit:hover {
-    background-color: #4f46e5 !important;
-    border-color: #4f46e5 !important;
+    background-color: #4096ff !important;
+    border-color: #4096ff !important;
   }
 
   /* 取消按钮 */
@@ -199,11 +253,11 @@
 
   /* 链接 */
   a {
-    color: #818cf8 !important;
+    color: #1677ff !important;
   }
 
   a:hover {
-    color: #a5b4fc !important;
+    color: #4096ff !important;
   }
 
   /* 行内代码 */
@@ -226,7 +280,7 @@
 
   /* 引用块 */
   blockquote {
-    border-left-color: #6366f1 !important;
+    border-left-color: #1677ff !important;
     background-color: #1f2937 !important;
     color: #d1d5db !important;
   }
@@ -270,8 +324,8 @@
   }
 
   input[type='checkbox']:checked {
-    background-color: #6366f1 !important;
-    border-color: #6366f1 !important;
+    background-color: #1677ff !important;
+    border-color: #1677ff !important;
   }
 
   /* 提示框容器 */
