@@ -1,6 +1,6 @@
 ---
 hero:
-  title: PromptEditor
+  title: RPEditor
   description: 树形提示词编辑器组件库，支持层级化管理、依赖配置、运行与 AI 优化
   actions:
     - text: 快速开始

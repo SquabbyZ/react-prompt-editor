@@ -82,6 +82,8 @@ interface CustomNodeProps {
   locale?: Locale;
   // 主题模式
   theme?: 'system' | 'light' | 'dark';
+  // 是否支持拖拽排序
+  draggable?: boolean;
   // 拖拽相关 props
   isDragging?: boolean;
   isDragOver?: boolean;
@@ -120,6 +122,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
     previewMode = false,
     locale,
     theme = 'system',
+    draggable = false,
     isDragging = false,
     isDragOver = false,
     dragPosition = null,
@@ -344,9 +347,9 @@ export const Node: React.FC<CustomNodeProps> = memo(
         }`}
         style={style}
         ref={dragHandle}
-        draggable={!previewMode && !nodeData.isLocked}
-        onDragStart={onDragStart}
-        onDragEnd={onDragEnd}
+        draggable={draggable && !previewMode && !nodeData.isLocked}
+        onDragStart={draggable ? onDragStart : undefined}
+        onDragEnd={draggable ? onDragEnd : undefined}
       >
         {/* 拖拽位置指示器 - before */}
         {isDragOver && dragPosition === 'before' && (
@@ -372,9 +375,9 @@ export const Node: React.FC<CustomNodeProps> = memo(
                 ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
                 : ''
             }`}
-            onDragOver={onDragOver}
-            onDragLeave={onDragLeave}
-            onDrop={onDrop}
+            onDragOver={draggable ? onDragOver : undefined}
+            onDragLeave={draggable ? onDragLeave : undefined}
+            onDrop={draggable ? onDrop : undefined}
           >
             {/* 节点头部 */}
             <div

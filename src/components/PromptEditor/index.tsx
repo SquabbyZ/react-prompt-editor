@@ -39,6 +39,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   previewMode = false,
   locale,
   theme = 'system',
+  draggable = false,
 }) => {
   // 国际化 Hook
   const { t } = useI18n(locale);
@@ -469,6 +470,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       previewMode: prevMode,
       locale: loc,
       theme: thm,
+      draggable: drag,
     }: any) => {
       const node = nodes[index];
       if (!node) return null;
@@ -492,6 +494,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
         isDragging: dragNode === node.id,
         isDragOver: dragOver === node.id,
         dragPosition: dragPos,
+        draggable: drag,
         onDragStart: (e: React.DragEvent) => onDragStart(node.id, e),
         onDragOver: (e: React.DragEvent) => onDragOver(node.id, e),
         onDragLeave: (e: React.DragEvent) => onDragLeave(node.id, e),
@@ -568,6 +571,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       previewMode,
       locale,
       theme,
+      draggable,
     }),
     [
       visibleNodes,
@@ -602,6 +606,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       previewMode,
       locale,
       theme,
+      draggable,
     ],
   );
 

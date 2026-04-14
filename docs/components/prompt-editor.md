@@ -3,7 +3,7 @@ demo:
   cols: 2
 ---
 
-# PromptEditor 提示词编辑器
+# RPEditor 提示词编辑器
 
 树形提示词编辑器组件，提供层级化提示词管理、可视化编辑、任务依赖、运行与 AI 优化能力。
 
@@ -36,6 +36,20 @@ import 'react-prompt-editor/styles/index.css'; // 必须引入
 
 <code src="../examples/preview.tsx"></code>
 
+## 拖拽排序
+
+使用 `draggable` 属性启用节点拖拽排序功能，可以通过拖拽调整节点位置和层级：
+
+<code src="../examples/draggable.tsx"></code>
+
+**拖拽功能说明：**
+
+- ✅ 拖拽节点到其他节点上方/下方调整顺序
+- ✅ 拖拽节点到另一个节点内部作为子节点
+- ✅ 自动检测并防止循环依赖（不能将父节点拖入其子节点）
+- ❌ 锁定的节点不可拖拽
+- ❌ 预览模式下不可拖拽
+
 ## 流式输出示例
 
 展示如何实现真正的流式 AI 优化（模拟 OpenAI、通义千问等 API 的 SSE 响应）：
@@ -48,7 +62,6 @@ import 'react-prompt-editor/styles/index.css'; // 必须引入
 
 <code src="./examples/i18n-demo.tsx"></code>
 
-
 更多国际化详情请参考：[国际化文档](../i18n)
 
 ## 🎨 主题模式
@@ -56,7 +69,6 @@ import 'react-prompt-editor/styles/index.css'; // 必须引入
 组件支持明亮/暗色主题切换，可以跟随系统或手动指定：
 
 <code src="../examples/theme-demo.tsx"></code>
-
 
 **主题模式说明：**
 
@@ -68,26 +80,35 @@ import 'react-prompt-editor/styles/index.css'; // 必须引入
 
 ### PromptEditor Props
 
-| 参数              | 说明                                                           | 类型                                                                     | 默认值     |
-| ----------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------ | ---------- |
-| initialValue      | 初始树形数据（非受控模式）                                     | `TaskNode[]`                                                             | `[]`       |
-| value             | 树形数据（受控模式）                                           | `TaskNode[]`                                                             | -          |
-| onChange          | 数据变化回调                                                   | `(data: TaskNode[]) => void`                                             | -          |
-| onRunRequest      | 运行请求回调（触发运行时调用，用户自行处理异步请求）           | `(request: RunTaskRequest) => void`                                      | -          |
-| optimizeConfig    | AI 优化配置（提供此项后组件自动处理请求与流式/非流式渲染）     | `OptimizeConfig`                                                         | -          |
-| onOptimizeRequest | 优化请求回调（高级模式，用户自行处理请求并通过 onResponse 返回） | `(request: OptimizeRequest, callbacks: { onResponse, onError }) => void` | -          |
-| onNodeRun         | 节点运行完成回调（用户执行完运行请求后调用，通知组件更新状态） | `(nodeId: string, result: RunTaskResponse) => void`                      | -          |
-| onNodeOptimize    | 节点优化完成回调（用户执行完优化请求后调用，通知组件）         | `(nodeId: string, result: OptimizeResponse) => void`                     | -          |
-| onNodeLock        | 节点锁定回调                                                   | `(nodeId: string, isLocked: boolean) => void`                            | -          |
-| onTreeChange      | 树变化回调                                                     | `(tree: TaskNode[]) => void`                                             | -          |
-| className         | 自定义类名                                                     | `string`                                                                 | -          |
-| style             | 自定义样式                                                     | `React.CSSProperties`                                                    | -          |
-| renderToolbar     | 自定义顶部工具栏                                               | `(actions) => ReactNode`                                                 | -          |
-| onLike            | AI 优化消息点赞回调                                            | `(messageId: string) => void`                                            | -          |
-| onDislike         | AI 优化消息点踩回调                                            | `(messageId: string) => void`                                            | -          |
-| previewMode       | 预览模式（只读，隐藏编辑功能）                                 | `boolean`                                                                | `false`    |
-| locale            | 国际化配置（类似 Ant Design 的语言包）                         | `Locale`                                                                 | `zhCN`     |
-| theme             | 主题模式（控制明亮/暗色主题）                                  | `'system' \| 'light' \| 'dark'`                                          | `'system'` |
+#### 属性 (Props)
+
+| 参数           | 说明                                                       | 类型                            | 默认值     |
+| -------------- | ---------------------------------------------------------- | ------------------------------- | ---------- |
+| initialValue   | 初始树形数据（非受控模式）                                 | `TaskNode[]`                    | `[]`       |
+| value          | 树形数据（受控模式）                                       | `TaskNode[]`                    | -          |
+| optimizeConfig | AI 优化配置（提供此项后组件自动处理请求与流式/非流式渲染） | `OptimizeConfig`                | -          |
+| autoOptimize   | 是否在打开优化弹窗时自动开始优化                           | `boolean`                       | `true`     |
+| className      | 自定义类名                                                 | `string`                        | -          |
+| style          | 自定义样式                                                 | `React.CSSProperties`           | -          |
+| renderToolbar  | 自定义顶部工具栏                                           | `(actions) => ReactNode`        | -          |
+| previewMode    | 预览模式（只读，隐藏编辑功能）                             | `boolean`                       | `false`    |
+| locale         | 国际化配置（类似 Ant Design 的语言包）                     | `Locale`                        | `zhCN`     |
+| theme          | 主题模式（控制明亮/暗色主题）                              | `'system' \| 'light' \| 'dark'` | `'system'` |
+| draggable      | 是否支持拖拽排序（启用后可通过拖拽调整节点位置和层级）     | `boolean`                       | `false`    |
+
+#### 事件 (Events)
+
+| 参数              | 说明                                                             | 类型                                                                     | 默认值 |
+| ----------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------ | ------ |
+| onChange          | 数据变化回调                                                     | `(data: TaskNode[]) => void`                                             | -      |
+| onRunRequest      | 运行请求回调（触发运行时调用，用户自行处理异步请求）             | `(request: RunTaskRequest) => void`                                      | -      |
+| onOptimizeRequest | 优化请求回调（高级模式，用户自行处理请求并通过 onResponse 返回） | `(request: OptimizeRequest, callbacks: { onResponse, onError }) => void` | -      |
+| onNodeRun         | 节点运行完成回调（用户执行完运行请求后调用，通知组件更新状态）   | `(nodeId: string, result: RunTaskResponse) => void`                      | -      |
+| onNodeOptimize    | 节点优化完成回调（用户执行完优化请求后调用，通知组件）           | `(nodeId: string, result: OptimizeResponse) => void`                     | -      |
+| onNodeLock        | 节点锁定回调                                                     | `(nodeId: string, isLocked: boolean) => void`                            | -      |
+| onTreeChange      | 树变化回调                                                       | `(tree: TaskNode[]) => void`                                             | -      |
+| onLike            | AI 优化消息点赞回调                                              | `(messageId: string) => void`                                            | -      |
+| onDislike         | AI 优化消息点踩回调                                              | `(messageId: string) => void`                                            | -      |
 
 ## 数据类型
 
@@ -174,7 +195,7 @@ const [value, setValue] = useState<TaskNode[]>(initialData);
   value={value}
   onChange={setValue}
 />
-````
+```
 
 ### 纯回调模式详解
 

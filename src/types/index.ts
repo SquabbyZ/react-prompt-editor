@@ -215,4 +215,9 @@ export interface PromptEditorProps {
    * @default 'system'
    */
   theme?: 'system' | 'light' | 'dark';
+  /**
+   * 是否支持拖拽排序
+   * @default false
+   */
+  draggable?: boolean;
 }

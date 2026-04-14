@@ -1,6 +1,6 @@
 ---
 hero:
-  title: PromptEditor
+  title: RPEditor
   description: Tree-based prompt editor component library with hierarchical management, dependency configuration, execution and AI optimization
   actions:
     - text: Quick Start

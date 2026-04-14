@@ -37,6 +37,20 @@ Use the `previewMode` prop to enable read-only display and hide all operation bu
 
 <code src="../examples/preview.tsx" iframe></code>
 
+## Drag and Drop Sorting
+
+Use the `draggable` prop to enable node drag-and-drop sorting functionality, allowing you to adjust node positions and hierarchy through dragging:
+
+<code src="../examples/draggable.tsx" iframe></code>
+
+**Drag and Drop Features:**
+
+- ✅ Drag nodes above/below other nodes to reorder
+- ✅ Drag nodes inside another node to make them children
+- ✅ Automatically detects and prevents circular dependencies (cannot drag parent into its child)
+- ❌ Locked nodes cannot be dragged
+- ❌ Cannot drag in preview mode
+
 ## Streaming Output Example
 
 Demonstrates how to implement true streaming AI optimization (simulating SSE responses from APIs like OpenAI, Qwen, etc.):
@@ -94,26 +108,35 @@ const AppDark = () => <PromptEditor theme="dark" />;
 
 ### PromptEditor Props
 
-| Parameter         | Description                                                                                | Type                                                                     | Default    |
-| ----------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ | ---------- |
-| initialValue      | Initial tree data (uncontrolled mode)                                                      | `TaskNode[]`                                                             | `[]`       |
-| value             | Tree data (controlled mode)                                                                | `TaskNode[]`                                                             | -          |
-| onChange          | Data change callback                                                                       | `(data: TaskNode[]) => void`                                             | -          |
-| onRunRequest      | Run request callback (called when triggered, user handles async requests)                  | `(request: RunTaskRequest) => void`                                      | -          |
-| optimizeConfig    | AI optimization config (component handles requests and streaming/non-streaming rendering)  | `OptimizeConfig`                                                         | -          |
-| onOptimizeRequest | Optimize request callback (advanced mode, user handles requests and returns via onResponse)| `(request: OptimizeRequest, callbacks: { onResponse, onError }) => void` | -          |
-| onNodeRun         | Node run completion callback (user calls after completing run request to notify component) | `(nodeId: string, result: RunTaskResponse) => void`                      | -          |
-| onNodeOptimize    | Node optimize completion callback (user calls after completing optimize request)           | `(nodeId: string, result: OptimizeResponse) => void`                     | -          |
-| onNodeLock        | Node lock callback                                                                         | `(nodeId: string, isLocked: boolean) => void`                            | -          |
-| onTreeChange      | Tree change callback                                                                       | `(tree: TaskNode[]) => void`                                             | -          |
-| className         | Custom class name                                                                          | `string`                                                                 | -          |
-| style             | Custom styles                                                                              | `React.CSSProperties`                                                    | -          |
-| renderToolbar     | Custom top toolbar                                                                         | `(actions) => ReactNode`                                                 | -          |
-| onLike            | AI optimization message like callback                                                      | `(messageId: string) => void`                                            | -          |
-| onDislike         | AI optimization message dislike callback                                                   | `(messageId: string) => void`                                            | -          |
-| previewMode       | Preview mode (read-only, hides editing features)                                           | `boolean`                                                                | `false`    |
-| locale            | Internationalization configuration (similar to Ant Design's language pack)                 | `Locale`                                                                 | `zhCN`     |
-| theme             | Theme mode (controls light/dark theme)                                                     | `'system' \| 'light' \| 'dark'`                                          | `'system'` |
+#### Props
+
+| Parameter | Description | Type | Default |
+| --- | --- | --- | --- |
+| initialValue | Initial tree data (uncontrolled mode) | `TaskNode[]` | `[]` |
+| value | Tree data (controlled mode) | `TaskNode[]` | - |
+| optimizeConfig | AI optimization config (component handles requests and streaming/non-streaming rendering) | `OptimizeConfig` | - |
+| autoOptimize | Whether to automatically start optimization when opening the optimization modal | `boolean` | `true` |
+| className | Custom class name | `string` | - |
+| style | Custom styles | `React.CSSProperties` | - |
+| renderToolbar | Custom top toolbar | `(actions) => ReactNode` | - |
+| previewMode | Preview mode (read-only, hides editing features) | `boolean` | `false` |
+| locale | Internationalization configuration (similar to Ant Design's language pack) | `Locale` | `zhCN` |
+| theme | Theme mode (controls light/dark theme) | `'system' \| 'light' \| 'dark'` | `'system'` |
+| draggable | Enable drag-and-drop sorting (allows adjusting node positions and hierarchy via dragging) | `boolean` | `false` |
+
+#### Events
+
+| Parameter | Description | Type | Default |
+| --- | --- | --- | --- |
+| onChange | Data change callback | `(data: TaskNode[]) => void` | - |
+| onRunRequest | Run request callback (called when triggered, user handles async requests) | `(request: RunTaskRequest) => void` | - |
+| onOptimizeRequest | Optimize request callback (advanced mode, user handles requests and returns via onResponse) | `(request: OptimizeRequest, callbacks: { onResponse, onError }) => void` | - |
+| onNodeRun | Node run completion callback (user calls after completing run request to notify component) | `(nodeId: string, result: RunTaskResponse) => void` | - |
+| onNodeOptimize | Node optimize completion callback (user calls after completing optimize request) | `(nodeId: string, result: OptimizeResponse) => void` | - |
+| onNodeLock | Node lock callback | `(nodeId: string, isLocked: boolean) => void` | - |
+| onTreeChange | Tree change callback | `(tree: TaskNode[]) => void` | - |
+| onLike | AI optimization message like callback | `(messageId: string) => void` | - |
+| onDislike | AI optimization message dislike callback | `(messageId: string) => void` | - |
 
 ## Data Types
 
@@ -200,7 +223,7 @@ const [value, setValue] = useState<TaskNode[]>(initialData);
   value={value}
   onChange={setValue}
 />
-````
+```
 
 ### Pure Callback Mode Explained
 

@@ -8,11 +8,12 @@ export default defineConfig({
     { id: 'en-US', name: 'English' },
   ],
   themeConfig: {
-    name: 'promptED',
+    name: 'RPEditor',
     logo: '/logo.png',
     socialLinks: {
       github: 'https://github.com/SquabbyZ/react-prompt-editor',
     },
+    footer: 'Copyright © 2026 RPEditor | Powered by SquabbyZ',
     favicon: '/favicon.ico',
   },
   resolve: {
