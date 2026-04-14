@@ -610,16 +610,23 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
     ],
   );
 
+  const componentThemeClass =
+    theme === 'dark'
+      ? 'dark'
+      : theme === 'light'
+        ? 'prompt-editor-theme-light'
+        : '';
+
   return (
     <div
-      className={`prompt-editor-container scroll-thin flex h-full w-full flex-col overflow-hidden bg-white dark:bg-gray-900 ${className || ''}`}
+      className={`prompt-editor-container scroll-thin flex h-full w-full flex-col overflow-hidden bg-white dark:bg-gray-900 ${componentThemeClass} ${className || ''}`}
       data-prompt-editor="true"
       style={style}
       data-theme={theme === 'system' ? undefined : theme}
     >
       {/* 顶部工具栏 - 预览模式下隐藏 */}
       {!previewMode && (
-        <div className="z-5 border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-900">
+        <div className="prompt-editor-toolbar z-5 border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-900">
           {renderToolbar ? (
             renderToolbar({ addRootNode: handleAddRootNode })
           ) : (
@@ -628,7 +635,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
               icon={<PlusOutlined />}
               onClick={handleAddRootNode}
               block
-              className="dark:border-gray-700 dark:!bg-gray-800 dark:text-gray-300 dark:hover:border-indigo-500 dark:hover:text-indigo-400"
+              className="prompt-editor-add-root dark:border-gray-700 dark:!bg-gray-800 dark:text-gray-300 dark:hover:border-indigo-500 dark:hover:text-indigo-400"
             >
               {t('editor.addRootNode')}
             </Button>
@@ -636,7 +643,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
         </div>
       )}
       <div
-        className="flex-1 dark:bg-gray-900"
+        className="prompt-editor-body flex-1 dark:bg-gray-900"
         ref={containerRef}
         style={{ overflow: 'hidden' }}
       >
@@ -647,7 +654,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
           rowCount={visibleNodes.length}
           rowHeight={(index) => getItemSize(index)}
           overscanCount={5} // 预渲染 5 个额外节点
-          className="scroll-thin"
+          className="prompt-editor-list scroll-thin"
           style={{
             width: 'calc(100% - 32px)',
             height: 'calc(100% - 32px)',

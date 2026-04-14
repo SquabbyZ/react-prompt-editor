@@ -1,11 +1,12 @@
-import { ConfigProvider, Radio, Space } from 'antd';
-import React, { useEffect, useMemo, useState } from 'react';
+import { ConfigProvider, Radio, Space, theme as antdTheme } from 'antd';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { PromptEditor } from '../../src';
 import type { TaskNode } from '../../src/types';
 
 const ThemeDemo: React.FC = () => {
   const [theme, setTheme] = useState<'system' | 'light' | 'dark'>('system');
   const [dumiTheme, setDumiTheme] = useState<'light' | 'dark'>('light');
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   // 监听 dumi 主题变化（data-prefers-color 属性）
   useEffect(() => {
@@ -46,6 +47,20 @@ const ThemeDemo: React.FC = () => {
 
   // system 模式下使用 dumi 主题，否则使用用户选择的主题
   const effectiveTheme = theme === 'system' ? dumiTheme : theme;
+  const isDark = effectiveTheme === 'dark';
+
+  useEffect(() => {
+    const previewer = wrapperRef.current?.closest('.dumi-default-previewer');
+    if (!previewer) return;
+
+    previewer.classList.toggle('rpe-demo-previewer-dark', isDark);
+    previewer.setAttribute('data-theme', effectiveTheme);
+
+    return () => {
+      previewer.classList.remove('rpe-demo-previewer-dark');
+      previewer.removeAttribute('data-theme');
+    };
+  }, [effectiveTheme, isDark]);
 
   const initialValue = useMemo<TaskNode[]>(
     () => [
@@ -66,18 +81,36 @@ const ThemeDemo: React.FC = () => {
   return (
     <ConfigProvider
       theme={{
+        algorithm: isDark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
         token: {
           colorPrimary: '#6366f1',
           borderRadius: 8,
         },
       }}
     >
-      <div className="space-y-4">
+      <div
+        ref={wrapperRef}
+        data-theme={effectiveTheme}
+        className={`${isDark ? 'dark' : ''} space-y-4 rounded-[28px] border p-4 transition-colors md:p-8 ${
+          isDark
+            ? 'border-blue-900/80 bg-[#07101f] shadow-[0_24px_80px_rgba(2,6,23,0.38)]'
+            : 'border-gray-200 bg-[#fbfcfe]'
+        }`}
+      >
         {/* 主题切换器 */}
-        <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
-          <div className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+        <div
+          className={`rounded-2xl border p-4 transition-colors ${
+            isDark
+              ? 'border-blue-950/80 bg-[linear-gradient(180deg,rgba(10,21,43,0.96),rgba(7,16,31,0.98))]'
+              : 'border-gray-200 bg-white'
+          }`}
+        >
+          <div className={`mb-2 text-sm font-medium ${isDark ? 'text-slate-100' : 'text-gray-700'}`}>
             选择主题模式：
           </div>
+          <p className={`mb-3 text-xs leading-6 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+            这里只控制下方示例组件的主题，不会修改整篇文档站的主题模式。
+          </p>
           <Radio.Group
             value={theme}
             onChange={(e) => setTheme(e.target.value)}
@@ -92,7 +125,13 @@ const ThemeDemo: React.FC = () => {
         </div>
 
         {/* 编辑器 */}
-        <div className="rounded-lg border border-gray-300">
+        <div
+          className={`overflow-hidden rounded-2xl border transition-colors ${
+            isDark
+              ? 'border-blue-950/80 bg-[linear-gradient(180deg,rgba(8,20,40,0.96),rgba(6,16,32,0.98))] p-4'
+              : 'border-gray-300 bg-white'
+          }`}
+        >
           <PromptEditor
             initialValue={initialValue}
             theme={effectiveTheme as any}

@@ -1,5 +1,6 @@
 import { ConfigProvider, Tag, TreeSelect } from 'antd';
-import React, { memo, useEffect, useState } from 'react';
+import React, { memo } from 'react';
+import { useResolvedTheme, type ThemeMode } from '../../hooks/useResolvedTheme';
 import { useI18n } from '../../hooks/useI18n';
 import type { Locale } from '../../i18n/locales/zh-CN';
 
@@ -17,6 +18,7 @@ interface DependencyConfigSectionProps {
     children: string[];
   }>;
   locale?: Locale;
+  theme?: ThemeMode;
 }
 
 /**
@@ -32,44 +34,11 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
       getNodeNumber,
       availableNodes,
       locale,
+      theme = 'system',
     }) => {
       // 国际化 Hook
       const { t } = useI18n(locale);
-      // 检测暗色模式
-      const [isDarkMode, setIsDarkMode] = useState(() => {
-        if (typeof window !== 'undefined') {
-          const html = document.documentElement;
-          return (
-            html.classList.contains('dark') ||
-            html.getAttribute('data-theme') === 'dark' ||
-            html.getAttribute('data-prefers-color') === 'dark'
-          );
-        }
-        return false;
-      });
-
-      // 监听主题变化
-      useEffect(() => {
-        const observer = new MutationObserver((mutations) => {
-          mutations.forEach((mutation) => {
-            if (mutation.attributeName === 'class' || mutation.attributeName === 'data-theme' || mutation.attributeName === 'data-prefers-color') {
-              const html = document.documentElement;
-              const dark =
-                html.classList.contains('dark') ||
-                html.getAttribute('data-theme') === 'dark' ||
-                html.getAttribute('data-prefers-color') === 'dark';
-              setIsDarkMode(dark);
-            }
-          });
-        });
-
-        observer.observe(document.documentElement, {
-          attributes: true,
-          attributeFilter: ['class', 'data-theme', 'data-prefers-color'],
-        });
-
-        return () => observer.disconnect();
-      }, []);
+      const { isDarkMode } = useResolvedTheme(theme);
 
       // 获取已选择的依赖节点信息
       const selectedDeps = dependencies
@@ -196,125 +165,92 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
       const treeData = buildTreeData(availableNodes);
 
       return (
-        <div className="border-t border-indigo-200 bg-indigo-50/50 px-3 py-2 dark:border-indigo-900/50 dark:bg-gray-900/80">
+        <div
+          className={`prompt-editor-dependency-section border-t px-3 py-2 ${
+            isDarkMode
+              ? 'prompt-editor-dependency-section-dark border-indigo-900/40 bg-[#081428]'
+              : 'border-indigo-200 bg-indigo-50/50'
+          }`}
+        >
           {isDarkMode && (
             <style>{`
-              .dark-mode-treeselect-popup {
-                background-color: rgb(39, 39, 42) !important;
-                border-color: rgb(55, 65, 81) !important;
+              .prompt-editor-dependency-section-dark .ant-select-outlined:not(.ant-select-customize-input) .ant-select-selector {
+                background: rgba(15, 23, 42, 0.92) !important;
+                border-color: rgba(59, 130, 246, 0.18) !important;
+                color: rgb(226, 232, 240) !important;
               }
-              .dark-mode-treeselect-popup .ant-select-tree {
-                color: rgb(209, 213, 219) !important;
+              .prompt-editor-dependency-section-dark .ant-select-outlined:not(.ant-select-customize-input) .ant-select-selector:hover {
+                border-color: rgba(99, 102, 241, 0.45) !important;
               }
-              .dark-mode-treeselect-popup .ant-select-tree-node-content-wrapper {
-                color: rgb(209, 213, 219) !important;
-              }
-              .dark-mode-treeselect-popup .ant-select-tree-node-content-wrapper:hover {
-                background-color: rgba(75, 85, 99, 0.6) !important;
-              }
-              .dark-mode-treeselect-popup .ant-select-tree-node-selected {
-                background-color: rgb(55, 65, 81) !important;
-              }
-              .dark-mode-treeselect-popup .ant-select-tree-treenode-disabled > .ant-select-tree-node-content-wrapper {
-                color: rgb(107, 114, 128) !important;
-              }
-              .dark-mode-treeselect-popup .ant-select-tree-indent-unit:before {
-                border-color: rgb(55, 65, 81) !important;
-              }
-              .dark-mode-treeselect-popup .ant-select-tree-switcher {
-                color: rgb(209, 213, 219) !important;
-              }
-              .ant-select-outlined:not(.ant-select-customize-input) .ant-select-selector {
-                background-color: rgb(39, 39, 42) !important;
-                border-color: rgb(55, 65, 81) !important;
-                color: rgb(209, 213, 219) !important;
-              }
-              .ant-select-outlined:not(.ant-select-customize-input) .ant-select-selector:hover {
-                border-color: rgb(75, 85, 99) !important;
-              }
-              .ant-select-outlined:not(.ant-select-customize-input).ant-select-focused .ant-select-selector {
+              .prompt-editor-dependency-section-dark .ant-select-outlined:not(.ant-select-customize-input).ant-select-focused .ant-select-selector {
                 border-color: rgb(99, 102, 241) !important;
+                box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.16) !important;
               }
-              .ant-select-selection-placeholder {
-                color: rgb(107, 114, 128) !important;
+              .prompt-editor-dependency-section-dark .ant-select-selection-placeholder {
+                color: rgb(100, 116, 139) !important;
               }
-              .ant-select-selection-item {
-                color: rgb(209, 213, 219) !important;
+              .prompt-editor-dependency-section-dark .ant-select-selection-item {
+                color: rgb(226, 232, 240) !important;
               }
-              .ant-select-arrow {
-                color: rgb(107, 114, 128) !important;
+              .prompt-editor-dependency-section-dark .ant-select-arrow,
+              .prompt-editor-dependency-section-dark .ant-select-clear {
+                color: rgb(148, 163, 184) !important;
               }
-              .ant-select-clear {
-                color: rgb(107, 114, 128) !important;
+              .prompt-editor-treeselect-dropdown-dark.ant-select-dropdown {
+                background: rgb(10, 18, 34) !important;
+                border: 1px solid rgba(59, 130, 246, 0.18) !important;
+                box-shadow: 0 20px 60px rgba(2, 6, 23, 0.45) !important;
               }
-              .ant-select-clear:hover {
-                color: rgb(156, 163, 175) !important;
+              .prompt-editor-treeselect-dropdown-dark .ant-select-tree {
+                color: rgb(226, 232, 240) !important;
+                background: transparent !important;
               }
-              /* 下拉面板容器 */
-              .dark-mode-treeselect-popup.ant-select-dropdown {
-                background-color: rgb(39, 39, 42) !important;
-                border-color: rgb(55, 65, 81) !important;
+              .prompt-editor-treeselect-dropdown-dark .ant-select-tree-node-content-wrapper {
+                color: rgb(226, 232, 240) !important;
+                background: transparent !important;
               }
-              /* 下拉选项容器 */
-              .dark-mode-treeselect-popup .ant-select-tree-treenode {
-                color: rgb(209, 213, 219) !important;
+              .prompt-editor-treeselect-dropdown-dark .ant-select-tree-node-content-wrapper:hover {
+                background: rgba(30, 41, 59, 0.72) !important;
               }
-              /* 下拉选项内容 */
-              .dark-mode-treeselect-popup .ant-select-tree-node-content-wrapper {
-                color: rgb(209, 213, 219) !important;
-                background-color: transparent !important;
+              .prompt-editor-treeselect-dropdown-dark .ant-select-tree-switcher,
+              .prompt-editor-treeselect-dropdown-dark .ant-select-tree-indent-unit:before {
+                color: rgb(148, 163, 184) !important;
+                border-color: rgba(71, 85, 105, 0.45) !important;
               }
-              /* 下拉选项hover */
-              .dark-mode-treeselect-popup .ant-select-tree-node-content-wrapper:hover {
-                background-color: rgba(75, 85, 99, 0.6) !important;
-                color: rgb(209, 213, 219) !important;
+              .prompt-editor-treeselect-dropdown-dark .ant-select-tree-treenode,
+              .prompt-editor-treeselect-dropdown-dark .ant-select-tree-list-holder-inner {
+                background: transparent !important;
+                color: rgb(226, 232, 240) !important;
               }
-              /* 下拉选项选中 - 确保暗色模式下背景为暗色 */
-              .dark-mode-treeselect-popup .ant-select-tree-treenode-selected,
-              .dark-mode-treeselect-popup .ant-select-tree-treenode-selected .ant-select-tree-node-content-wrapper,
-              .dark-mode-treeselect-popup .ant-select-tree .ant-select-tree-treenode-selected,
-              .dark-mode-treeselect-popup .ant-select-tree .ant-select-tree-treenode-selected .ant-select-tree-node-content-wrapper {
-                background-color: rgb(55, 65, 81) !important;
-                color: rgb(209, 213, 219) !important;
+              .prompt-editor-treeselect-dropdown-dark .ant-select-tree-treenode-selected,
+              .prompt-editor-treeselect-dropdown-dark .ant-select-tree-treenode-selected > .ant-select-tree-node-content-wrapper,
+              .prompt-editor-treeselect-dropdown-dark .ant-select-tree-node-content-wrapper.ant-select-tree-node-selected {
+                background: rgba(37, 99, 235, 0.18) !important;
+                color: rgb(241, 245, 249) !important;
               }
-              /* 强制覆盖所有选中相关元素的白色背景 - 使用更高优先级 */
-              .dark-mode-treeselect-popup .ant-select-tree-treenode.ant-select-tree-treenode-selected,
-              .dark-mode-treeselect-popup .ant-select-tree-treenode.ant-select-tree-treenode-selected > .ant-select-tree-node-content-wrapper,
-              .dark-mode-treeselect-popup .ant-select-tree-treenode-selected .ant-select-tree-node-content-wrapper,
-              .dark-mode-treeselect-popup .ant-select-tree .ant-select-tree-treenode-selected .ant-select-tree-node-content-wrapper,
-              .dark-mode-treeselect-popup .ant-select-tree .ant-select-tree-node-selected,
-              .dark-mode-treeselect-popup .ant-select-tree-node-content-wrapper.ant-select-tree-node-selected,
-              .dark-mode-treeselect-popup .ant-select-tree-node-selected .ant-select-tree-node-content-wrapper,
-              .dark-mode-treeselect-popup span.ant-select-tree-node-content-wrapper.ant-select-tree-node-selected,
-              .dark-mode-treeselect-popup div.ant-select-tree-treenode.ant-select-tree-treenode-selected {
-                background-color: rgb(55, 65, 81) !important;
-                color: rgb(209, 213, 219) !important;
+              .prompt-editor-treeselect-dropdown-dark .ant-select-tree-treenode-selected:hover,
+              .prompt-editor-treeselect-dropdown-dark .ant-select-tree-treenode-selected:hover > .ant-select-tree-node-content-wrapper {
+                background: rgba(37, 99, 235, 0.24) !important;
               }
-              /* 选中状态hover时保持暗色背景 */
-              .dark-mode-treeselect-popup .ant-select-tree-treenode-selected:hover,
-              .dark-mode-treeselect-popup .ant-select-tree-treenode-selected:hover .ant-select-tree-node-content-wrapper,
-              .dark-mode-treeselect-popup .ant-select-tree-node-content-wrapper.ant-select-tree-node-selected:hover {
-                background-color: rgba(75, 85, 99, 0.8) !important;
-                color: rgb(209, 213, 219) !important;
-              }
-              /* 强制覆盖所有选中相关元素的白色背景 */
-              .dark-mode-treeselect-popup [class*="selected"],
-              .dark-mode-treeselect-popup .ant-select-tree-treenode-selected *,
-              .dark-mode-treeselect-popup div[class*="-selected"] {
-                background-color: rgb(55, 65, 81) !important;
-              }
-              /* 下拉选项禁用 */
-              .dark-mode-treeselect-popup .ant-select-tree-treenode-disabled > .ant-select-tree-node-content-wrapper {
-                color: rgb(107, 114, 128) !important;
-                opacity: 0.5 !important;
+              .prompt-editor-treeselect-dropdown-dark .ant-select-tree-treenode-disabled > .ant-select-tree-node-content-wrapper {
+                color: rgb(100, 116, 139) !important;
+                opacity: 0.55 !important;
               }
             `}</style>
           )}
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+            <span
+              className={`text-xs font-medium ${
+                isDarkMode ? 'text-slate-200' : 'text-gray-700'
+              }`}
+            >
               {t('dependency.dependencies')}
             </span>
-            <span className="text-[10px] text-gray-500 dark:text-gray-400">
+            <span
+              className={`text-[10px] ${
+                isDarkMode ? 'text-slate-400' : 'text-gray-500'
+              }`}
+            >
               {t('dependency.canOnlySelectLockedNodes')}
             </span>
           </div>
@@ -345,7 +281,13 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
               ))}
             </div>
           ) : (
-            <div className="mb-2 rounded border border-dashed border-gray-300 bg-gray-50 px-2 py-1.5 text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+            <div
+              className={`mb-2 rounded border border-dashed px-2 py-1.5 text-xs ${
+                isDarkMode
+                  ? 'border-slate-700 bg-slate-900/70 text-slate-400'
+                  : 'border-gray-300 bg-gray-50 text-gray-500'
+              }`}
+            >
               {t('dependency.noDependencies')}
             </div>
           )}
@@ -377,24 +319,34 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
                         nodeHoverBg: 'rgba(75, 85, 99, 0.6)',
                       },
                     },
+                    token: {
+                      colorText: 'rgb(226, 232, 240)',
+                    },
                   }
                 : undefined
             }
           >
             <TreeSelect
               className="w-full"
-              popupClassName="dark-mode-treeselect-popup"
+              popupClassName={
+                isDarkMode
+                  ? 'prompt-editor-treeselect-dropdown-dark'
+                  : 'prompt-editor-treeselect-dropdown'
+              }
               treeData={treeData}
               placeholder={t('dependency.selectDependencyPlaceholder')}
               allowClear
               treeDefaultExpandAll
+              getPopupContainer={(triggerNode) =>
+                triggerNode.parentElement ?? document.body
+              }
               styles={{
                 popup: {
-                  root: { 
-                    maxHeight: 400, 
+                  root: {
+                    maxHeight: 400,
                     overflow: 'auto',
-                  }
-                }
+                  },
+                },
               }}
               onChange={(value) => {
                 if (value) {

@@ -7,8 +7,8 @@ import React, {
   useEffect,
   useImperativeHandle,
   useRef,
-  useState,
 } from 'react';
+import { useResolvedTheme } from '../../hooks/useResolvedTheme';
 import { getCodeMirrorPhrases } from '../../i18n/codemirror';
 import { createTranslator, defaultLocale } from '../../i18n/types';
 import { CodeMirrorEditorProps } from './CodeMirrorEditor.types';
@@ -33,55 +33,12 @@ export const CodeMirrorEditor = memo(
       ref,
     ) => {
       const cmRef = useRef<any>(null);
-      const [isDarkMode, setIsDarkMode] = useState(false);
+      const { isDarkMode } = useResolvedTheme(theme);
 
       // 获取国际化翻译函数
       const t = createTranslator(locale);
       // 如果没有传入 placeholder，使用国际化的默认值
       const defaultPlaceholder = placeholder || t('codemirror.placeholder');
-
-      // 检测暗色模式
-      useEffect(() => {
-        const checkDarkMode = () => {
-          let isDark = false;
-
-          if (theme === 'light') {
-            isDark = false;
-          } else if (theme === 'dark') {
-            isDark = true;
-          } else {
-            // system: 跟随系统
-            const htmlElement = document.documentElement;
-            isDark =
-              htmlElement.classList.contains('dark') ||
-              htmlElement.getAttribute('data-theme') === 'dark' ||
-              window.matchMedia('(prefers-color-scheme: dark)').matches;
-          }
-
-          setIsDarkMode(isDark);
-        };
-
-        checkDarkMode();
-
-        // 只有在 system 模式下才监听变化
-        if (theme === 'system') {
-          // 监听类名变化
-          const observer = new MutationObserver(checkDarkMode);
-          observer.observe(document.documentElement, {
-            attributes: true,
-            attributeFilter: ['class', 'data-theme'],
-          });
-
-          // 监听系统主题变化
-          const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-          mediaQuery.addEventListener('change', checkDarkMode);
-
-          return () => {
-            observer.disconnect();
-            mediaQuery.removeEventListener('change', checkDarkMode);
-          };
-        }
-      }, [theme]);
 
       // 注入 CodeMirror 暗色模式样式（避免被 Tailwind purge）
       useEffect(() => {

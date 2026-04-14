@@ -133,10 +133,13 @@ export const EditableTitle: React.FC<EditableTitleProps> = memo(
 
     return (
       <span
-        className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100"
+        className="prompt-editor-node-title flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium text-inherit"
         title={!isEditing ? title : undefined}
       >
-        <Tag color="default" className="flex-shrink-0 px-1 text-xs">
+        <Tag
+          color="default"
+          className="prompt-editor-node-title-number flex-shrink-0 px-1 text-xs"
+        >
           {number}
         </Tag>
         {isEditing ? (
@@ -152,7 +155,7 @@ export const EditableTitle: React.FC<EditableTitleProps> = memo(
           />
         ) : (
           <span
-            className={`-mx-1 overflow-hidden text-ellipsis whitespace-nowrap rounded px-1 py-0.5 ${!previewMode ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800' : ''}`}
+            className={`prompt-editor-node-title-text -mx-1 overflow-hidden text-ellipsis whitespace-nowrap rounded px-1 py-0.5 text-inherit ${!previewMode ? 'cursor-pointer hover:bg-black/5 dark:hover:bg-white/5' : ''}`}
             onClick={handleClick}
             onDoubleClick={!previewMode ? handleStartEdit : undefined}
             title={title}

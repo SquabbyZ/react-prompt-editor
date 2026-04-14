@@ -6,18 +6,25 @@ demo:
 
 # PromptEditor
 
-Tree-structured prompt editor component providing hierarchical prompt management, visual editing, task dependencies, execution and AI optimization capabilities.
+RPEditor is a prompt-engineering-focused tree editor component for hierarchical authoring, node-level execution, dependency orchestration, streaming AI optimization, and structured showcase flows.
 
-## ⚠️ Important: Style Import
+## Best Fit Scenarios
+
+- Maintaining complex system prompts, rule blocks, few-shot examples and multi-step task instructions
+- Feeding dependency context into your own execution pipeline for agents or staged generation flows
+- Embedding AI refinement directly into the editing workflow instead of copying prompts into external tools
+- Presenting prompt structure, node status and results to teammates in preview mode
+
+## ⚠️ Before You Start
 
 **You must import the style file before using the component!**
 
-```typescript
-import { PromptEditor } from 'react-prompt-editor';
-import 'react-prompt-editor/styles/index.css'; // Required
-```
+- Component import: `import { PromptEditor } from 'react-prompt-editor';`
+- Style import: `import 'react-prompt-editor/styles/index.css';`
 
 If you don't import the style file, the component will lose all styles and display as unformatted raw content.
+
+> Start with the quick start example, then enable execution, AI optimization, drag-and-drop, and localization as your workflow grows.
 
 ## Quick Start
 
@@ -25,7 +32,7 @@ The simplest way to use it, just provide data and onChange callback:
 
 <code src="../examples/quickstart.tsx" iframe></code>
 
-## Basic Usage
+## Core Workflow Example
 
 Complete example with execution and AI optimization features:
 
@@ -57,6 +64,12 @@ Demonstrates how to implement true streaming AI optimization (simulating SSE res
 
 <code src="./examples/streaming.tsx"></code>
 
+## Multi-Platform Callback Demo
+
+If you need to adapt Dify, OpenAI, Alibaba Bailian, or your own backend, start with the demo below to understand the `onOptimizeRequest` callback contract, then switch to live mode to test your real endpoint and copy the production-ready handler into your project:
+
+<code src="./examples/callback-platforms.tsx"></code>
+
 ## 🌍 Internationalization
 
 The component supports Chinese and English switching. CodeMirror editor's search box and other UI elements will also automatically switch languages:
@@ -75,7 +88,7 @@ const App = () => <PromptEditor locale={zhCN} />;
 const AppEn = () => <PromptEditor locale={enUS} />;
 ```
 
-For more internationalization details, please refer to: [Internationalization Documentation](../i18n)
+For more language packs and extension guidance, please refer to: [Internationalization Documentation](../i18n)
 
 ## 🎨 Theme Mode
 

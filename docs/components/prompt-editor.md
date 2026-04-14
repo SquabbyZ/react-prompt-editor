@@ -5,18 +5,25 @@ demo:
 
 # RPEditor 提示词编辑器
 
-树形提示词编辑器组件，提供层级化提示词管理、可视化编辑、任务依赖、运行与 AI 优化能力。
+RPEditor 是一个面向 Prompt 工程化的树形编辑器组件，提供层级化提示词管理、节点级运行、依赖组织、流式 AI 优化与展示能力。
 
-## 样式引入
+## 适用场景
+
+- 维护复杂的 system prompt、规则块、few-shot 示例和多步骤任务说明
+- 将节点依赖交给业务侧执行流，构建 Agent 或多阶段生成流程
+- 在编辑流程中嵌入 AI 优化，而不是把提示词复制到外部工具里反复改写
+- 通过预览模式向团队演示 Prompt 结构、节点状态和运行结果
+
+## 接入前准备
 
 **使用组件前必须先引入样式文件！**
 
-```typescript
-import { PromptEditor } from 'react-prompt-editor';
-import 'react-prompt-editor/styles/index.css'; // 必须引入
-```
+- 组件导入：`import { PromptEditor } from 'react-prompt-editor';`
+- 样式导入：`import 'react-prompt-editor/styles/index.css';`
 
 如果不引入样式文件，组件将失去所有样式，显示为未格式化的原始内容。
+
+> 推荐先看“快速上手”，再根据业务需要启用运行、AI 优化、拖拽和国际化能力。
 
 ## 快速上手
 
@@ -24,7 +31,7 @@ import 'react-prompt-editor/styles/index.css'; // 必须引入
 
 <code src="../examples/quickstart.tsx"></code>
 
-## 基础使用
+## 核心工作流示例
 
 完整示例，包含运行和 AI 优化功能：
 
@@ -56,13 +63,19 @@ import 'react-prompt-editor/styles/index.css'; // 必须引入
 
 <code src="./examples/streaming.tsx"></code>
 
+## 多平台回调模式示例
+
+如果您需要适配 Dify、OpenAI、阿里百炼或自定义后端，建议先用下面的示例熟悉 `onOptimizeRequest` 的回调协议，再切到真实接口测试，最后直接复制实战代码到自己的项目中：
+
+<code src="./examples/callback-platforms.tsx"></code>
+
 ## 🌍 国际化
 
 组件支持中英文切换，CodeMirror 编辑器的搜索框等 UI 元素也会自动切换语言：
 
 <code src="./examples/i18n-demo.tsx"></code>
 
-更多国际化详情请参考：[国际化文档](../i18n)
+更多语言包和扩展方式请参考：[国际化文档](../i18n)
 
 ## 🎨 主题模式
 

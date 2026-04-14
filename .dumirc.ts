@@ -13,7 +13,7 @@ export default defineConfig({
     socialLinks: {
       github: 'https://github.com/SquabbyZ/react-prompt-editor',
     },
-    footer: 'Copyright © 2026 RPEditor | Powered by SquabbyZ',
+    footer: 'Copyright © 2026 RPEditor',
     favicon: '/favicon.ico',
   },
   resolve: {

@@ -382,7 +382,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
             {/* 节点头部 */}
             <div
               ref={headerRef}
-              className={`z-3 dark:!hover:border-indigo-500 relative flex items-center justify-between gap-2 rounded-md bg-gray-100 px-3 py-2 transition-colors hover:bg-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 ${
+              className={`prompt-editor-node-header z-3 dark:!hover:border-indigo-500 relative flex items-center justify-between gap-2 rounded-md bg-gray-100 px-3 py-2 transition-colors hover:bg-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 ${
                 !previewMode && !nodeData.isLocked
                   ? 'cursor-grab active:cursor-grabbing'
                   : 'cursor-default'
@@ -472,7 +472,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
             {/* 编辑器区域 - 根据展开状态或预览模式决定显示 */}
             {isEditorExpanded && (
               <div
-                className={`relative z-0 overflow-hidden rounded-lg border-2 border-gray-300 bg-gray-100 dark:!border-gray-600 dark:!bg-gray-800 ${isEditorAnimating ? 'animate-expand-in' : ''}`}
+                className={`prompt-editor-editor-shell relative z-0 overflow-hidden rounded-lg border-2 border-gray-300 bg-gray-100 dark:!border-gray-600 dark:!bg-gray-800 ${isEditorAnimating ? 'animate-expand-in' : ''}`}
                 style={{
                   transformOrigin: 'top center',
                 }}
@@ -485,10 +485,11 @@ export const Node: React.FC<CustomNodeProps> = memo(
                     onUndo={handleUndo}
                     onRedo={handleRedo}
                     locale={locale}
+                    theme={theme}
                   />
                 )}
 
-                <div className="m-2 rounded-md bg-white p-3 dark:!bg-gray-900">
+                <div className="prompt-editor-editor-surface m-2 rounded-md bg-white p-3 dark:!bg-gray-900">
                   <CodeMirrorEditor
                     ref={editorRef}
                     value={nodeData.content}
@@ -508,12 +509,13 @@ export const Node: React.FC<CustomNodeProps> = memo(
                     getNodeNumber={getNodeNumber}
                     availableNodes={availableNodes}
                     locale={locale}
+                    theme={theme}
                   />
                 )}
 
                 {/* 编辑器底部操作按钮 - 预览模式下隐藏 */}
                 {!previewMode && (
-                  <div className="flex items-center justify-end gap-2 border-t border-indigo-200 bg-white px-3 py-2 dark:border-indigo-800 dark:bg-gray-900">
+                  <div className="prompt-editor-editor-footer flex items-center justify-end gap-2 border-t border-indigo-200 bg-white px-3 py-2 dark:border-indigo-800 dark:bg-gray-900">
                     <Tooltip title={t('editor.run')}>
                       <Button
                         type="primary"

@@ -1,39 +1,70 @@
 ---
 hero:
+  badge: Prompt Engineering Workspace
   title: RPEditor
-  description: 树形提示词编辑器组件库，支持层级化管理、依赖配置、运行与 AI 优化
+  description: 面向复杂 AI 工作流的树形 Prompt 编辑器，支持节点运行、依赖编排、流式响应与 AI 对话式优化。
+  note: 适合 system prompt、任务拆解、few-shot 示例、多阶段 Agent 提示词和团队协作式 Prompt 资产沉淀。
   actions:
-    - text: 快速开始
+    - text: 查看组件文档
       link: /components/prompt-editor
     - text: GitHub
-      link: https://github.com/your-repo/react-prompt-editor
+      link: https://github.com/SquabbyZ/react-prompt-editor
+featuresEyebrow: Product Highlights
+featuresTitle: 为复杂 Prompt 工程化场景而设计
+featuresDescription: 不只是一个提示词输入框，而是一套用于<strong>树形拆解、依赖组织、节点运行与 AI 精修</strong>的前端工作台。
+features:
+  - title: 树形 Prompt 编排
+    description: 把 system prompt、约束、few-shot 示例和子任务拆成可维护节点，适合长链路和多角色协作。
+    emoji: 🌳
+  - title: 节点级执行与依赖编排
+    description: 每个节点都可以独立运行，并携带 <code>dependenciesContent</code> 给业务侧处理真实上下文拼装。
+    emoji: ▶️
+  - title: AI 对话式优化
+    description: 支持整段优化、选区精修、多轮追问、停止生成、复制重试和结果应用。
+    emoji: 🤖
+  - title: 真正适配流式响应
+    description: 内置 SSE 解析和平台兼容逻辑，可接 OpenAI、Dify、阿里百炼及通用 JSON 响应。
+    emoji: ⚡
+  - title: 面向大规模节点
+    description: 基于 Map 存储和虚拟列表渲染，适合大 Prompt 树的浏览、编辑和运行反馈。
+    emoji: 🧩
+  - title: 展示与主题能力
+    description: 支持预览模式、拖拽排序、主题模式与中英文切换，既能编辑也能拿来展示。
+    emoji: 🌍
 ---
 
-## 🎯 特性 / Features
+## 为什么使用 RPEditor
 
-- 🌳 **树形结构管理** - 层级化提示词组织，可视化拖拽编辑
-- 🔗 **依赖关系配置** - 配置节点间依赖，运行时自动拼接
-- ▶️ **节点级运行** - 运行按钮、Loading 状态、回调处理
-- 🤖 **AI 优化** - 智能优化提示词内容
-- 🔒 **锁定机制** - 运行后锁定，防止误改
-- ⚡ **高性能** - Map 数据结构，支持 2000+ 节点
-- 📝 **CodeMirror** - Markdown 语法高亮，懒加载
-- 🎨 **可定制主题** - CSS 变量，支持主题扩展
-- 🌍 **国际化支持** - 支持中英文切换
+RPEditor 面向的是“结构化 Prompt 工程”而不是单一文本框输入。它适合把复杂提示词拆成树、把节点结果串成上下文、把 AI 优化能力嵌入编辑流程，并最终沉淀为可复用的 Prompt 资产。
 
-## 🚀 快速体验 / Quick Demo
+## 典型场景
+
+- **Agent 工作流 Prompt 设计**：把多步骤任务拆成树状节点，按依赖关系组织上下文。
+- **复杂 system prompt 维护**：把角色、规则、格式要求、示例拆成独立节点，减少长文案失控。
+- **Prompt 评审与展示**：通过预览模式向团队展示结构化提示词，而不是裸文本。
+- **人机协同优化**：先人工编排，再对整段或选区发起 AI 精修，逐步迭代提示词质量。
+
+## 快速体验
 
 <code src="./components/examples/basic.tsx" title="在线 Demo" iframe></code>
 
-## 📦 安装 / Installation
+## 安装与接入
 
 ```bash
-pnpm add @uiw/react-codemirror @codemirror/lang-markdown @codemirror/theme-one-dark
 pnpm add react-prompt-editor
 ```
 
-## 🔗 相关链接 / Links
+接入时请先完成两步：
+
+- 组件导入：`import { PromptEditor } from 'react-prompt-editor';`
+- 样式导入：`import 'react-prompt-editor/styles/index.css';`
+
+> 使用组件前请先引入样式文件，否则会显示为未格式化的原始内容。
+
+## 快速上手入口
 
 - [组件文档](/components/prompt-editor)
-- [使用指南](/components/prompt-editor#使用指南)
+- [快速上手](/components/prompt-editor#快速上手)
+- [流式输出示例](/components/prompt-editor#流式输出示例)
 - [国际化](/i18n)
+- [GitHub 仓库](https://github.com/SquabbyZ/react-prompt-editor)
