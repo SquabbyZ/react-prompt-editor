@@ -53,6 +53,7 @@ export default {
     expandChildren: '展开子节点',
     collapseChildren: '折叠子节点',
     titleUpdated: '标题修改成功',
+    nodeMoved: '节点移动成功',
     missingOnRunRequest: '请提供 onRunRequest 回调',
   },
 

@@ -8,8 +8,14 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { List } from 'react-window';
 import { useI18n } from '../../hooks/useI18n';
 import { createEditorStore, EditorStoreType } from '../../stores';
+import { TaskNode } from '../../types';
+import {
+  flattenVisibleNodes,
+  getNodeActualHeight,
+} from '../../utils/virtual-tree';
 import { Node } from './Node';
 import { PromptEditorProps } from './PromptEditor.types';
 
@@ -41,7 +47,9 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   // 为每个 PromptEditor 实例创建独立的 store
   const storeRef = useRef<EditorStoreType | null>(null);
   if (!storeRef.current) {
-    storeRef.current = createEditorStore(isControlled ? value : initialValue);
+    storeRef.current = createEditorStore(
+      isControlled ? value || [] : initialValue,
+    );
   }
   const store = storeRef.current;
 
@@ -51,6 +59,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   const removeNode = store((state) => state.removeNode);
   const addChild = store((state) => state.addChild);
   const addRootNode = store((state) => state.addRootNode);
+  const moveNode = store((state) => state.moveNode);
   const getNodeNumber = store((state) => state.getNodeNumber);
 
   // 在渲染时生成树（避免 Selector 每次都返回新引用）
@@ -65,11 +74,31 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
     }
   }, [isControlled, value, store]);
 
-  const treeRef = useRef<any>(null);
   // 互斥展开：同时只能展开一个编辑器
   const [expandedEditorId, setExpandedEditorId] = useState<string | null>(null);
   // 子节点展开状态：可以多节点同时展开
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+
+  // 虚拟滚动相关状态
+  const [containerHeight, setContainerHeight] = useState(600); // 容器高度
+  const containerRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<any>(null);
+  const nodeHeightsRef = useRef<Map<string, number>>(new Map()); // 节点高度缓存
+
+  // 监听容器高度变化
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setContainerHeight(entry.contentRect.height);
+      }
+    });
+
+    resizeObserver.observe(container);
+    return () => resizeObserver.disconnect();
+  }, []);
 
   const handleContentChange = useCallback(
     (nodeId: string, content: string) => {
@@ -234,57 +263,259 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
     });
   }, []);
 
-  // 子节点展开动画跟踪
-  const [animatingChildren, setAnimatingChildren] = React.useState<Set<string>>(
-    new Set(),
-  );
+  // 拖拽相关状态
+  const [draggingNodeId, setDraggingNodeId] = useState<string | null>(null);
+  const [dragOverNodeId, setDragOverNodeId] = useState<string | null>(null);
+  const [dragPosition, setDragPosition] = useState<
+    'before' | 'after' | 'inside' | null
+  >(null);
 
-  const handleToggleChildrenAnimated = useCallback(
-    (nodeId: string) => {
-      setAnimatingChildren((prev) => new Set(prev).add(nodeId));
-      handleToggleChildren(nodeId);
-      // 动画时长后移除跟踪
-      setTimeout(() => {
-        setAnimatingChildren((prev) => {
-          const next = new Set(prev);
-          next.delete(nodeId);
-          return next;
-        });
-      }, 350);
+  // 处理拖拽开始
+  const handleDragStart = useCallback((nodeId: string, e: React.DragEvent) => {
+    setDraggingNodeId(nodeId);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', nodeId);
+  }, []);
+
+  // 处理拖拽结束
+  const handleDragEnd = useCallback(() => {
+    setDraggingNodeId(null);
+    setDragOverNodeId(null);
+    setDragPosition(null);
+  }, []);
+
+  // 处理拖拽经过
+  const handleDragOver = useCallback(
+    (nodeId: string, e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (draggingNodeId === nodeId) return;
+
+      setDragOverNodeId(nodeId);
+
+      // 判断拖拽位置：before, after, 或 inside
+      const rect = e.currentTarget.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      const height = rect.height;
+
+      // 检查是否允许放入当前节点（不能放入自己或自己的子节点）
+      const targetNode = store.getState().getNode(nodeId);
+      const draggedNode = store.getState().getNode(draggingNodeId!);
+
+      if (!targetNode || !draggedNode) return;
+
+      // 检查是否会形成循环依赖
+      function isDescendant(parentId: string, targetId: string): boolean {
+        const parent = store.getState().getNode(parentId);
+        if (!parent) return false;
+        if (parent.children.includes(targetId)) return true;
+        return parent.children.some((childId) =>
+          isDescendant(childId, targetId),
+        );
+      }
+
+      const canDropInside = !isDescendant(draggingNodeId!, nodeId);
+
+      if (y < height * 0.35) {
+        // 上方 35%
+        setDragPosition('before');
+      } else if (y > height * 0.65) {
+        // 下方 35%
+        setDragPosition('after');
+      } else if (canDropInside) {
+        // 中间 30%（只有当不会形成循环时才允许放入）
+        setDragPosition('inside');
+      } else {
+        // 如果不能放入，则根据位置决定 before 或 after
+        setDragPosition(y < height / 2 ? 'before' : 'after');
+      }
     },
-    [handleToggleChildren],
+    [draggingNodeId, store],
   );
 
-  // 递归渲染树节点
-  const renderTreeNodes = (nodes: any[], level: number = 0) => {
-    return nodes.map((node) => {
+  // 处理拖拽离开
+  const handleDragLeave = useCallback(
+    (nodeId: string, e: React.DragEvent) => {
+      // 只有当真正离开元素时才清除状态
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX;
+      const y = e.clientY;
+
+      if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+        if (dragOverNodeId === nodeId) {
+          setDragOverNodeId(null);
+          setDragPosition(null);
+        }
+      }
+    },
+    [dragOverNodeId],
+  );
+
+  // 处理放置
+  const handleDrop = useCallback(
+    (targetNodeId: string, e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const sourceNodeId = e.dataTransfer.getData('text/plain');
+      if (!sourceNodeId || sourceNodeId === targetNodeId) {
+        handleDragEnd();
+        return;
+      }
+
+      if (!dragPosition) {
+        handleDragEnd();
+        return;
+      }
+
+      const targetNode = store.getState().getNode(targetNodeId);
+      if (!targetNode) {
+        handleDragEnd();
+        return;
+      }
+
+      // 根据拖拽位置决定新的父节点和索引
+      if (dragPosition === 'inside') {
+        // 放入目标节点内部，作为最后一个子节点
+        moveNode(sourceNodeId, targetNodeId, targetNode.children.length);
+      } else if (dragPosition === 'before') {
+        // 在目标节点之前
+        if (targetNode.parentId) {
+          const parent = store.getState().getNode(targetNode.parentId);
+          if (parent) {
+            const index = parent.children.indexOf(targetNodeId);
+            moveNode(sourceNodeId, targetNode.parentId, index);
+          }
+        } else {
+          // 目标节点是根节点
+          const rootOrder = store.getState().rootOrder;
+          const index = rootOrder.indexOf(targetNodeId);
+          moveNode(sourceNodeId, null, index);
+        }
+      } else if (dragPosition === 'after') {
+        // 在目标节点之后
+        if (targetNode.parentId) {
+          const parent = store.getState().getNode(targetNode.parentId);
+          if (parent) {
+            const index = parent.children.indexOf(targetNodeId) + 1;
+            moveNode(sourceNodeId, targetNode.parentId, index);
+          }
+        } else {
+          // 目标节点是根节点
+          const rootOrder = store.getState().rootOrder;
+          const index = rootOrder.indexOf(targetNodeId) + 1;
+          moveNode(sourceNodeId, null, index);
+        }
+      }
+
+      message.success(t('editor.nodeMoved'));
+      onChange?.(store.getState().getTree());
+      handleDragEnd();
+    },
+    [dragPosition, moveNode, store, onChange, handleDragEnd, t],
+  );
+
+  // 生成可见节点列表
+  const visibleNodes = useMemo(() => {
+    return flattenVisibleNodes(tree, expandedNodes);
+  }, [tree, expandedNodes]);
+
+  // 获取节点高度的回调函数
+  const getItemSize = useCallback(
+    (index: number) => {
+      const node = visibleNodes[index];
+      if (!node) return 48;
+
+      return getNodeActualHeight(node.id, expandedEditorId, nodeHeightsRef);
+    },
+    [visibleNodes, expandedEditorId],
+  );
+
+  // 渲染单个节点项
+  const RowComponent = useCallback(
+    ({
+      index,
+      style,
+      visibleNodes: nodes,
+      draggingNodeId: dragNode,
+      dragOverNodeId: dragOver,
+      dragPosition: dragPos,
+      onDragStart,
+      onDragOver,
+      onDragLeave,
+      onDrop,
+      onDragEnd,
+      onContentChange,
+      onNodeRun,
+      onNodeLock,
+      onDelete,
+      onAddChild,
+      onUpdateTitle,
+      onUpdateDependencies,
+      getNodeNumber,
+      expandedEditorId,
+      onToggleEditor,
+      expandedNodes: expNodes,
+      onToggleChildren,
+      availableNodes,
+      optimizeConfig,
+      autoOptimize,
+      onOptimizeRequest,
+      onNodeOptimize,
+      onOptimizeApply,
+      onLike,
+      onDislike,
+      previewMode: prevMode,
+      locale: loc,
+      theme: thm,
+    }: any) => {
+      const node = nodes[index];
+      if (!node) return null;
+
       const nodeProps = {
         node: {
-          data: node,
-          isInternal: node.children && node.children.length > 0,
-          level,
+          data: {
+            ...node,
+            children: node.children?.map((child: TaskNode) => child.id) || [],
+            dependencies: node.dependencies || [],
+          },
+          isInternal: !!(node.children && node.children.length > 0),
+          level: node.level,
         },
-        style: { paddingLeft: `${level * 16}px` }, // 减少缩进间距：从 24px 改为 16px
+        style: {
+          paddingLeft: `${node.level * 16}px`,
+          boxSizing: 'border-box' as const,
+        },
         dragHandle: null,
+        // 拖拽相关 props
+        isDragging: dragNode === node.id,
+        isDragOver: dragOver === node.id,
+        dragPosition: dragPos,
+        onDragStart: (e: React.DragEvent) => onDragStart(node.id, e),
+        onDragOver: (e: React.DragEvent) => onDragOver(node.id, e),
+        onDragLeave: (e: React.DragEvent) => onDragLeave(node.id, e),
+        onDrop: (e: React.DragEvent) => onDrop(node.id, e),
+        onDragEnd: onDragEnd,
       };
 
       return (
-        <div key={node.id}>
+        <div style={style}>
           <Node
             {...nodeProps}
-            onContentChange={handleContentChange}
-            onNodeRun={handleNodeRun}
-            onNodeLock={handleNodeLock}
-            onDelete={handleDelete}
-            onAddChild={handleAddChild}
-            onUpdateTitle={handleUpdateTitle}
-            onUpdateDependencies={handleUpdateDependencies}
+            onContentChange={onContentChange}
+            onNodeRun={onNodeRun}
+            onNodeLock={onNodeLock}
+            onDelete={onDelete}
+            onAddChild={onAddChild}
+            onUpdateTitle={onUpdateTitle}
+            onUpdateDependencies={onUpdateDependencies}
             getNodeNumber={getNodeNumber}
             expandedEditorId={expandedEditorId}
-            onToggleEditor={handleToggleEditor}
-            expandedNodes={expandedNodes}
-            onToggleChildren={handleToggleChildrenAnimated}
-            availableNodes={getAvailableNodes()}
+            onToggleEditor={onToggleEditor}
+            expandedNodes={expNodes}
+            onToggleChildren={onToggleChildren}
+            availableNodes={availableNodes}
             optimizeConfig={optimizeConfig}
             autoOptimize={autoOptimize}
             onOptimizeRequest={onOptimizeRequest}
@@ -292,36 +523,98 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
             onOptimizeApply={onOptimizeApply}
             onLike={onLike}
             onDislike={onDislike}
-            previewMode={previewMode}
-            locale={locale}
-            theme={theme}
+            previewMode={prevMode}
+            locale={loc}
+            theme={thm}
           />
-          {/* 递归渲染子节点 - 根据 expandedNodes 判断是否显示 */}
-          {node.children &&
-            node.children.length > 0 &&
-            expandedNodes.has(node.id) && (
-              <div
-                className={`overflow-hidden ${animatingChildren.has(node.id) ? 'animate-slide-down-children' : ''}`}
-                style={{ transformOrigin: 'top' }}
-              >
-                {renderTreeNodes(node.children, level + 1)}
-              </div>
-            )}
         </div>
       );
-    });
-  };
+    },
+    [],
+  );
+
+  // 准备 rowProps
+  const rowProps = useMemo(
+    () => ({
+      visibleNodes,
+      draggingNodeId,
+      dragOverNodeId,
+      dragPosition,
+      onDragStart: handleDragStart,
+      onDragOver: handleDragOver,
+      onDragLeave: handleDragLeave,
+      onDrop: handleDrop,
+      onDragEnd: handleDragEnd,
+      onContentChange: handleContentChange,
+      onNodeRun: handleNodeRun,
+      onNodeLock: handleNodeLock,
+      onDelete: handleDelete,
+      onAddChild: handleAddChild,
+      onUpdateTitle: handleUpdateTitle,
+      onUpdateDependencies: handleUpdateDependencies,
+      getNodeNumber,
+      expandedEditorId,
+      onToggleEditor: handleToggleEditor,
+      expandedNodes,
+      onToggleChildren: handleToggleChildren,
+      availableNodes: getAvailableNodes(),
+      optimizeConfig,
+      autoOptimize,
+      onOptimizeRequest,
+      onNodeOptimize,
+      onOptimizeApply,
+      onLike,
+      onDislike,
+      previewMode,
+      locale,
+      theme,
+    }),
+    [
+      visibleNodes,
+      draggingNodeId,
+      dragOverNodeId,
+      dragPosition,
+      handleDragStart,
+      handleDragOver,
+      handleDragLeave,
+      handleDrop,
+      handleDragEnd,
+      handleContentChange,
+      handleNodeRun,
+      handleNodeLock,
+      handleDelete,
+      handleAddChild,
+      handleUpdateTitle,
+      handleUpdateDependencies,
+      getNodeNumber,
+      expandedEditorId,
+      handleToggleEditor,
+      expandedNodes,
+      handleToggleChildren,
+      getAvailableNodes,
+      optimizeConfig,
+      autoOptimize,
+      onOptimizeRequest,
+      onNodeOptimize,
+      onOptimizeApply,
+      onLike,
+      onDislike,
+      previewMode,
+      locale,
+      theme,
+    ],
+  );
 
   return (
     <div
-      className={`prompt-editor-container scroll-thin h-full w-full overflow-auto bg-white dark:bg-gray-900 ${className || ''}`}
+      className={`prompt-editor-container scroll-thin flex h-full w-full flex-col overflow-hidden bg-white dark:bg-gray-900 ${className || ''}`}
       data-prompt-editor="true"
       style={style}
       data-theme={theme === 'system' ? undefined : theme}
     >
       {/* 顶部工具栏 - 预览模式下隐藏 */}
       {!previewMode && (
-        <div className="z-5 sticky top-0 border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-900">
+        <div className="z-5 border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-900">
           {renderToolbar ? (
             renderToolbar({ addRootNode: handleAddRootNode })
           ) : (
@@ -337,8 +630,27 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
           )}
         </div>
       )}
-      <div className="arborist-tree p-4 dark:bg-gray-900" ref={treeRef}>
-        {renderTreeNodes(tree)}
+      <div
+        className="flex-1 dark:bg-gray-900"
+        ref={containerRef}
+        style={{ overflow: 'hidden' }}
+      >
+        {/* @ts-ignore - react-window v2 API requires rowProps */}
+        <List
+          listRef={listRef}
+          defaultHeight={containerHeight - 32} // 减去 padding
+          rowCount={visibleNodes.length}
+          rowHeight={(index) => getItemSize(index)}
+          overscanCount={5} // 预渲染 5 个额外节点
+          className="scroll-thin"
+          style={{
+            width: 'calc(100% - 32px)',
+            height: 'calc(100% - 32px)',
+            margin: '16px auto',
+          }}
+          rowComponent={RowComponent}
+          rowProps={rowProps}
+        />
       </div>
     </div>
   );

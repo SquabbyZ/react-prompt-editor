@@ -69,7 +69,7 @@ export default () => {
         },
       }}
     >
-      <DemoWrapper height="600px" title="Streaming Output Test">
+      <DemoWrapper height="600px">
         <div className="border-b border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-800">
           <Space direction="vertical" size="small" style={{ width: '100%' }}>
             <div className="mb-2 text-sm text-zinc-600 dark:text-zinc-400">

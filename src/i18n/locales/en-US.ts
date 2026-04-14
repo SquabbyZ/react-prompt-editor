@@ -53,6 +53,7 @@ export default {
     expandChildren: 'Expand Children',
     collapseChildren: 'Collapse Children',
     titleUpdated: 'Title modified successfully',
+    nodeMoved: 'Node moved successfully',
     missingOnRunRequest: 'Please provide onRunRequest callback',
   },
 

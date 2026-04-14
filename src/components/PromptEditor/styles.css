@@ -4,6 +4,12 @@
   position: relative !important;
 }
 
+/* 隐藏虚拟滚动的隐藏占位元素背景色 */
+.arborist-row[aria-hidden="true"] {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 /* 响应式设计 - 移动端显示按钮 */
 @media (max-width: 640px) {
   .arborist-node > div > div:last-child {

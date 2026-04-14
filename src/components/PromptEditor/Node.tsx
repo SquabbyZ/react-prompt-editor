@@ -82,6 +82,15 @@ interface CustomNodeProps {
   locale?: Locale;
   // 主题模式
   theme?: 'system' | 'light' | 'dark';
+  // 拖拽相关 props
+  isDragging?: boolean;
+  isDragOver?: boolean;
+  dragPosition?: 'before' | 'after' | 'inside' | null;
+  onDragStart?: (e: React.DragEvent) => void;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDragLeave?: (e: React.DragEvent) => void;
+  onDrop?: (e: React.DragEvent) => void;
+  onDragEnd?: () => void;
 }
 
 export const Node: React.FC<CustomNodeProps> = memo(
@@ -111,6 +120,14 @@ export const Node: React.FC<CustomNodeProps> = memo(
     previewMode = false,
     locale,
     theme = 'system',
+    isDragging = false,
+    isDragOver = false,
+    dragPosition = null,
+    onDragStart,
+    onDragOver,
+    onDragLeave,
+    onDrop,
+    onDragEnd,
   }) => {
     // 国际化 Hook
     const { t } = useI18n(locale);
@@ -322,17 +339,51 @@ export const Node: React.FC<CustomNodeProps> = memo(
 
     return (
       <div
-        className="prompt-editor-node arborist-node group mb-1"
+        className={`arborist-node group mb-2 pb-1 ${
+          isDragging ? 'opacity-50' : ''
+        }`}
         style={style}
         ref={dragHandle}
+        draggable={!previewMode && !nodeData.isLocked}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
       >
-        <div className="relative flex w-full flex-col transition-all">
+        {/* 拖拽位置指示器 - before */}
+        {isDragOver && dragPosition === 'before' && (
+          <div className="absolute -top-[1px] left-3 right-3 z-10 h-[2px] bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]">
+            <div className="absolute left-0 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-indigo-500 shadow-sm" />
+            <div className="absolute right-0 top-1/2 h-2.5 w-2.5 -translate-y-1/2 translate-x-1/2 rounded-full border-2 border-white bg-indigo-500 shadow-sm" />
+          </div>
+        )}
+
+        {/* 拖拽位置指示器 - after */}
+        {isDragOver && dragPosition === 'after' && (
+          <div className="absolute -bottom-[1px] left-3 right-3 z-10 h-[2px] bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]">
+            <div className="absolute left-0 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-indigo-500 shadow-sm" />
+            <div className="absolute right-0 top-1/2 h-2.5 w-2.5 -translate-y-1/2 translate-x-1/2 rounded-full border-2 border-white bg-indigo-500 shadow-sm" />
+          </div>
+        )}
+
+        <div className="relative mt-[6px] flex h-full w-full flex-col transition-all">
           {/* 节点头部和编辑器容器 */}
-          <div className="flex flex-col gap-2">
+          <div
+            className={`flex h-full flex-col gap-2 rounded-lg border-2 border-transparent transition-all ${
+              isDragOver && dragPosition === 'inside'
+                ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
+                : ''
+            }`}
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
+            onDrop={onDrop}
+          >
             {/* 节点头部 */}
             <div
               ref={headerRef}
-              className="z-3 dark:!hover:border-indigo-500 relative flex items-center justify-between gap-2 rounded-md bg-gray-100 px-3 py-2 transition-colors hover:bg-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+              className={`z-3 dark:!hover:border-indigo-500 relative flex items-center justify-between gap-2 rounded-md bg-gray-100 px-3 py-2 transition-colors hover:bg-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 ${
+                !previewMode && !nodeData.isLocked
+                  ? 'cursor-grab active:cursor-grabbing'
+                  : 'cursor-default'
+              }`}
             >
               <div className="flex min-w-0 flex-1 items-center gap-2">
                 {/* 三角按钮 - 只控制子节点展开/折叠 */}

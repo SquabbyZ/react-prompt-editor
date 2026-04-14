@@ -99,7 +99,7 @@ export default () => {
   };
 
   return (
-    <DemoWrapper height="550px" title="Basic Usage">
+    <DemoWrapper height="550px">
       <PromptEditor
         value={value}
         onChange={setValue}

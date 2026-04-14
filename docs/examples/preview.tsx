@@ -49,7 +49,7 @@ export default () => {
   ];
 
   return (
-    <DemoWrapper height="450px" title="Preview Mode">
+    <DemoWrapper height="450px">
       <PromptEditor value={data} previewMode={true} />
     </DemoWrapper>
   );

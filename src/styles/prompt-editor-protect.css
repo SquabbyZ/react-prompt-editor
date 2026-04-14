@@ -22,9 +22,6 @@
   }
 
   /* ========== 节点头部样式保护 ========== */
-  .prompt-editor-node {
-    margin-bottom: 0.25rem;
-  }
 
   .prompt-editor-node > div > div:first-child {
     border-radius: 0.375rem;
@@ -51,11 +48,6 @@
     transition:
       border-color 0.15s ease,
       background-color 0.15s ease;
-  }
-
-  /* ========== 子节点缩进容器 ========== */
-  .prompt-editor-node > div > div:last-child {
-    margin-top: 0.5rem;
   }
 
   /* ========== 按钮样式保护 ========== */
@@ -143,17 +135,6 @@
     border-color: #d9d9d9 !important;
   }
 
-  .ant-sender-input:hover {
-    border-color: #4096ff !important;
-    border-radius: 4px !important;
-  }
-
-  .ant-sender-input:focus,
-  .ant-sender-input-focused {
-    border-color: #1677ff !important;
-    box-shadow: 0 0 0 2px rgba(22, 119, 255, 10%) !important;
-  }
-
   .ant-sender-input::placeholder {
     color: rgba(0, 0, 0, 25%) !important;
   }
@@ -194,16 +175,6 @@
     background-color: #1f2937 !important;
     color: #e5e7eb !important;
     border-color: #374151 !important;
-  }
-
-  .ant-sender-input:hover {
-    border-color: #4b5563 !important;
-    border-radius: 4px !important;
-  }
-
-  .ant-sender-input:focus,
-  .ant-sender-input-focused {
-    border-color: #1677ff !important;
   }
 
   .ant-sender-input::placeholder {

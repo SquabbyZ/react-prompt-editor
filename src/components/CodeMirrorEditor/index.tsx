@@ -194,12 +194,13 @@ export const CodeMirrorEditor = memo(
           ref={cmRef}
           key={isDarkMode ? 'dark' : 'light'}
           value={value}
-          height="200px"
+          minHeight="100px"
+          maxHeight="400px"
           extensions={extensions}
           onChange={(val) => onChange?.(val)}
           editable={!isReadOnly}
           placeholder={defaultPlaceholder}
-          className={`min-h-[200px] w-full overflow-hidden rounded-lg ${className || ''}`}
+          className={`min-h-[100px] max-h-[400px] w-full overflow-auto rounded-lg ${className || ''}`}
           style={style}
           basicSetup={{
             lineNumbers: false,

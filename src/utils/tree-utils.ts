@@ -44,7 +44,7 @@ export function arrayToMap(tree: TaskNode[]): NodeStore {
 /**
  * 将 Map 结构转换为树形数组
  */
-export function mapToArray(store: NodeStore): TaskNode[] {
+export function mapToArray(store: NodeStore, rootOrder?: string[]): TaskNode[] {
   // 递归构建子节点树
   function buildTree(nodeId: string): TaskNode {
     const node = store.get(nodeId);
@@ -63,12 +63,22 @@ export function mapToArray(store: NodeStore): TaskNode[] {
   }
 
   // 找出所有根节点并转换为树形结构
-  const roots: TaskNode[] = [];
-  store.forEach((node) => {
-    if (!node.parentId) {
-      roots.push(buildTree(node.id));
-    }
-  });
+  // 如果有 rootOrder，按 rootOrder 的顺序返回根节点
+  let roots: TaskNode[] = [];
+
+  if (rootOrder && rootOrder.length > 0) {
+    // 使用 rootOrder 中的顺序
+    roots = rootOrder
+      .filter((id) => store.has(id)) // 过滤掉不存在的节点
+      .map((id) => buildTree(id));
+  } else {
+    // 兼容旧逻辑：遍历 store 找到所有根节点
+    store.forEach((node) => {
+      if (!node.parentId) {
+        roots.push(buildTree(node.id));
+      }
+    });
+  }
 
   return roots;
 }
