@@ -6,6 +6,27 @@
 
 ---
 
+## Midscene 环境变量
+
+如果你只运行基础 `Playwright` 冒烟用例，不需要额外配置 `.env`。
+
+如果你想启用 `Midscene` 的 AI 断言能力：
+
+1. 复制项目根目录的 `.env.example` 为 `.env`
+2. 填入阿里百炼 API Key
+3. 运行 `pnpm test:e2e`
+
+阿里百炼 OpenAI 兼容模式示例：
+
+```bash
+MIDSCENE_MODEL_NAME=qwen-vl-max-latest
+MIDSCENE_MODEL_API_KEY=your_dashscope_api_key
+MIDSCENE_MODEL_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+MIDSCENE_MODEL_FAMILY=qwen2.5-vl
+```
+
+---
+
 ## 🎯 测试内容
 
 ### 1. 树形结构管理

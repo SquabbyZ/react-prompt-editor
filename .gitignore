@@ -6,3 +6,7 @@ node_modules
 .DS_Store
 /docs-dist
 /.superpowers
+.env
+playwright-report
+test-results
+midscene_run

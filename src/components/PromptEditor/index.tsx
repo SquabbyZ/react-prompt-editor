@@ -683,6 +683,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
               icon={<PlusOutlined />}
               onClick={handleAddRootNode}
               block
+              aria-label={t('editor.addRootNode')}
               className={addRootButtonClassName}
             >
               {t('editor.addRootNode')}

@@ -70,8 +70,8 @@ export default () => {
         result: `✅ 运行成功！\n\n节点：${request.nodeId}\n内容长度：${request.content.length} 字符\n依赖数量：${request.dependenciesContent.length}`,
         stream: false,
       };
-      // 通过 onNodeRun 通知组件运行完成
-      handleNodeRun(request.nodeId, result);
+      // 通过 meta 回调通知组件更新运行状态，组件内部会继续触发 onNodeRun
+      request.meta?.onNodeRun?.(request.nodeId, result);
     }, 1000);
   };
 

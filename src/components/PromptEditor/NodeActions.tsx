@@ -86,6 +86,11 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
             size="small"
             icon={<EditOutlined />}
             onClick={handleToggleEditor}
+            aria-label={
+              isEditorExpanded
+                ? t('editor.collapseEditor')
+                : t('editor.expandEditor')
+            }
             className={
               isEditorExpanded
                 ? ''
@@ -110,6 +115,7 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
                 icon={<PlusOutlined />}
                 onClick={handleAddChild}
                 disabled={nodeData.isLocked}
+                aria-label={t('editor.addChildNode')}
                 className={ghostButtonClassName}
               />
             </Tooltip>
@@ -129,6 +135,13 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
                 icon={nodeData.isLocked ? <UnlockOutlined /> : <LockOutlined />}
                 onClick={handleLock}
                 disabled={!nodeData.hasRun}
+                aria-label={
+                  nodeData.hasRun
+                    ? nodeData.isLocked
+                      ? t('editor.unlockNode')
+                      : t('editor.lockNode')
+                    : t('editor.runFirst')
+                }
                 className={`!text-inherit ${ghostButtonClassName}`}
               />
             </Tooltip>
@@ -155,6 +168,7 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
                   danger
                   icon={<DeleteOutlined />}
                   disabled={nodeData.isLocked}
+                  aria-label={t('editor.deleteNode')}
                   className={dangerButtonClassName}
                 />
               </Tooltip>
@@ -173,6 +187,7 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
               type="text"
               size="small"
               icon={<MoreOutlined />}
+              aria-label={t('common.edit')}
               className={ghostButtonClassName}
             />
           </Dropdown>

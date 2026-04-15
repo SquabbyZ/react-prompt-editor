@@ -488,6 +488,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
         className={`arborist-node group mb-2 pb-1 ${
           isDragging ? 'opacity-50' : ''
         }`}
+        data-node-id={nodeData.id}
         style={style}
         draggable={draggable && !previewMode && !nodeData.isLocked}
         onDragStart={draggable ? onDragStart : undefined}
@@ -541,6 +542,11 @@ export const Node: React.FC<CustomNodeProps> = memo(
                       onToggleChildren(nodeData.id);
                     }}
                     type="button"
+                    aria-label={
+                      isChildrenExpanded
+                        ? t('editor.collapseChildren')
+                        : t('editor.expandChildren')
+                    }
                     title={
                       isChildrenExpanded
                         ? t('editor.collapseChildren')
@@ -665,6 +671,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
                           icon={<PlayCircleOutlined />}
                           onClick={handleRun}
                           size="small"
+                          aria-label={t('editor.run')}
                         />
                       </Tooltip>
 
@@ -673,6 +680,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
                           icon={<ThunderboltOutlined />}
                           onClick={handleOptimize}
                           size="small"
+                          aria-label={t('editor.aiOptimize')}
                           className={secondaryActionButtonClassName}
                         />
                       </Tooltip>

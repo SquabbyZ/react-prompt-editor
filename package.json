@@ -37,7 +37,12 @@
     "lint:fix": "npm run lint:es:fix && npm run lint:css:fix",
     "prepare": "husky install && dumi setup",
     "prepublishOnly": "father doctor && npm run build",
-    "start": "npm run dev"
+    "start": "npm run dev",
+    "test": "vitest run",
+    "test:all": "pnpm test && pnpm test:e2e",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:smoke": "playwright test e2e/basic-flow.spec.ts"
   },
   "commitlint": {
     "extends": [
@@ -86,6 +91,11 @@
   "devDependencies": {
     "@commitlint/cli": "^17.1.2",
     "@commitlint/config-conventional": "^17.1.0",
+    "@midscene/web": "^1.7.3",
+    "@playwright/test": "^1.59.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/markdown-it": "^14.1.2",
     "@types/markdown-it-container": "^4.0.0",
     "@types/markdown-it-emoji": "^3.0.1",
@@ -95,10 +105,12 @@
     "@umijs/lint": "^4.0.0",
     "autoprefixer": "^10.4.27",
     "babel-plugin-transform-remove-console": "^6.9.4",
+    "dotenv": "^17.4.2",
     "dumi": "^2.4.21",
     "eslint": "^8.23.0",
     "father": "^4.1.0",
     "husky": "^8.0.1",
+    "jsdom": "^29.0.2",
     "lint-staged": "^13.0.3",
     "postcss": "^8.5.8",
     "prettier": "^3.7.4",
@@ -108,9 +120,10 @@
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "stylelint": "^14.9.1",
-    "tailwindcss": "^3.4.19",
     "tailwind-scrollbar": "^4.0.2",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss": "^3.4.19",
+    "tailwindcss-animate": "^1.0.7",
+    "vitest": "^0.34.6"
   },
   "peerDependencies": {
     "react": ">=16.9.0",
