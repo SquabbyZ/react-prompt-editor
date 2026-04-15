@@ -10,6 +10,7 @@ import { Button, message, Modal, Tooltip } from 'antd';
 import React, { memo, useCallback } from 'react';
 import { useI18n } from '../../hooks/useI18n';
 import { useNodeEditor } from '../../hooks/useNodeEditor';
+import { useResolvedTheme } from '../../hooks/useResolvedTheme';
 import type { Locale } from '../../i18n/locales/zh-CN';
 import {
   OptimizeConfig,
@@ -41,6 +42,7 @@ interface CustomNodeProps {
   onUpdateTitle: (id: string, title: string) => void;
   onUpdateDependencies: (id: string, dependencies: string[]) => void;
   getNodeNumber: (id: string) => string;
+  onHeightChange?: (id: string, height: number) => void;
   // 互斥展开：同时只能展开一个编辑器
   expandedEditorId: string | null;
   onToggleEditor: (nodeId: string) => void;
@@ -61,17 +63,13 @@ interface CustomNodeProps {
   // 是否在打开优化弹窗时自动开始优化
   autoOptimize?: boolean;
   // AI 优化请求回调（高级模式）
-  onOptimizeRequest?: (
-    request: OptimizeRequest,
-    callbacks: {
-      onResponse: (response: OptimizeResponse) => void;
-      onError: (error: Error) => void;
-    },
-  ) => void;
+  onOptimizeRequest?: (request: OptimizeRequest) => void;
   // AI 优化完成回调
   onNodeOptimize?: (nodeId: string, result: OptimizeResponse) => void;
   // 用户点击"应用"按钮回调
   onOptimizeApply?: (nodeId: string, optimizedContent: string) => void;
+  // 自定义 AI 优化内容区
+  optimizeCustomContent?: React.ReactNode | null;
   // AI 优化点赞回调
   onLike?: (messageId: string) => void;
   // AI 优化点踩回调
@@ -99,7 +97,6 @@ export const Node: React.FC<CustomNodeProps> = memo(
   ({
     node,
     style,
-    dragHandle,
     onContentChange,
     onNodeRun,
     onNodeLock,
@@ -108,6 +105,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
     onUpdateTitle,
     onUpdateDependencies,
     getNodeNumber,
+    onHeightChange,
     expandedEditorId,
     onToggleEditor,
     expandedNodes,
@@ -117,6 +115,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
     onOptimizeRequest,
     onNodeOptimize,
     onOptimizeApply,
+    optimizeCustomContent = null,
     onLike,
     onDislike,
     previewMode = false,
@@ -134,6 +133,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
   }) => {
     // 国际化 Hook
     const { t } = useI18n(locale);
+    const { isDarkMode } = useResolvedTheme(theme);
     const nodeData = node.data;
     // 判断是否是内部节点（有子节点）
     const isInternal = nodeData.children.length > 0;
@@ -146,7 +146,8 @@ export const Node: React.FC<CustomNodeProps> = memo(
     // 使用 useEffect 在客户端检测，避免 SSR 问题
     const [isMobile, setIsMobile] = React.useState(false);
     const [availableWidth, setAvailableWidth] = React.useState(0);
-    const headerRef = React.useRef<HTMLDivElement>(null);
+    const headerRef = React.useRef<HTMLDivElement | null>(null);
+    const nodeRef = React.useRef<HTMLDivElement | null>(null);
 
     React.useEffect(() => {
       const checkMobile = () => {
@@ -172,8 +173,47 @@ export const Node: React.FC<CustomNodeProps> = memo(
       return () => resizeObserver.disconnect();
     }, []);
 
+    React.useEffect(() => {
+      const nodeElement = nodeRef.current;
+      if (!nodeElement || !onHeightChange) return;
+
+      const reportHeight = () => {
+        onHeightChange(nodeData.id, nodeElement.getBoundingClientRect().height);
+      };
+
+      reportHeight();
+
+      const resizeObserver = new ResizeObserver(() => {
+        reportHeight();
+      });
+
+      resizeObserver.observe(nodeElement);
+      return () => resizeObserver.disconnect();
+    }, [nodeData.id, onHeightChange, isEditorExpanded, isChildrenExpanded]);
+
     // 根据可用宽度决定显示哪些按钮
     const showAllButtons = availableWidth > 650; // 宽度大于 650px 时显示所有按钮
+    const dragInsideClassName = isDarkMode
+      ? 'border-indigo-500 bg-indigo-900/20'
+      : 'border-indigo-500 bg-indigo-50';
+    const headerClassName = isDarkMode
+      ? 'prompt-editor-node-header relative z-3 flex items-center justify-between gap-2 rounded-md bg-[rgba(29,44,72,0.92)] px-3 py-2 text-[#e5edf9] shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition-colors hover:bg-[rgba(35,52,84,0.96)]'
+      : 'prompt-editor-node-header relative z-3 flex items-center justify-between gap-2 rounded-md bg-gray-100 px-3 py-2 text-gray-900 transition-colors hover:bg-gray-200';
+    const caretButtonClassName = isDarkMode
+      ? 'flex h-5 w-5 flex-shrink-0 cursor-pointer items-center justify-center rounded border-none bg-transparent text-slate-400 transition-all hover:bg-slate-800/80'
+      : 'flex h-5 w-5 flex-shrink-0 cursor-pointer items-center justify-center rounded border-none bg-transparent text-gray-500 transition-all hover:bg-gray-100';
+    const editorShellClassName = isDarkMode
+      ? 'prompt-editor-editor-shell relative z-0 overflow-hidden border-0 border-b-4 border-double border-blue-500/10 bg-[rgba(8,20,40,0.96)] shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]'
+      : 'prompt-editor-editor-shell relative z-0 overflow-hidden border-0 border-b-4 border-double border-black bg-gray-100';
+    const editorSurfaceClassName = isDarkMode
+      ? 'prompt-editor-editor-surface m-2 rounded-md border border-blue-500/10 bg-[rgba(7,16,31,1)] p-3'
+      : 'prompt-editor-editor-surface m-2 rounded-md border border-gray-200 bg-white p-3';
+    const footerClassName = isDarkMode
+      ? 'prompt-editor-editor-footer flex items-center justify-between gap-3 border-t border-indigo-900/40 bg-[rgba(7,16,31,1)] px-3 py-2'
+      : 'prompt-editor-editor-footer flex items-center justify-between gap-3 border-t border-gray-200 bg-white px-3 py-2';
+    const secondaryActionButtonClassName = isDarkMode
+      ? 'border-slate-600 bg-slate-900 text-slate-200 hover:border-indigo-400 hover:text-slate-50'
+      : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400 hover:text-gray-900';
 
     // AI 优化相关状态
     const [optimizeModalOpen, setOptimizeModalOpen] = React.useState(false);
@@ -182,9 +222,8 @@ export const Node: React.FC<CustomNodeProps> = memo(
       from: number;
       to: number;
     } | null>(null);
-    // 存储优化请求，用于完成时调用 onNodeOptimize
-    const optimizeRequestRef = React.useRef<OptimizeRequest | null>(null);
-
+    const optimizeAbortControllerRef =
+      React.useRef<AbortController | null>(null);
     // 编辑器展开动画状态
     const [isEditorAnimating, setIsEditorAnimating] = React.useState(false);
     const prevExpandedRef = React.useRef(isEditorExpanded);
@@ -258,6 +297,48 @@ export const Node: React.FC<CustomNodeProps> = memo(
       [nodeData.id, onNodeRun],
     );
 
+    const applyOptimizedResult = useCallback(
+      (optimizedContent: string) => {
+        if (selectedRange) {
+          try {
+            const currentContent = nodeData.content;
+            const before = currentContent.substring(0, selectedRange.from);
+            const after = currentContent.substring(selectedRange.to);
+            const newContent = before + optimizedContent + after;
+
+            onContentChange(nodeData.id, newContent);
+          } catch (error) {
+            console.error('替换失败:', error);
+            message.error(t('aiOptimize.replaceFailed'));
+            return;
+          }
+        } else {
+          onContentChange(nodeData.id, optimizedContent);
+          message.success(t('aiOptimize.replacedAllContent'));
+        }
+
+        onNodeOptimize?.(nodeData.id, {
+          optimizedContent,
+          thinkingProcess: '优化完成',
+        });
+
+        onOptimizeApply?.(nodeData.id, optimizedContent);
+
+        setOptimizeModalOpen(false);
+        setSelectedContent(undefined);
+        setSelectedRange(null);
+      },
+      [
+        nodeData.content,
+        nodeData.id,
+        onContentChange,
+        onNodeOptimize,
+        onOptimizeApply,
+        selectedRange,
+        t,
+      ],
+    );
+
     const handleOptimize = useCallback(
       (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -284,15 +365,76 @@ export const Node: React.FC<CustomNodeProps> = memo(
           setSelectedRange({ from: 0, to: nodeData.content.length });
         }
 
-        // 保存优化请求信息
-        optimizeRequestRef.current = {
-          content: nodeData.content,
-          selectedText: selectedContent,
-        };
+        const resolvedSelectedContent =
+          view && !view.state.selection.main.empty
+            ? view.state.doc.sliceString(
+                view.state.selection.main.from,
+                view.state.selection.main.to,
+              )
+            : nodeData.content;
+
+        if (optimizeCustomContent !== null) {
+          if (!onOptimizeRequest) {
+            message.warning('请先提供 onOptimizeRequest，再启用自定义优化流程');
+            return;
+          }
+
+          optimizeAbortControllerRef.current?.abort();
+          const abortController = new AbortController();
+          optimizeAbortControllerRef.current = abortController;
+
+          Promise.resolve(
+            onOptimizeRequest({
+            content: nodeData.content,
+            selectedText: resolvedSelectedContent,
+            instruction: undefined,
+            messages: [
+              {
+                role: 'system',
+                content: '你是一个提示词优化助手。',
+              },
+              {
+                role: 'user',
+                content: resolvedSelectedContent,
+              },
+            ],
+            signal: abortController.signal,
+            config: optimizeConfig,
+            applyOptimizedContent: (optimizedContent: string) => {
+              applyOptimizedResult(optimizedContent);
+              optimizeAbortControllerRef.current = null;
+            },
+            setOptimizeError: (error: string | Error) => {
+              const errorMessage =
+                typeof error === 'string' ? error : error.message;
+              message.error(errorMessage);
+            },
+            closeOptimizeDialog: () => {
+              optimizeAbortControllerRef.current?.abort();
+              optimizeAbortControllerRef.current = null;
+              setSelectedContent(undefined);
+              setSelectedRange(null);
+              setOptimizeModalOpen(false);
+            },
+            }),
+          ).catch((error) => {
+            const errorMessage =
+              error instanceof Error ? error.message : '自定义优化流程执行失败';
+            message.error(errorMessage);
+          });
+          return;
+        }
 
         setOptimizeModalOpen(true);
       },
-      [nodeData.content, selectedContent],
+      [
+        applyOptimizedResult,
+        editorRef,
+        nodeData.content,
+        onOptimizeRequest,
+        optimizeConfig,
+        optimizeCustomContent,
+      ],
     );
 
     // 下拉菜单项
@@ -342,11 +484,11 @@ export const Node: React.FC<CustomNodeProps> = memo(
 
     return (
       <div
+        ref={nodeRef}
         className={`arborist-node group mb-2 pb-1 ${
           isDragging ? 'opacity-50' : ''
         }`}
         style={style}
-        ref={dragHandle}
         draggable={draggable && !previewMode && !nodeData.isLocked}
         onDragStart={draggable ? onDragStart : undefined}
         onDragEnd={draggable ? onDragEnd : undefined}
@@ -372,7 +514,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
           <div
             className={`flex h-full flex-col gap-2 rounded-lg border-2 border-transparent transition-all ${
               isDragOver && dragPosition === 'inside'
-                ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
+                ? dragInsideClassName
                 : ''
             }`}
             onDragOver={draggable ? onDragOver : undefined}
@@ -382,7 +524,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
             {/* 节点头部 */}
             <div
               ref={headerRef}
-              className={`prompt-editor-node-header z-3 dark:!hover:border-indigo-500 relative flex items-center justify-between gap-2 rounded-md bg-gray-100 px-3 py-2 transition-colors hover:bg-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 ${
+              className={`${headerClassName} ${
                 !previewMode && !nodeData.isLocked
                   ? 'cursor-grab active:cursor-grabbing'
                   : 'cursor-default'
@@ -392,7 +534,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
                 {/* 三角按钮 - 只控制子节点展开/折叠 */}
                 {isInternal ? (
                   <button
-                    className="flex h-5 w-5 flex-shrink-0 cursor-pointer items-center justify-center rounded border-none bg-transparent text-gray-500 transition-all hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+                    className={caretButtonClassName}
                     onClick={(e) => {
                       e.stopPropagation();
                       // 点击三角：只切换子节点，不影响编辑器
@@ -429,6 +571,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
                       onContentChange={onContentChange}
                       previewMode={previewMode}
                       locale={locale}
+                      theme={theme}
                       onClick={() => {
                         // 预览模式下：点击标题展开/折叠编辑器
                         // 编辑模式下：只展开/折叠子节点
@@ -465,6 +608,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
                   handleLock={handleLock}
                   handleDelete={handleDelete}
                   locale={locale}
+                  theme={theme}
                 />
               )}
             </div>
@@ -472,24 +616,12 @@ export const Node: React.FC<CustomNodeProps> = memo(
             {/* 编辑器区域 - 根据展开状态或预览模式决定显示 */}
             {isEditorExpanded && (
               <div
-                className={`prompt-editor-editor-shell relative z-0 overflow-hidden rounded-lg border-2 border-gray-300 bg-gray-100 dark:!border-gray-600 dark:!bg-gray-800 ${isEditorAnimating ? 'animate-expand-in' : ''}`}
+                className={`${editorShellClassName} ${isEditorAnimating ? 'animate-expand-in' : ''}`}
                 style={{
                   transformOrigin: 'top center',
                 }}
               >
-                {/* 编辑器工具栏 - 撤回/还原 - 预览模式下隐藏 */}
-                {!previewMode && (
-                  <EditorToolbar
-                    canUndo={canUndo}
-                    canRedo={canRedo}
-                    onUndo={handleUndo}
-                    onRedo={handleRedo}
-                    locale={locale}
-                    theme={theme}
-                  />
-                )}
-
-                <div className="prompt-editor-editor-surface m-2 rounded-md bg-white p-3 dark:!bg-gray-900">
+                <div className={editorSurfaceClassName}>
                   <CodeMirrorEditor
                     ref={editorRef}
                     value={nodeData.content}
@@ -515,23 +647,36 @@ export const Node: React.FC<CustomNodeProps> = memo(
 
                 {/* 编辑器底部操作按钮 - 预览模式下隐藏 */}
                 {!previewMode && (
-                  <div className="prompt-editor-editor-footer flex items-center justify-end gap-2 border-t border-indigo-200 bg-white px-3 py-2 dark:border-indigo-800 dark:bg-gray-900">
-                    <Tooltip title={t('editor.run')}>
-                      <Button
-                        type="primary"
-                        icon={<PlayCircleOutlined />}
-                        onClick={handleRun}
-                        size="small"
-                      />
-                    </Tooltip>
+                  <div className={footerClassName}>
+                    <EditorToolbar
+                      canUndo={canUndo}
+                      canRedo={canRedo}
+                      onUndo={handleUndo}
+                      onRedo={handleRedo}
+                      locale={locale}
+                      theme={theme}
+                      inline
+                    />
 
-                    <Tooltip title={t('editor.aiOptimize')}>
-                      <Button
-                        icon={<ThunderboltOutlined />}
-                        onClick={handleOptimize}
-                        size="small"
-                      />
-                    </Tooltip>
+                    <div className="flex items-center gap-2">
+                      <Tooltip title={t('editor.run')}>
+                        <Button
+                          type="primary"
+                          icon={<PlayCircleOutlined />}
+                          onClick={handleRun}
+                          size="small"
+                        />
+                      </Tooltip>
+
+                      <Tooltip title={t('editor.aiOptimize')}>
+                        <Button
+                          icon={<ThunderboltOutlined />}
+                          onClick={handleOptimize}
+                          size="small"
+                          className={secondaryActionButtonClassName}
+                        />
+                      </Tooltip>
+                    </div>
                   </div>
                 )}
 
@@ -543,54 +688,12 @@ export const Node: React.FC<CustomNodeProps> = memo(
                       setOptimizeModalOpen(false);
                       setSelectedContent(undefined);
                       setSelectedRange(null);
-                      optimizeRequestRef.current = null;
                     }}
                     originalContent={nodeData.content}
                     selectedContent={selectedContent}
                     optimizeConfig={optimizeConfig}
                     onOptimizeRequest={onOptimizeRequest}
-                    onApply={(optimizedContent: string) => {
-                      // 如果有选中范围，替换选中部分
-                      if (selectedRange) {
-                        try {
-                          // 使用字符串操作来确保正确替换
-                          const currentContent = nodeData.content;
-                          const before = currentContent.substring(
-                            0,
-                            selectedRange.from,
-                          );
-                          const after = currentContent.substring(
-                            selectedRange.to,
-                          );
-                          const newContent = before + optimizedContent + after;
-
-                          onContentChange(nodeData.id, newContent);
-                        } catch (error) {
-                          console.error('替换失败:', error);
-                          message.error(t('aiOptimize.replaceFailed'));
-                        }
-                      } else {
-                        // 没有选中内容，替换全部内容
-                        onContentChange(nodeData.id, optimizedContent);
-                        message.success(t('aiOptimize.replacedAllContent'));
-                      }
-
-                      // 调用优化完成回调
-                      if (optimizeRequestRef.current) {
-                        onNodeOptimize?.(nodeData.id, {
-                          optimizedContent,
-                          thinkingProcess: '优化完成',
-                        });
-                      }
-
-                      // 调用应用回调
-                      onOptimizeApply?.(nodeData.id, optimizedContent);
-
-                      setOptimizeModalOpen(false);
-                      setSelectedContent(undefined);
-                      setSelectedRange(null);
-                      optimizeRequestRef.current = null;
-                    }}
+                    onApply={applyOptimizedResult}
                     onLike={onLike}
                     onDislike={onDislike}
                   />

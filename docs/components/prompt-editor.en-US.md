@@ -58,15 +58,21 @@ Use the `draggable` prop to enable node drag-and-drop sorting functionality, all
 - ❌ Locked nodes cannot be dragged
 - ❌ Cannot drag in preview mode
 
+## Large Dataset Demo
+
+This example focuses on how `PromptEditor` behaves with larger prompt trees. Switch between the `200 / 1000 / 2000` presets or generate your own dataset in custom mode; the docs demo currently supports up to `10000` nodes and `10` levels so you can compare loading, expanding, scrolling, and basic content editing under the same editor setup.
+
+<code src="./examples/large-dataset.tsx"></code>
+
 ## Streaming Output Example
 
 Demonstrates how to implement true streaming AI optimization (simulating SSE responses from APIs like OpenAI, Qwen, etc.):
 
 <code src="./examples/streaming.tsx"></code>
 
-## Multi-Platform Callback Demo
+## Custom Optimize Content Demo
 
-If you need to adapt Dify, OpenAI, Alibaba Bailian, or your own backend, start with the demo below to understand the `onOptimizeRequest` callback contract, then switch to live mode to test your real endpoint and copy the production-ready handler into your project:
+If you want to replace the default AI optimization content area with your own UI, use `optimizeCustomContent` together with `onOptimizeRequest` and mock data to build an interactive custom panel:
 
 <code src="./examples/callback-platforms.tsx"></code>
 
@@ -132,6 +138,7 @@ const AppDark = () => <PromptEditor theme="dark" />;
 | className | Custom class name | `string` | - |
 | style | Custom styles | `React.CSSProperties` | - |
 | renderToolbar | Custom top toolbar | `(actions) => ReactNode` | - |
+| optimizeCustomContent | Enables an external custom optimize flow; when non-null, clicking AI optimize skips the built-in modal | `ReactNode \| null` | `null` |
 | previewMode | Preview mode (read-only, hides editing features) | `boolean` | `false` |
 | locale | Internationalization configuration (similar to Ant Design's language pack) | `Locale` | `zhCN` |
 | theme | Theme mode (controls light/dark theme) | `'system' \| 'light' \| 'dark'` | `'system'` |
@@ -143,7 +150,7 @@ const AppDark = () => <PromptEditor theme="dark" />;
 | --- | --- | --- | --- |
 | onChange | Data change callback | `(data: TaskNode[]) => void` | - |
 | onRunRequest | Run request callback (called when triggered, user handles async requests) | `(request: RunTaskRequest) => void` | - |
-| onOptimizeRequest | Optimize request callback (advanced mode, user handles requests and returns via onResponse) | `(request: OptimizeRequest, callbacks: { onResponse, onError }) => void` | - |
+| onOptimizeRequest | Optimize request callback (advanced mode, user handles requests and applies results via request.applyOptimizedContent) | `(request: OptimizeRequest) => void` | - |
 | onNodeRun | Node run completion callback (user calls after completing run request to notify component) | `(nodeId: string, result: RunTaskResponse) => void` | - |
 | onNodeOptimize | Node optimize completion callback (user calls after completing optimize request) | `(nodeId: string, result: OptimizeResponse) => void` | - |
 | onNodeLock | Node lock callback | `(nodeId: string, isLocked: boolean) => void` | - |
@@ -196,6 +203,9 @@ interface OptimizeRequest {
   instruction?: string; // Optimization instruction (including context concatenation)
   messages?: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>; // Structured conversation history
   signal?: AbortSignal; // Abort signal for canceling the request
+  applyOptimizedContent: (content: string) => void; // Apply the optimized result to current selection or node
+  setOptimizeError: (error: string | Error) => void; // Set optimization error
+  closeOptimizeDialog: () => void; // Close the optimization dialog manually
   meta?: Record<string, unknown>;
 }
 
@@ -282,44 +292,26 @@ const handleRunRequest = (request: RunTaskRequest) => {
 };
 ```
 
-#### Streaming Output Example
+#### Optimize Request Example
 
 ```typescript
-const handleOptimizeRequest = (
-  request: OptimizeRequest,
-  callbacks: { onResponse; onError },
-) => {
-  // Call your AI API (e.g., OpenAI, Qwen, etc.)
-  fetch('/api/optimize', {
-    method: 'POST',
-    body: JSON.stringify(request),
-  })
-    .then((response) => {
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let fullText = '';
+const handleOptimizeRequest = async (request: OptimizeRequest) => {
+  try {
+    const response = await fetch('/api/optimize', {
+      method: 'POST',
+      body: JSON.stringify({
+        messages: request.messages,
+        instruction: request.instruction,
+      }),
+      signal: request.signal,
+    });
 
-      // Read SSE stream
-      function readStream() {
-        return reader.read().then(({ done, value }) => {
-          if (done) return;
-
-          const chunk = decoder.decode(value);
-          fullText += chunk;
-
-          // Call onResponse every time new data is received
-          callbacks.onResponse({
-            optimizedContent: fullText,
-            thinkingProcess: 'Generating...',
-          });
-
-          return readStream();
-        });
-      }
-
-      return readStream();
-    })
-    .catch((error) => callbacks.onError(error));
+    const data = await response.json();
+    request.applyOptimizedContent(data.optimizedContent);
+  } catch (error) {
+    if ((error as Error).name === 'AbortError') return;
+    request.setOptimizeError(error as Error);
+  }
 };
 ```
 
@@ -344,33 +336,31 @@ If you are using a backend that follows the OpenAI API specification (supports S
 
 #### 2. Advanced Mode (Callback-based)
 
-If you need full control over the request process (e.g., non-standard APIs, complex streaming, custom encryption), use `onOptimizeRequest`.
+If you need full control over the request process (e.g., non-standard APIs, custom auth, custom backend protocols), use `onOptimizeRequest`.
 
-Now with support for **Structured Messages** and **Abort Signals**, implementation is even simpler:
+Now with **Structured Messages**, **Abort Signals**, and a command-style result API, the mental model is much closer to `onRunRequest`:
 
 ```typescript
-const handleOptimizeRequest = (
-  request: OptimizeRequest,
-  callbacks: { onResponse; onError },
-) => {
-  // 1. Get structured messages directly without manual parsing
+const handleOptimizeRequest = async (request: OptimizeRequest) => {
   const { messages, signal } = request;
 
-  // 2. Pass the signal to fetch for automatic request cancellation on modal close
-  fetch('/api/optimize', {
-    method: 'POST',
-    body: JSON.stringify({ messages }),
-    signal, // Abort support
-  })
-    .then((response) => {
-      // ... Streaming logic (see example below)
-    })
-    .catch((error) => {
-      if (error.name === 'AbortError') return; // Ignore manual cancellation
-      callbacks.onError(error);
+  try {
+    const response = await fetch('/api/optimize', {
+      method: 'POST',
+      body: JSON.stringify({ messages }),
+      signal,
     });
+
+    const data = await response.json();
+    request.applyOptimizedContent(data.optimizedContent);
+  } catch (error) {
+    if ((error as Error).name === 'AbortError') return;
+    request.setOptimizeError(error as Error);
+  }
 };
 ```
+
+You can also enable an external custom optimize flow with `optimizeCustomContent`. When it is non-null, clicking AI optimize no longer opens the built-in modal and directly triggers `onOptimizeRequest`, so you can handle the interaction outside the component.
 
 ### Preview Mode
 

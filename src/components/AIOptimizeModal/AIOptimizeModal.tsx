@@ -4,7 +4,7 @@ import { Button, theme } from 'antd';
 import React, { memo, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useI18n } from '../../hooks/useI18n';
-import { OptimizeConfig, OptimizeRequest, OptimizeResponse } from '../../types';
+import { OptimizeConfig, OptimizeRequest } from '../../types';
 import { MessageInput } from './MessageInput';
 import { MessageList } from './MessageList';
 import { useOptimizeLogic } from './useOptimizeLogic';
@@ -15,13 +15,7 @@ interface AIOptimizeModalProps {
   originalContent: string;
   selectedContent?: string;
   optimizeConfig?: OptimizeConfig;
-  onOptimizeRequest?: (
-    request: OptimizeRequest,
-    callbacks: {
-      onResponse: (response: OptimizeResponse) => void;
-      onError: (error: Error) => void;
-    },
-  ) => void;
+  onOptimizeRequest?: (request: OptimizeRequest) => void;
   onApply: (optimizedContent: string) => void;
   onLike?: (messageId: string) => void;
   onDislike?: (messageId: string) => void;
@@ -94,13 +88,6 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
     };
   }, []);
 
-  // 先定义 handleClose，以便 useOptimizeLogic 使用
-  const handleClose = () => {
-    // 注意：这里还不能调用 handleStopResponse 和 store，因为它们来自 useOptimizeLogic
-    // 所以在 useOptimizeLogic 中传递的 onClose 需要单独处理
-    onClose();
-  };
-
   const {
     store,
     messages,
@@ -156,7 +143,7 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
       >
         <div
           className={`absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0'}`}
-          onClick={handleClose}
+          onClick={handleFullClose}
         />
         <div className="absolute inset-0 flex items-center justify-center p-4">
           <div
@@ -189,12 +176,11 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
                 type="text"
                 size="large"
                 icon={<CloseOutlined className="text-lg" />}
-                onClick={handleClose}
+                onClick={handleFullClose}
                 className="rounded-lg text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
               />
             </div>
 
-            {/* 消息列表 */}
             <MessageList
               messages={messages}
               selectedContent={selectedContent}

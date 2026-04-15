@@ -2,7 +2,6 @@ import React from 'react';
 import { PromptEditor } from '../../../src';
 import {
   OptimizeRequest,
-  OptimizeResponse,
   RunTaskRequest,
   RunTaskResponse,
   TaskNode,
@@ -77,28 +76,17 @@ export default () => {
   };
 
   // AI 优化请求回调 - 用户自行处理异步请求
-  const handleOptimizeRequest = (
-    request: OptimizeRequest,
-    callbacks: {
-      onResponse: (response: OptimizeResponse) => void;
-      onError: (error: Error) => void;
-    },
-  ) => {
+  const handleOptimizeRequest = (request: OptimizeRequest) => {
     console.log('优化请求:', request);
     // 模拟异步请求
     setTimeout(() => {
       try {
-        const response: OptimizeResponse = {
-          optimizedContent:
-            request.content +
+        request.applyOptimizedContent(
+          request.content +
             '\n\n---\n\n✨ **[AI 优化完成]**\n\n- 结构更清晰\n- 表达更准确\n- 逻辑更严密',
-          thinkingProcess:
-            '🤔 分析内容结构...\n📝 优化表达方式...\n✅ 完成优化！',
-        };
-        // 通过 onResponse 返回结果
-        callbacks.onResponse(response);
+        );
       } catch (error) {
-        callbacks.onError(error as Error);
+        request.setOptimizeError(error as Error);
       }
     }, 1500);
   };

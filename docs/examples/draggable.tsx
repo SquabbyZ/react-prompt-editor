@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   OptimizeRequest,
-  OptimizeResponse,
   PromptEditor,
   RunTaskRequest,
   RunTaskResponse,
@@ -67,27 +66,17 @@ export default () => {
   };
 
   // 处理优化请求
-  const handleOptimizeRequest = (
-    request: OptimizeRequest,
-    callbacks: {
-      onResponse: (response: OptimizeResponse) => void;
-      onError: (error: Error) => void;
-    },
-  ) => {
+  const handleOptimizeRequest = (request: OptimizeRequest) => {
     console.log('✨ Optimize API called:', request);
     // 模拟 AI 优化
     setTimeout(() => {
       try {
-        const response: OptimizeResponse = {
-          optimizedContent:
-            request.content +
+        request.applyOptimizedContent(
+          request.content +
             '\n\n---\n\n✨ **[AI 优化完成]**\n\n- 结构更清晰\n- 表达更准确\n- 逻辑更严密',
-          thinkingProcess:
-            '🤔 分析内容结构...\n📝 优化表达方式...\n✅ 完成优化！',
-        };
-        callbacks.onResponse(response);
+        );
       } catch (error) {
-        callbacks.onError(error as Error);
+        request.setOptimizeError(error as Error);
       }
     }, 1500);
   };

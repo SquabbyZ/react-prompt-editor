@@ -9,6 +9,7 @@ import {
 import { Button, Dropdown, Popconfirm, Tooltip, message } from 'antd';
 import React, { memo } from 'react';
 import { useI18n } from '../../hooks/useI18n';
+import { useResolvedTheme, type ThemeMode } from '../../hooks/useResolvedTheme';
 import type { Locale } from '../../i18n/locales/zh-CN';
 import type { TaskNodeMinimal } from '../../types';
 
@@ -36,6 +37,8 @@ export interface NodeActionsProps {
   handleDelete: (e?: React.MouseEvent) => void;
   /** 国际化配置 */
   locale?: Locale;
+  /** 主题模式 */
+  theme?: ThemeMode;
 }
 
 /**
@@ -57,8 +60,16 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
     handleLock,
     handleDelete,
     locale,
+    theme = 'system',
   }) => {
     const { t } = useI18n(locale);
+    const { isDarkMode } = useResolvedTheme(theme);
+    const ghostButtonClassName = isDarkMode
+      ? 'text-slate-300 hover:bg-slate-700/80 hover:!text-slate-100'
+      : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900';
+    const dangerButtonClassName = isDarkMode
+      ? 'hover:bg-red-900/20'
+      : 'hover:bg-red-50';
 
     return (
       <div className="relative z-20 flex flex-shrink-0 items-center gap-1">
@@ -78,7 +89,7 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
             className={
               isEditorExpanded
                 ? ''
-                : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:!text-gray-100'
+                : ghostButtonClassName
             }
           />
         </Tooltip>
@@ -99,7 +110,7 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
                 icon={<PlusOutlined />}
                 onClick={handleAddChild}
                 disabled={nodeData.isLocked}
-                className="text-gray-500 hover:bg-gray-200 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:!text-gray-100"
+                className={ghostButtonClassName}
               />
             </Tooltip>
 
@@ -118,7 +129,7 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
                 icon={nodeData.isLocked ? <UnlockOutlined /> : <LockOutlined />}
                 onClick={handleLock}
                 disabled={!nodeData.hasRun}
-                className="!text-gray-500 hover:bg-gray-200 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:!text-gray-100"
+                className={`!text-inherit ${ghostButtonClassName}`}
               />
             </Tooltip>
 
@@ -144,7 +155,7 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
                   danger
                   icon={<DeleteOutlined />}
                   disabled={nodeData.isLocked}
-                  className="hover:bg-red-50 dark:hover:bg-red-900/20"
+                  className={dangerButtonClassName}
                 />
               </Tooltip>
             </Popconfirm>
@@ -162,7 +173,7 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
               type="text"
               size="small"
               icon={<MoreOutlined />}
-              className="text-gray-500 hover:bg-gray-200 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-gray-100"
+              className={ghostButtonClassName}
             />
           </Dropdown>
         )}

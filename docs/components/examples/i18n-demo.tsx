@@ -3,7 +3,6 @@ import type { Locale } from '../../../src';
 import { enUS, PromptEditor, zhCN } from '../../../src';
 import {
   OptimizeRequest,
-  OptimizeResponse,
   RunTaskRequest,
   RunTaskResponse,
   TaskNode,
@@ -52,23 +51,14 @@ export default () => {
     }, 1000);
   };
 
-  const handleOptimizeRequest = (
-    request: OptimizeRequest,
-    callbacks: {
-      onResponse: (response: OptimizeResponse) => void;
-      onError: (error: Error) => void;
-    },
-  ) => {
+  const handleOptimizeRequest = (request: OptimizeRequest) => {
     setTimeout(() => {
       try {
-        const response: OptimizeResponse = {
-          optimizedContent:
-            request.content + '\n\n---\n\n✨ **[AI Optimized]**',
-          thinkingProcess: '🤔 Analyzing...\n📝 Optimizing...\n✅ Done!',
-        };
-        callbacks.onResponse(response);
+        request.applyOptimizedContent(
+          request.content + '\n\n---\n\n✨ **[AI Optimized]**',
+        );
       } catch (error) {
-        callbacks.onError(error as Error);
+        request.setOptimizeError(error as Error);
       }
     }, 1500);
   };

@@ -12,6 +12,7 @@ interface EditorToolbarProps {
   onRedo: (e: React.MouseEvent) => void;
   locale?: Locale;
   theme?: ThemeMode;
+  inline?: boolean;
 }
 
 /**
@@ -20,14 +21,24 @@ interface EditorToolbarProps {
  * 浮动在编辑器右上角
  */
 export const EditorToolbar: React.FC<EditorToolbarProps> = memo(
-  ({ canUndo, canRedo, onUndo, onRedo, locale, theme = 'system' }) => {
+  ({
+    canUndo,
+    canRedo,
+    onUndo,
+    onRedo,
+    locale,
+    theme = 'system',
+    inline = false,
+  }) => {
     // 国际化 Hook
     const { t } = useI18n(locale);
     const { isDarkMode } = useResolvedTheme(theme);
 
-    const toolbarClassName = isDarkMode
-      ? 'absolute right-3 top-3 z-10 flex items-center gap-1.5 rounded-xl border border-blue-500/10 bg-[rgba(8,20,40,0.92)] px-2 py-1.5 shadow-[0_10px_30px_rgba(2,6,23,0.35)] ring-1 ring-white/5 backdrop-blur-md transition-all hover:bg-[rgba(10,26,48,0.96)]'
-      : 'absolute right-3 top-3 z-10 flex items-center gap-1.5 rounded-xl bg-white/80 px-2 py-1.5 shadow-lg ring-1 ring-black/5 backdrop-blur-md transition-all hover:bg-white/90';
+    const toolbarClassName = inline
+      ? 'flex items-center gap-1.5'
+      : isDarkMode
+        ? 'absolute right-3 top-3 z-10 flex items-center gap-1.5 rounded-xl border border-blue-500/10 bg-[rgba(8,20,40,0.92)] px-2 py-1.5 shadow-[0_10px_30px_rgba(2,6,23,0.35)] ring-1 ring-white/5 backdrop-blur-md transition-all hover:bg-[rgba(10,26,48,0.96)]'
+        : 'absolute right-3 top-3 z-10 flex items-center gap-1.5 rounded-xl bg-white/80 px-2 py-1.5 shadow-lg ring-1 ring-black/5 backdrop-blur-md transition-all hover:bg-white/90';
 
     const iconClassName = isDarkMode ? 'text-slate-300' : 'text-gray-600';
     const buttonClassName = isDarkMode

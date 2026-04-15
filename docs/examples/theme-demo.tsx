@@ -141,13 +141,12 @@ const ThemeDemo: React.FC = () => {
                 // 模拟运行完成
               }, 1000);
             }}
-            onOptimizeRequest={(request, callbacks) => {
+            onOptimizeRequest={(request) => {
               console.log('优化请求:', request);
               setTimeout(() => {
-                callbacks.onResponse({
-                  optimizedContent: request.content + '\n\n✨ [AI 优化完成]',
-                  thinkingProcess: '正在优化...',
-                });
+                request.applyOptimizedContent(
+                  request.content + '\n\n✨ [AI 优化完成]',
+                );
               }, 1500);
             }}
           />

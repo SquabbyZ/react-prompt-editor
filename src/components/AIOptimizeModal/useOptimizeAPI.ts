@@ -70,13 +70,9 @@ export interface UseOptimizeAPIProps {
   originalContent: string;
   selectedContent?: string;
   optimizeConfig?: OptimizeConfig;
-  onOptimizeRequest?: (
-    request: OptimizeRequest,
-    callbacks: {
-      onResponse: (response: OptimizeResponse) => void;
-      onError: (error: Error) => void;
-    },
-  ) => void;
+  onOptimizeRequest?: (request: OptimizeRequest) => void;
+  onApplyOptimizedContent?: (content: string) => void;
+  onCloseOptimizeDialog?: () => void;
   messages: Array<{ role: string; content: string }>;
 }
 
@@ -95,6 +91,8 @@ export const useOptimizeAPI = ({
   selectedContent,
   optimizeConfig,
   onOptimizeRequest,
+  onApplyOptimizedContent,
+  onCloseOptimizeDialog,
   messages,
 }: UseOptimizeAPIProps): UseOptimizeAPIReturn => {
   const { parseLine, reset: resetParser } = useStreamParser();
@@ -130,6 +128,18 @@ export const useOptimizeAPI = ({
     store.getState().stopStreaming();
   };
 
+  const reportOptimizeError = (error: string | Error) => {
+    const errorMessage = typeof error === 'string' ? error : error.message;
+    streamingStateRef.current.isStarted = false;
+    store.getState().stopStreaming();
+    store.getState().addMessage({
+      id: `error-${Date.now()}`,
+      role: 'assistant',
+      content: `[系统提示] ${errorMessage}`,
+      timestamp: Date.now(),
+    });
+  };
+
   const handleSendMessageFromContent = (content: string) => {
     abortControllerRef.current = new AbortController();
     const signal = abortControllerRef.current.signal;
@@ -158,25 +168,48 @@ export const useOptimizeAPI = ({
     ];
 
     if (onOptimizeRequest) {
-      onOptimizeRequest(
-        {
-          content: originalContent,
-          selectedText: selectedContent,
-          instruction: content,
-          messages: structuredMessages,
-          signal,
+      let requestHandled = false;
+      const optimizeRequest: OptimizeRequest = {
+        content: originalContent,
+        selectedText: selectedContent,
+        instruction: content,
+        messages: structuredMessages,
+        signal,
+        config: optimizeConfig,
+        applyOptimizedContent: (optimizedContent: string) => {
+          if (signal.aborted) return;
+          requestHandled = true;
+          streamingStateRef.current.isStarted = false;
+          store.getState().stopStreaming();
+          onApplyOptimizedContent?.(optimizedContent);
         },
-        {
-          onResponse: (response) => {
-            if (signal.aborted) return;
-            handleStreamingResponse(response);
-          },
-          onError: () => {
-            if (signal.aborted) return;
-            store.getState().stopStreaming();
-          },
+        setOptimizeError: (error: string | Error) => {
+          if (signal.aborted) return;
+          requestHandled = true;
+          reportOptimizeError(error);
         },
-      );
+        closeOptimizeDialog: () => {
+          requestHandled = true;
+          handleStopResponse();
+          store.getState().clearMessages();
+          store.getState().clearInput();
+          onCloseOptimizeDialog?.();
+        },
+      };
+
+      Promise.resolve(onOptimizeRequest(optimizeRequest))
+        .then(() => {
+          if (signal.aborted || requestHandled) return;
+          reportOptimizeError(
+            'onOptimizeRequest 执行完成，但未调用 applyOptimizedContent、setOptimizeError 或 closeOptimizeDialog',
+          );
+        })
+        .catch((error) => {
+          if (signal.aborted) return;
+          reportOptimizeError(
+            error instanceof Error ? error : new Error('优化失败'),
+          );
+        });
       return;
     }
 

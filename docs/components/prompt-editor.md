@@ -57,15 +57,21 @@ RPEditor 是一个面向 Prompt 工程化的树形编辑器组件，提供层级
 - ❌ 锁定的节点不可拖拽
 - ❌ 预览模式下不可拖拽
 
+## 大数据示例
+
+这个示例专门展示 `PromptEditor` 在大规模树节点场景下的渲染与交互体验。你可以在 `200 / 1000 / 2000` 三档预置数据量之间切换，也可以用自定义模式手动生成测试数据；当前 docs 示例最高支持 `10000` 节点、`10` 层级，重点观察加载、展开、滚动和基础内容编辑是否保持稳定。
+
+<code src="./examples/large-dataset.tsx"></code>
+
 ## 流式输出示例
 
 展示如何实现真正的流式 AI 优化（模拟 OpenAI、通义千问等 API 的 SSE 响应）：
 
 <code src="./examples/streaming.tsx"></code>
 
-## 多平台回调模式示例
+## 自定义优化内容区示例
 
-如果您需要适配 Dify、OpenAI、阿里百炼或自定义后端，建议先用下面的示例熟悉 `onOptimizeRequest` 的回调协议，再切到真实接口测试，最后直接复制实战代码到自己的项目中：
+如果您希望用自定义 UI 替换默认的 AI 优化内容区，可以结合 `optimizeCustomContent` 和 `onOptimizeRequest` 使用 mock 数据快速搭一个可交互的演示面板：
 
 <code src="./examples/callback-platforms.tsx"></code>
 
@@ -104,6 +110,7 @@ RPEditor 是一个面向 Prompt 工程化的树形编辑器组件，提供层级
 | className      | 自定义类名                                                 | `string`                        | -          |
 | style          | 自定义样式                                                 | `React.CSSProperties`           | -          |
 | renderToolbar  | 自定义顶部工具栏                                           | `(actions) => ReactNode`        | -          |
+| optimizeCustomContent | 启用外部自定义优化流程；非 null 时点击 AI 优化不会打开内置弹窗 | `ReactNode \| null`             | `null`     |
 | previewMode    | 预览模式（只读，隐藏编辑功能）                             | `boolean`                       | `false`    |
 | locale         | 国际化配置（类似 Ant Design 的语言包）                     | `Locale`                        | `zhCN`     |
 | theme          | 主题模式（控制明亮/暗色主题）                              | `'system' \| 'light' \| 'dark'` | `'system'` |
@@ -115,7 +122,7 @@ RPEditor 是一个面向 Prompt 工程化的树形编辑器组件，提供层级
 | ----------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------ | ------ |
 | onChange          | 数据变化回调                                                     | `(data: TaskNode[]) => void`                                             | -      |
 | onRunRequest      | 运行请求回调（触发运行时调用，用户自行处理异步请求）             | `(request: RunTaskRequest) => void`                                      | -      |
-| onOptimizeRequest | 优化请求回调（高级模式，用户自行处理请求并通过 onResponse 返回） | `(request: OptimizeRequest, callbacks: { onResponse, onError }) => void` | -      |
+| onOptimizeRequest | 优化请求回调（高级模式，用户自行处理请求，并通过 request.applyOptimizedContent 应用结果） | `(request: OptimizeRequest) => void` | -      |
 | onNodeRun         | 节点运行完成回调（用户执行完运行请求后调用，通知组件更新状态）   | `(nodeId: string, result: RunTaskResponse) => void`                      | -      |
 | onNodeOptimize    | 节点优化完成回调（用户执行完优化请求后调用，通知组件）           | `(nodeId: string, result: OptimizeResponse) => void`                     | -      |
 | onNodeLock        | 节点锁定回调                                                     | `(nodeId: string, isLocked: boolean) => void`                            | -      |
@@ -168,6 +175,9 @@ interface OptimizeRequest {
   instruction?: string; // 优化指令（包含上下文拼接）
   messages?: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>; // 结构化对话历史
   signal?: AbortSignal; // 取消请求的信号
+  applyOptimizedContent: (content: string) => void; // 应用优化结果到当前选区或当前节点
+  setOptimizeError: (error: string | Error) => void; // 设置优化错误信息
+  closeOptimizeDialog: () => void; // 主动关闭优化弹窗
   meta?: Record<string, unknown>;
 }
 
@@ -212,7 +222,7 @@ const [value, setValue] = useState<TaskNode[]>(initialData);
 
 ### 纯回调模式详解
 
-组件采用**纯回调模式**设计，将异步请求的控制权交给用户：
+组件采用**纯回调模式**设计，将异步请求的控制权交给用户，但不再要求用户理解复杂的流式 callbacks 协议：
 
 - **onRunRequest**: 当用户点击运行按钮时触发
 - **onOptimizeRequest**: 当用户点击 AI 优化时触发
@@ -257,41 +267,23 @@ const handleRunRequest = (request: RunTaskRequest) => {
 #### 流式输出示例
 
 ```typescript
-const handleOptimizeRequest = (
-  request: OptimizeRequest,
-  callbacks: { onResponse; onError },
-) => {
-  // 调用你的 AI API（如 OpenAI、通义千问等）
-  fetch('/api/optimize', {
-    method: 'POST',
-    body: JSON.stringify(request),
-  })
-    .then((response) => {
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let fullText = '';
+const handleOptimizeRequest = async (request: OptimizeRequest) => {
+  try {
+    const response = await fetch('/api/optimize', {
+      method: 'POST',
+      body: JSON.stringify({
+        messages: request.messages,
+        instruction: request.instruction,
+      }),
+      signal: request.signal,
+    });
 
-      // 读取 SSE 流
-      function readStream() {
-        return reader.read().then(({ done, value }) => {
-          if (done) return;
-
-          const chunk = decoder.decode(value);
-          fullText += chunk;
-
-          // 每次收到新数据就调用 onResponse
-          callbacks.onResponse({
-            optimizedContent: fullText,
-            thinkingProcess: '正在生成...',
-          });
-
-          return readStream();
-        });
-      }
-
-      return readStream();
-    })
-    .catch((error) => callbacks.onError(error));
+    const data = await response.json();
+    request.applyOptimizedContent(data.optimizedContent);
+  } catch (error) {
+    if ((error as Error).name === 'AbortError') return;
+    request.setOptimizeError(error as Error);
+  }
 };
 ```
 
@@ -316,33 +308,31 @@ const handleOptimizeRequest = (
 
 #### 2. 高级模式 (回调式)
 
-如果您需要完全控制请求过程（如：非标准接口、复杂的流式处理、自定义加密等），可以使用 `onOptimizeRequest`。
+如果您需要完全控制请求过程（如：非标准接口、自定义鉴权、自定义后端协议等），可以使用 `onOptimizeRequest`。
 
-现在支持**结构化消息**和**中断信号**，让实现更加简单：
+现在支持**结构化消息**、**中断信号**和**命令式应用结果**，实现方式会更接近 `onRunRequest`：
 
 ```typescript
-const handleOptimizeRequest = (
-  request: OptimizeRequest,
-  callbacks: { onResponse; onError },
-) => {
-  // 1. 直接获取结构化的 messages，无需手动解析字符串
+const handleOptimizeRequest = async (request: OptimizeRequest) => {
   const { messages, signal } = request;
 
-  // 2. 发起请求并透传 signal，实现关闭弹窗时自动取消请求
-  fetch('/api/optimize', {
-    method: 'POST',
-    body: JSON.stringify({ messages }),
-    signal, // 自动取消支持
-  })
-    .then((response) => {
-      // ... 流式处理逻辑 (详见下方示例)
-    })
-    .catch((error) => {
-      if (error.name === 'AbortError') return; // 忽略用户手动取消
-      callbacks.onError(error);
+  try {
+    const response = await fetch('/api/optimize', {
+      method: 'POST',
+      body: JSON.stringify({ messages }),
+      signal,
     });
+
+    const data = await response.json();
+    request.applyOptimizedContent(data.optimizedContent);
+  } catch (error) {
+    if ((error as Error).name === 'AbortError') return;
+    request.setOptimizeError(error as Error);
+  }
 };
 ```
+
+您也可以通过 `optimizeCustomContent` 启用外部自定义优化流程；当该配置不为 `null` 时，点击 `AI 优化` 不会再打开内置弹窗，而是直接触发 `onOptimizeRequest`，由您在组件外部消费 request 并控制交互。
 
 ### 预览模式
 

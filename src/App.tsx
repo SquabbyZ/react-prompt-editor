@@ -3,7 +3,6 @@ import React from 'react';
 import { PromptEditor } from './components/PromptEditor';
 import {
   OptimizeRequest,
-  OptimizeResponse,
   RunTaskRequest,
   TaskNode,
 } from './types';
@@ -60,31 +59,19 @@ const App: React.FC = () => {
     }, 1000);
   };
 
-  // AI 优化请求回调 - 用户自行处理异步请求（支持流式输出）
-  const handleOptimizeRequest = (
-    request: OptimizeRequest,
-    callbacks: {
-      onResponse: (response: OptimizeResponse) => void;
-      onError: (error: Error) => void;
-    },
-  ) => {
+  // AI 优化请求回调 - 用户自行处理异步请求
+  const handleOptimizeRequest = (request: OptimizeRequest) => {
     console.log('优化请求:', request);
 
     // 模拟异步请求
     setTimeout(() => {
       try {
-        const response: OptimizeResponse = {
-          optimizedContent:
-            request.content +
+        request.applyOptimizedContent(
+          request.content +
             '\n\n✨ [AI 优化完成：内容已优化，结构更清晰，表达更准确]',
-          thinkingProcess:
-            '🤔 正在分析内容结构...\n✍️ 优化表达方式...\n✅ 完成！',
-        };
-
-        // 通知组件优化结果（可以多次调用实现流式输出）
-        callbacks.onResponse(response);
+        );
       } catch (error) {
-        callbacks.onError(error as Error);
+        request.setOptimizeError(error as Error);
       }
     }, 1500);
   };

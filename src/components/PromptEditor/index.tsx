@@ -10,9 +10,11 @@ import React, {
 } from 'react';
 import { List } from 'react-window';
 import { useI18n } from '../../hooks/useI18n';
+import { useResolvedTheme } from '../../hooks/useResolvedTheme';
 import { createEditorStore, EditorStoreType } from '../../stores';
 import { TaskNode } from '../../types';
 import {
+  estimateNodeHeight,
   flattenVisibleNodes,
   getNodeActualHeight,
 } from '../../utils/virtual-tree';
@@ -30,6 +32,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   onNodeRun,
   onNodeOptimize,
   onOptimizeApply,
+  optimizeCustomContent = null,
   onNodeLock,
   className,
   style,
@@ -43,6 +46,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
 }) => {
   // 国际化 Hook
   const { t } = useI18n(locale);
+  const { isDarkMode } = useResolvedTheme(theme);
   const isControlled = value !== undefined;
 
   // 为每个 PromptEditor 实例创建独立的 store
@@ -85,6 +89,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<any>(null);
   const nodeHeightsRef = useRef<Map<string, number>>(new Map()); // 节点高度缓存
+  const [heightVersion, setHeightVersion] = useState(0);
 
   // 监听容器高度变化
   useEffect(() => {
@@ -103,11 +108,24 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
 
   const handleContentChange = useCallback(
     (nodeId: string, content: string) => {
+      nodeHeightsRef.current.delete(nodeId);
       updateNode(nodeId, { content });
       onChange?.(store.getState().getTree());
     },
     [updateNode, onChange, store],
   );
+
+  const handleNodeHeightChange = useCallback((nodeId: string, height: number) => {
+    const nextHeight = Math.ceil(height);
+    const prevHeight = nodeHeightsRef.current.get(nodeId);
+
+    if (prevHeight === nextHeight) {
+      return;
+    }
+
+    nodeHeightsRef.current.set(nodeId, nextHeight);
+    setHeightVersion((version) => version + 1);
+  }, []);
 
   // 处理节点运行结果
   const handleNodeRunCallback = useCallback(
@@ -242,6 +260,10 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
 
   const handleToggleEditor = useCallback((nodeId: string) => {
     setExpandedEditorId((prev) => {
+      if (prev) {
+        nodeHeightsRef.current.delete(prev);
+      }
+      nodeHeightsRef.current.delete(nodeId);
       // 如果当前节点已展开，则折叠它
       if (prev === nodeId) {
         return null;
@@ -428,9 +450,23 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       const node = visibleNodes[index];
       if (!node) return 48;
 
-      return getNodeActualHeight(node.id, expandedEditorId, nodeHeightsRef);
+      const cachedHeight = getNodeActualHeight(
+        node.id,
+        expandedEditorId,
+        nodeHeightsRef,
+      );
+      const estimatedHeight = estimateNodeHeight(
+        node,
+        expandedEditorId === node.id,
+      );
+
+      if (nodeHeightsRef.current.has(node.id)) {
+        return cachedHeight;
+      }
+
+      return estimatedHeight;
     },
-    [visibleNodes, expandedEditorId],
+    [visibleNodes, expandedEditorId, heightVersion],
   );
 
   // 渲染单个节点项
@@ -455,6 +491,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       onUpdateTitle,
       onUpdateDependencies,
       getNodeNumber,
+      onNodeHeightChange,
       expandedEditorId,
       onToggleEditor,
       expandedNodes: expNodes,
@@ -514,6 +551,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
             onUpdateTitle={onUpdateTitle}
             onUpdateDependencies={onUpdateDependencies}
             getNodeNumber={getNodeNumber}
+            onHeightChange={onNodeHeightChange}
             expandedEditorId={expandedEditorId}
             onToggleEditor={onToggleEditor}
             expandedNodes={expNodes}
@@ -524,6 +562,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
             onOptimizeRequest={onOptimizeRequest}
             onNodeOptimize={onNodeOptimize}
             onOptimizeApply={onOptimizeApply}
+            optimizeCustomContent={optimizeCustomContent}
             onLike={onLike}
             onDislike={onDislike}
             previewMode={prevMode}
@@ -556,6 +595,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       onUpdateTitle: handleUpdateTitle,
       onUpdateDependencies: handleUpdateDependencies,
       getNodeNumber,
+      onNodeHeightChange: handleNodeHeightChange,
       expandedEditorId,
       onToggleEditor: handleToggleEditor,
       expandedNodes,
@@ -591,6 +631,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       handleUpdateTitle,
       handleUpdateDependencies,
       getNodeNumber,
+      handleNodeHeightChange,
       expandedEditorId,
       handleToggleEditor,
       expandedNodes,
@@ -610,23 +651,30 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
     ],
   );
 
-  const componentThemeClass =
-    theme === 'dark'
-      ? 'dark'
-      : theme === 'light'
-        ? 'prompt-editor-theme-light'
-        : '';
+  const componentThemeClass = isDarkMode ? 'dark' : 'prompt-editor-theme-light';
+  const containerClassName = isDarkMode
+    ? 'prompt-editor-container scroll-thin flex h-full w-full flex-col overflow-hidden bg-[linear-gradient(180deg,rgba(7,16,31,0.98),rgba(4,10,22,1))] text-slate-50'
+    : 'prompt-editor-container scroll-thin flex h-full w-full flex-col overflow-hidden bg-white text-gray-900';
+  const toolbarClassName = isDarkMode
+    ? 'prompt-editor-toolbar z-5 border-b border-blue-500/15 bg-[linear-gradient(180deg,rgba(7,16,31,0.98),rgba(4,10,22,1))] px-4 py-3'
+    : 'prompt-editor-toolbar z-5 border-b border-gray-200 bg-white px-4 py-3';
+  const addRootButtonClassName = isDarkMode
+    ? 'prompt-editor-add-root border-slate-500/40 !bg-[rgba(10,14,22,0.88)] !text-gray-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] hover:border-indigo-400/60 hover:!text-slate-50'
+    : 'prompt-editor-add-root border-gray-300 bg-white text-gray-900 shadow-none hover:border-gray-400 hover:text-gray-900';
+  const bodyClassName = isDarkMode
+    ? 'prompt-editor-body flex-1 bg-[linear-gradient(180deg,rgba(7,16,31,0.98),rgba(4,10,22,1))]'
+    : 'prompt-editor-body flex-1 bg-white';
 
   return (
     <div
-      className={`prompt-editor-container scroll-thin flex h-full w-full flex-col overflow-hidden bg-white dark:bg-gray-900 ${componentThemeClass} ${className || ''}`}
+      className={`${containerClassName} ${componentThemeClass} ${className || ''}`}
       data-prompt-editor="true"
       style={style}
       data-theme={theme === 'system' ? undefined : theme}
     >
       {/* 顶部工具栏 - 预览模式下隐藏 */}
       {!previewMode && (
-        <div className="prompt-editor-toolbar z-5 border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-900">
+        <div className={toolbarClassName}>
           {renderToolbar ? (
             renderToolbar({ addRootNode: handleAddRootNode })
           ) : (
@@ -635,7 +683,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
               icon={<PlusOutlined />}
               onClick={handleAddRootNode}
               block
-              className="prompt-editor-add-root dark:border-gray-700 dark:!bg-gray-800 dark:text-gray-300 dark:hover:border-indigo-500 dark:hover:text-indigo-400"
+              className={addRootButtonClassName}
             >
               {t('editor.addRootNode')}
             </Button>
@@ -643,7 +691,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
         </div>
       )}
       <div
-        className="prompt-editor-body flex-1 dark:bg-gray-900"
+        className={bodyClassName}
         ref={containerRef}
         style={{ overflow: 'hidden' }}
       >

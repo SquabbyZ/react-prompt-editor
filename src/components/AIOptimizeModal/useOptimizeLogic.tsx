@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { ChatMessage, OptimizeStoreType } from '../../stores';
-import { OptimizeConfig, OptimizeRequest, OptimizeResponse } from '../../types';
+import { OptimizeConfig, OptimizeRequest } from '../../types';
 import { useBubbleItems } from './useBubbleItems';
 import { useMessageActions } from './useMessageActions';
 import { useOptimizeAPI, useOptimizeStore } from './useOptimizeAPI';
@@ -10,13 +10,7 @@ export interface UseOptimizeLogicProps {
   originalContent: string;
   selectedContent?: string;
   optimizeConfig?: OptimizeConfig;
-  onOptimizeRequest?: (
-    request: OptimizeRequest,
-    callbacks: {
-      onResponse: (response: OptimizeResponse) => void;
-      onError: (error: Error) => void;
-    },
-  ) => void;
+  onOptimizeRequest?: (request: OptimizeRequest) => void;
   onLike?: (messageId: string) => void;
   onDislike?: (messageId: string) => void;
   onApply?: (content: string) => void;
@@ -89,6 +83,8 @@ export const useOptimizeLogic = ({
     selectedContent,
     optimizeConfig,
     onOptimizeRequest,
+    onApplyOptimizedContent: onApply,
+    onCloseOptimizeDialog: onClose,
     messages: messages.map((msg) => ({ role: msg.role, content: msg.content })),
   });
 

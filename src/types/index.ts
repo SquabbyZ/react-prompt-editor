@@ -77,6 +77,12 @@ export interface OptimizeRequest {
   config?: OptimizeConfig;
   /** 其他自定义参数 */
   meta?: Record<string, unknown>;
+  /** 将 AI 优化后的内容应用到当前选区或当前节点 */
+  applyOptimizedContent: (content: string) => void;
+  /** 设置优化错误信息 */
+  setOptimizeError: (error: string | Error) => void;
+  /** 主动关闭优化弹窗 */
+  closeOptimizeDialog: () => void;
 }
 
 /**
@@ -149,19 +155,11 @@ export interface PromptEditorProps {
   autoOptimize?: boolean;
   /**
    * 优化请求回调（高级模式）
-   * 组件触发优化时调用，参数包含请求信息和响应回调
-   * 用户需自行执行异步请求，多次调用 onResponse 可实现流式输出
+   * 组件触发优化时调用，参数包含请求信息和命令式操作方法
+   * 用户执行完请求后，调用 request.applyOptimizedContent() 即可应用结果
    * 优先级高于 optimizeConfig
    */
-  onOptimizeRequest?: (
-    request: OptimizeRequest,
-    callbacks: {
-      /** 流式响应回调，可多次调用实现流式输出 */
-      onResponse: (response: OptimizeResponse) => void;
-      /** 错误回调 */
-      onError: (error: Error) => void;
-    },
-  ) => void;
+  onOptimizeRequest?: (request: OptimizeRequest) => void;
   /**
    * 节点运行完成回调
    * 用户执行完运行请求后调用，通知组件更新状态
@@ -177,6 +175,12 @@ export interface PromptEditorProps {
    * 当用户确认使用 AI 优化的内容时触发
    */
   onOptimizeApply?: (nodeId: string, optimizedContent: string) => void;
+  /**
+   * 启用外部自定义优化流程
+   * 默认值为 null，使用内置优化弹窗
+   * 非 null 时，点击 AI 优化不会打开内置弹窗，而是直接触发 onOptimizeRequest
+   */
+  optimizeCustomContent?: React.ReactNode | null;
   onNodeLock?: (nodeId: string, isLocked: boolean) => void;
   onTreeChange?: (tree: TaskNode[]) => void;
   className?: string;

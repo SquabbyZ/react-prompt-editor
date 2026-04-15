@@ -1,6 +1,7 @@
 import { Input, message, Tag } from 'antd';
 import React, { memo, useEffect, useRef, useState } from 'react';
 import { useI18n } from '../../hooks/useI18n';
+import { useResolvedTheme, type ThemeMode } from '../../hooks/useResolvedTheme';
 import type { Locale } from '../../i18n/locales/zh-CN';
 
 interface EditableTitleProps {
@@ -14,6 +15,7 @@ interface EditableTitleProps {
   onClick?: () => void;
   previewMode?: boolean;
   locale?: Locale;
+  theme?: ThemeMode;
 }
 
 /**
@@ -34,9 +36,11 @@ export const EditableTitle: React.FC<EditableTitleProps> = memo(
     onClick,
     previewMode = false,
     locale,
+    theme = 'system',
   }) => {
     // 国际化 Hook
     const { t } = useI18n(locale);
+    const { isDarkMode } = useResolvedTheme(theme);
     const [isEditing, setIsEditing] = useState(false);
     const [titleValue, setTitleValue] = useState(title);
     const inputRef = useRef<any>(null);
@@ -138,7 +142,11 @@ export const EditableTitle: React.FC<EditableTitleProps> = memo(
       >
         <Tag
           color="default"
-          className="prompt-editor-node-title-number flex-shrink-0 px-1 text-xs"
+          className={`prompt-editor-node-title-number flex-shrink-0 px-1 text-xs ${
+            isDarkMode
+              ? '!border-slate-700 !bg-slate-950/80 !text-slate-100'
+              : '!border-gray-300 !bg-white !text-gray-700'
+          }`}
         >
           {number}
         </Tag>
@@ -155,7 +163,13 @@ export const EditableTitle: React.FC<EditableTitleProps> = memo(
           />
         ) : (
           <span
-            className={`prompt-editor-node-title-text -mx-1 overflow-hidden text-ellipsis whitespace-nowrap rounded px-1 py-0.5 text-inherit ${!previewMode ? 'cursor-pointer hover:bg-black/5 dark:hover:bg-white/5' : ''}`}
+            className={`prompt-editor-node-title-text -mx-1 overflow-hidden text-ellipsis whitespace-nowrap rounded px-1 py-0.5 text-inherit ${
+              !previewMode
+                ? isDarkMode
+                  ? 'cursor-pointer hover:bg-white/5'
+                  : 'cursor-pointer hover:bg-black/5'
+                : ''
+            }`}
             onClick={handleClick}
             onDoubleClick={!previewMode ? handleStartEdit : undefined}
             title={title}
