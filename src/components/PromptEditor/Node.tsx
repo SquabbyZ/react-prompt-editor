@@ -1,11 +1,11 @@
 import {
-  DeleteOutlined,
-  LockOutlined,
-  PlayCircleOutlined,
-  PlusOutlined,
-  ThunderboltOutlined,
-  UnlockOutlined,
-} from '@ant-design/icons';
+  Trash2,
+  Lock,
+  PlayCircle,
+  Plus,
+  Zap,
+  Unlock,
+} from 'lucide-react';
 import { Button, message, Modal, Tooltip } from 'antd';
 import React, { memo, useCallback } from 'react';
 import { useI18n } from '../../hooks/useI18n';
@@ -442,7 +442,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
       {
         key: 'addChild',
         label: t('editor.childTitle'),
-        icon: <PlusOutlined />,
+        icon: <Plus size={14} />,
         disabled: nodeData.isLocked,
         onClick: (info: any) => {
           info.domEvent.stopPropagation();
@@ -452,7 +452,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
       {
         key: 'lock',
         label: nodeData.isLocked ? t('editor.unlock') : t('editor.lock'),
-        icon: nodeData.isLocked ? <UnlockOutlined /> : <LockOutlined />,
+        icon: nodeData.isLocked ? <Unlock size={14} /> : <Lock size={14} />,
         disabled: !nodeData.hasRun,
         onClick: (info: any) => {
           info.domEvent.stopPropagation();
@@ -465,7 +465,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
       {
         key: 'delete',
         label: t('editor.deleteNode'),
-        icon: <DeleteOutlined />,
+        icon: <Trash2 size={14} />,
         danger: true,
         disabled: nodeData.isLocked,
         onClick: (info: any) => {
@@ -668,7 +668,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
                       <Tooltip title={t('editor.run')}>
                         <Button
                           type="primary"
-                          icon={<PlayCircleOutlined />}
+                          icon={<PlayCircle size={14} />}
                           onClick={handleRun}
                           size="small"
                           aria-label={t('editor.run')}
@@ -677,7 +677,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
 
                       <Tooltip title={t('editor.aiOptimize')}>
                         <Button
-                          icon={<ThunderboltOutlined />}
+                          icon={<Zap size={14} />}
                           onClick={handleOptimize}
                           size="small"
                           aria-label={t('editor.aiOptimize')}

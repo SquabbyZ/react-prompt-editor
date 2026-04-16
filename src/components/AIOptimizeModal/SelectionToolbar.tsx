@@ -1,4 +1,4 @@
-import { CheckOutlined, SwapOutlined } from '@ant-design/icons';
+import { Check, ArrowRightLeft } from 'lucide-react';
 import { Button } from 'antd';
 import React, { memo, useEffect, useRef, useState } from 'react';
 
@@ -134,7 +134,7 @@ export const SelectionToolbar: React.FC<SelectionToolbarProps> = memo(
           {/* 替换按钮 */}
           <Button
             type="primary"
-            icon={isReplacing ? <CheckOutlined /> : <SwapOutlined />}
+            icon={isReplacing ? <Check size={14} /> : <ArrowRightLeft size={14} />}
             onClick={handleReplaceClick}
             disabled={isReplacing}
             size="small"

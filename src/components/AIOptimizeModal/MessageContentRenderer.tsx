@@ -1,10 +1,10 @@
 import {
-  CopyOutlined,
-  DislikeOutlined,
-  LikeOutlined,
-  ReloadOutlined,
-  SwapOutlined,
-} from '@ant-design/icons';
+  Copy,
+  ThumbsDown,
+  ThumbsUp,
+  RotateCw,
+  ArrowRightLeft,
+} from 'lucide-react';
 import { Button, Tooltip } from 'antd';
 import React from 'react';
 import { useI18n } from '../../hooks/useI18n';
@@ -44,7 +44,7 @@ export const MessageContentRenderer: React.FC<MessageContentRendererProps> = ({
             <Button
               type="text"
               size="small"
-              icon={<CopyOutlined />}
+              icon={<Copy size={14} />}
               onClick={() => onCopy?.(content)}
               className="h-6 text-gray-500 hover:text-indigo-500"
             />
@@ -53,7 +53,7 @@ export const MessageContentRenderer: React.FC<MessageContentRendererProps> = ({
             <Button
               type="text"
               size="small"
-              icon={<ReloadOutlined />}
+              icon={<RotateCw size={14} />}
               onClick={onRegenerate}
               className="h-6 text-gray-500 hover:text-indigo-500"
             />
@@ -62,7 +62,7 @@ export const MessageContentRenderer: React.FC<MessageContentRendererProps> = ({
             <Button
               type="text"
               size="small"
-              icon={<LikeOutlined />}
+              icon={<ThumbsUp size={14} />}
               onClick={() => onLike?.(messageKey as string)}
               className="h-6 text-gray-500 hover:text-green-500"
             />
@@ -71,7 +71,7 @@ export const MessageContentRenderer: React.FC<MessageContentRendererProps> = ({
             <Button
               type="text"
               size="small"
-              icon={<DislikeOutlined />}
+              icon={<ThumbsDown size={14} />}
               onClick={() => onDislike?.(messageKey as string)}
               className="h-6 text-gray-500 hover:text-red-500"
             />
@@ -80,7 +80,7 @@ export const MessageContentRenderer: React.FC<MessageContentRendererProps> = ({
             <Button
               type="text"
               size="small"
-              icon={<SwapOutlined />}
+              icon={<ArrowRightLeft size={14} />}
               onClick={() => onFullReplace?.(content)}
               className="h-6 text-gray-500 hover:text-indigo-500"
             />

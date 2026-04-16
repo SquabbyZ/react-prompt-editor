@@ -1,4 +1,4 @@
-import { CloseOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import { X, Zap } from 'lucide-react';
 import { XProvider } from '@ant-design/x';
 import { Button, theme } from 'antd';
 import React, { memo, useEffect, useMemo, useState } from 'react';
@@ -159,7 +159,7 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
                     boxShadow: `0 4px 12px ${token.colorPrimary}40`,
                   }}
                 >
-                  <ThunderboltOutlined className="text-lg text-white" />
+                  <Zap className="text-lg text-white" />
                 </div>
                 <div>
                   <span className="block text-base font-semibold text-gray-900 dark:text-gray-100">
@@ -175,7 +175,7 @@ export const AIOptimizeModal: React.FC<AIOptimizeModalProps> = ({
               <Button
                 type="text"
                 size="large"
-                icon={<CloseOutlined className="text-lg" />}
+                icon={<X className="text-lg" />}
                 onClick={handleFullClose}
                 className="rounded-lg text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
               />

@@ -1,11 +1,11 @@
 import {
-  DeleteOutlined,
-  EditOutlined,
-  LockOutlined,
-  MoreOutlined,
-  PlusOutlined,
-  UnlockOutlined,
-} from '@ant-design/icons';
+  Trash2,
+  Pencil,
+  Lock,
+  MoreHorizontal,
+  Plus,
+  Unlock,
+} from 'lucide-react';
 import { Button, Dropdown, Popconfirm, Tooltip, message } from 'antd';
 import React, { memo } from 'react';
 import { useI18n } from '../../hooks/useI18n';
@@ -84,7 +84,7 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
           <Button
             type={isEditorExpanded ? 'primary' : 'text'}
             size="small"
-            icon={<EditOutlined />}
+            icon={<Pencil size={14} />}
             onClick={handleToggleEditor}
             aria-label={
               isEditorExpanded
@@ -112,7 +112,7 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
               <Button
                 type="text"
                 size="small"
-                icon={<PlusOutlined />}
+                icon={<Plus size={14} />}
                 onClick={handleAddChild}
                 disabled={nodeData.isLocked}
                 aria-label={t('editor.addChildNode')}
@@ -132,7 +132,7 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
               <Button
                 type="text"
                 size="small"
-                icon={nodeData.isLocked ? <UnlockOutlined /> : <LockOutlined />}
+                icon={nodeData.isLocked ? <Unlock size={14} /> : <Lock size={14} />}
                 onClick={handleLock}
                 disabled={!nodeData.hasRun}
                 aria-label={
@@ -166,7 +166,7 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
                   type="text"
                   size="small"
                   danger
-                  icon={<DeleteOutlined />}
+                  icon={<Trash2 size={14} />}
                   disabled={nodeData.isLocked}
                   aria-label={t('editor.deleteNode')}
                   className={dangerButtonClassName}
@@ -186,7 +186,7 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
             <Button
               type="text"
               size="small"
-              icon={<MoreOutlined />}
+              icon={<MoreHorizontal size={14} />}
               aria-label={t('common.edit')}
               className={ghostButtonClassName}
             />

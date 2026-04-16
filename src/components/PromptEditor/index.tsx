@@ -1,4 +1,4 @@
-import { PlusOutlined } from '@ant-design/icons';
+import { Plus } from 'lucide-react';
 import { Button, message } from 'antd';
 import React, {
   memo,
@@ -680,7 +680,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
           ) : (
             <Button
               type="dashed"
-              icon={<PlusOutlined />}
+              icon={<Plus size={14} />}
               onClick={handleAddRootNode}
               block
               aria-label={t('editor.addRootNode')}

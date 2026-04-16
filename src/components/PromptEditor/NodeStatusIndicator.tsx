@@ -1,4 +1,4 @@
-import { LockOutlined } from '@ant-design/icons';
+import { Lock } from 'lucide-react';
 import { Tooltip } from 'antd';
 import React, { memo } from 'react';
 import { useI18n } from '../../hooks/useI18n';
@@ -71,7 +71,7 @@ export const NodeStatusIndicator: React.FC<NodeStatusIndicatorProps> = memo(
       <Tooltip title={config.tooltip}>
         <div className="flex flex-shrink-0 items-center gap-1.5">
           {status === NodeStatus.Locked ? (
-            <LockOutlined className={`text-xs ${config.color}`} />
+            <Lock className={`text-xs ${config.color}`} />
           ) : (
             <span
               className={
