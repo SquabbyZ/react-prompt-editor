@@ -1,5 +1,6 @@
 import React from 'react';
 import { PromptEditor } from '../../../src';
+import '../../../src/styles/tailwind.css';
 import {
   OptimizeRequest,
   RunTaskRequest,

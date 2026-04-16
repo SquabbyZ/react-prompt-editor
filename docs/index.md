@@ -50,16 +50,43 @@ RPEditor 面向的是“结构化 Prompt 工程”而不是单一文本框输入
 
 ## 安装与接入
 
+### 完整安装（推荐）
+
 ```bash
-pnpm add react-prompt-editor
+pnpm add react-prompt-editor antd @ant-design/x @uiw/react-codemirror \
+  @codemirror/commands @codemirror/lang-markdown @codemirror/theme-one-dark
 ```
 
-接入时请先完成两步：
+### 分步安装
+
+```bash
+# 1. 安装主库
+pnpm add react-prompt-editor
+
+# 2. 安装 Peer Dependencies
+pnpm add antd @ant-design/x @uiw/react-codemirror \
+  @codemirror/commands @codemirror/lang-markdown @codemirror/theme-one-dark
+```
+
+#### 为什么需要手动安装这些依赖？
+
+为了减小包体积（从 ~300 KB 减少到 ~70 KB）并避免重复打包，我们将大型通用库设为 `peerDependencies`：
+
+- ✅ **避免重复**：如果你的项目已有 antd，不会重复加载
+- ✅ **更小体积**：库本身更轻量，传输更快
+- ✅ **版本控制**：你可以完全控制依赖版本
+- ✅ **最佳实践**：符合 React 组件库行业标准
+
+详细安装说明请查看 [INSTALL.md](https://github.com/SquabbyZ/react-prompt-editor/blob/main/INSTALL.md)
+
+### 样式导入
+
+接入时请完成以下步骤：
 
 - 组件导入：`import { PromptEditor } from 'react-prompt-editor';`
 - 样式导入：`import 'react-prompt-editor/styles/index.css';`
 
-> 使用组件前请先引入样式文件，否则会显示为未格式化的原始内容。
+> ⚠️ **重要**：使用组件前请先引入样式文件，否则会显示为未格式化的原始内容。
 
 ## 快速上手入口
 

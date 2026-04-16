@@ -19,13 +19,46 @@
 
 ## 📦 安装
 
+### 方式一：完整安装（推荐）
+
 ```bash
-npm install react-prompt-editor
-# 或
-yarn add react-prompt-editor
-# 或
-pnpm add react-prompt-editor
+npm install react-prompt-editor antd @ant-design/x @uiw/react-codemirror \
+  @codemirror/commands @codemirror/lang-markdown @codemirror/theme-one-dark
 ```
+
+或使用 Yarn：
+
+```bash
+yarn add react-prompt-editor antd @ant-design/x @uiw/react-codemirror \
+  @codemirror/commands @codemirror/lang-markdown @codemirror/theme-one-dark
+```
+
+或使用 pnpm：
+
+```bash
+pnpm add react-prompt-editor antd @ant-design/x @uiw/react-codemirror \
+  @codemirror/commands @codemirror/lang-markdown @codemirror/theme-one-dark
+```
+
+### 方式二：分步安装
+
+```bash
+# 1. 安装主库
+npm install react-prompt-editor
+
+# 2. 安装 Peer Dependencies
+npm install antd @ant-design/x @uiw/react-codemirror \
+  @codemirror/commands @codemirror/lang-markdown @codemirror/theme-one-dark
+```
+
+> 💡 **为什么需要手动安装这些依赖？**
+> 
+> 为了减小包体积（从 ~300 KB 减少到 ~70 KB）并避免重复打包，我们将大型通用库（如 antd、CodeMirror）设为 peerDependencies。这样可以：
+> - ✅ 如果你的项目已有 antd，不会重复加载
+> - ✅ 让你控制依赖版本
+> - ✅ 符合行业最佳实践
+> 
+> 详细说明请查看 [INSTALL.md](./INSTALL.md)
 
 ## 🚀 快速开始
 

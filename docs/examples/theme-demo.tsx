@@ -1,6 +1,7 @@
 import { ConfigProvider, Radio, Space, theme as antdTheme } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { PromptEditor } from '../../src';
+import '../../src/styles/tailwind.css';
 import type { TaskNode } from '../../src/types';
 
 const ThemeDemo: React.FC = () => {

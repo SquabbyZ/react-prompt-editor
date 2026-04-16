@@ -1,0 +1,42 @@
+# 源码和开发文件
+src/
+docs/
+e2e/
+test-results/
+plans/
+superpowers/
+.dumi/
+midscene_run/
+
+# 配置文件
+.fatherrc.ts
+.dumirc.ts
+tsconfig.json
+vitest.config.ts
+playwright.config.ts
+postcss.config.js
+tailwind.config.js
+
+# 脚本
+scripts/
+
+# 测试和 lint 配置
+.eslintrc.js
+.stylelintrc
+.prettierrc.json
+.prettierignore
+.editorconfig
+
+# Git 相关
+.gitignore
+.husky/
+
+# 文档
+*.md
+!README.md
+
+# 其他
+.env
+.env.example
+pnpm-lock.yaml
+pnpm-workspace.yaml

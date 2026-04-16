@@ -16,6 +16,37 @@ RPEditor 是一个面向 Prompt 工程化的树形编辑器组件，提供层级
 
 ## 接入前准备
 
+### 1. 安装依赖
+
+#### 完整安装（推荐）
+
+```bash
+pnpm add react-prompt-editor antd @ant-design/x @uiw/react-codemirror \
+  @codemirror/commands @codemirror/lang-markdown @codemirror/theme-one-dark
+```
+
+#### 分步安装
+
+```bash
+# 1. 安装主库
+pnpm add react-prompt-editor
+
+# 2. 安装 Peer Dependencies
+pnpm add antd @ant-design/x @uiw/react-codemirror \
+  @codemirror/commands @codemirror/lang-markdown @codemirror/theme-one-dark
+```
+
+> 💡 **为什么需要手动安装这些依赖？**
+>
+> 为了减小包体积（从 ~300 KB 减少到 ~70 KB）并避免重复打包，我们将大型通用库设为 `peerDependencies`。这样可以：
+> - ✅ 如果你的项目已有 antd，不会重复加载
+> - ✅ 让你控制依赖版本
+> - ✅ 符合行业最佳实践
+>
+> 详细说明请查看 [INSTALL.md](https://github.com/SquabbyZ/react-prompt-editor/blob/main/INSTALL.md)
+
+### 2. 导入组件和样式
+
 **使用组件前必须先引入样式文件！**
 
 - 组件导入：`import { PromptEditor } from 'react-prompt-editor';`
@@ -23,7 +54,7 @@ RPEditor 是一个面向 Prompt 工程化的树形编辑器组件，提供层级
 
 如果不引入样式文件，组件将失去所有样式，显示为未格式化的原始内容。
 
-> 推荐先看“快速上手”，再根据业务需要启用运行、AI 优化、拖拽和国际化能力。
+> ⚠️ **重要提示**：推荐先看“快速上手”，再根据业务需要启用运行、AI 优化、拖拽和国际化能力。
 
 ## 快速上手
 

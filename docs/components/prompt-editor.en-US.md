@@ -17,6 +17,37 @@ RPEditor is a prompt-engineering-focused tree editor component for hierarchical 
 
 ## ⚠️ Before You Start
 
+### 1. Install Dependencies
+
+#### Full Installation (Recommended)
+
+```bash
+pnpm add react-prompt-editor antd @ant-design/x @uiw/react-codemirror \
+  @codemirror/commands @codemirror/lang-markdown @codemirror/theme-one-dark
+```
+
+#### Step-by-step Installation
+
+```bash
+# 1. Install main package
+pnpm add react-prompt-editor
+
+# 2. Install Peer Dependencies
+pnpm add antd @ant-design/x @uiw/react-codemirror \
+  @codemirror/commands @codemirror/lang-markdown @codemirror/theme-one-dark
+```
+
+> 💡 **Why do I need to install these dependencies manually?**
+>
+> To reduce bundle size (from ~300 KB to ~70 KB) and avoid duplicate packaging, we moved large universal libraries to `peerDependencies`. This allows:
+> - ✅ No duplication if your project already has antd
+> - ✅ Full control over dependency versions
+> - ✅ Following industry best practices
+>
+> For more details, see [INSTALL.md](https://github.com/SquabbyZ/react-prompt-editor/blob/main/INSTALL.md)
+
+### 2. Import Component and Styles
+
 **You must import the style file before using the component!**
 
 - Component import: `import { PromptEditor } from 'react-prompt-editor';`
@@ -24,7 +55,7 @@ RPEditor is a prompt-engineering-focused tree editor component for hierarchical 
 
 If you don't import the style file, the component will lose all styles and display as unformatted raw content.
 
-> Start with the quick start example, then enable execution, AI optimization, drag-and-drop, and localization as your workflow grows.
+> ⚠️ **Important**: Start with the quick start example, then enable execution, AI optimization, drag-and-drop, and localization as your workflow grows.
 
 ## Quick Start
 

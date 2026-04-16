@@ -71,7 +71,7 @@ export const NodeStatusIndicator: React.FC<NodeStatusIndicatorProps> = memo(
       <Tooltip title={config.tooltip}>
         <div className="flex flex-shrink-0 items-center gap-1.5">
           {status === NodeStatus.Locked ? (
-            <Lock className={`text-xs ${config.color}`} />
+            <Lock size={12} className={config.color} />
           ) : (
             <span
               className={

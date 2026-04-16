@@ -328,11 +328,13 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
           >
             <TreeSelect
               className="w-full"
-              popupClassName={
-                isDarkMode
-                  ? 'prompt-editor-treeselect-dropdown-dark'
-                  : 'prompt-editor-treeselect-dropdown'
-              }
+              classNames={{
+                popup: {
+                  root: isDarkMode
+                    ? 'prompt-editor-treeselect-dropdown-dark'
+                    : 'prompt-editor-treeselect-dropdown',
+                },
+              }}
               treeData={treeData}
               placeholder={t('dependency.selectDependencyPlaceholder')}
               allowClear

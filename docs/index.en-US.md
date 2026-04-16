@@ -50,16 +50,43 @@ RPEditor is built for structured prompt engineering rather than plain text entry
 
 ## Installation
 
+### Full Installation (Recommended)
+
 ```bash
-pnpm add react-prompt-editor
+pnpm add react-prompt-editor antd @ant-design/x @uiw/react-codemirror \
+  @codemirror/commands @codemirror/lang-markdown @codemirror/theme-one-dark
 ```
 
-Before rendering the component, complete these two steps:
+### Step-by-step Installation
+
+```bash
+# 1. Install main package
+pnpm add react-prompt-editor
+
+# 2. Install Peer Dependencies
+pnpm add antd @ant-design/x @uiw/react-codemirror \
+  @codemirror/commands @codemirror/lang-markdown @codemirror/theme-one-dark
+```
+
+#### Why do I need to install these dependencies manually?
+
+To reduce bundle size (from ~300 KB to ~70 KB) and avoid duplicate packaging, we moved large universal libraries to `peerDependencies`:
+
+- ✅ **No Duplication**: If your project already has antd, it won't be loaded twice
+- ✅ **Smaller Size**: The library itself is lighter and faster to transfer
+- ✅ **Version Control**: You have full control over dependency versions
+- ✅ **Best Practice**: Follows React component library industry standards
+
+For detailed installation instructions, see [INSTALL.md](https://github.com/SquabbyZ/react-prompt-editor/blob/main/INSTALL.md)
+
+### Style Import
+
+Complete these steps before using the component:
 
 - Component import: `import { PromptEditor } from 'react-prompt-editor';`
 - Style import: `import 'react-prompt-editor/styles/index.css';`
 
-> Import the stylesheet before rendering the component, otherwise it will appear as unstyled raw content.
+> ⚠️ **Important**: Import the stylesheet before rendering the component, otherwise it will appear as unstyled raw content.
 
 ## 🔗 Links
 

@@ -203,8 +203,15 @@ export const Node: React.FC<CustomNodeProps> = memo(
       ? 'flex h-5 w-5 flex-shrink-0 cursor-pointer items-center justify-center rounded border-none bg-transparent text-slate-400 transition-all hover:bg-slate-800/80'
       : 'flex h-5 w-5 flex-shrink-0 cursor-pointer items-center justify-center rounded border-none bg-transparent text-gray-500 transition-all hover:bg-gray-100';
     const editorShellClassName = isDarkMode
-      ? 'prompt-editor-editor-shell relative z-0 overflow-hidden border-0 border-b-4 border-double border-blue-500/10 bg-[rgba(8,20,40,0.96)] shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]'
-      : 'prompt-editor-editor-shell relative z-0 overflow-hidden border-0 border-b-4 border-double border-black bg-gray-100';
+      ? 'prompt-editor-editor-shell relative z-0 overflow-hidden border-0 bg-[rgba(8,20,40,0.96)] shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]'
+      : 'prompt-editor-editor-shell relative z-0 overflow-hidden border-0 bg-gray-100';
+    const editorShellStyle: React.CSSProperties = isDarkMode
+      ? {
+          borderBottom: '4px double rgba(59, 130, 246, 0.16)',
+        }
+      : {
+          borderBottom: '4px double rgb(0 0 0)',
+        };
     const editorSurfaceClassName = isDarkMode
       ? 'prompt-editor-editor-surface m-2 rounded-md border border-blue-500/10 bg-[rgba(7,16,31,1)] p-3'
       : 'prompt-editor-editor-surface m-2 rounded-md border border-gray-200 bg-white p-3';
@@ -625,6 +632,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
                 className={`${editorShellClassName} ${isEditorAnimating ? 'animate-expand-in' : ''}`}
                 style={{
                   transformOrigin: 'top center',
+                  ...editorShellStyle,
                 }}
               >
                 <div className={editorSurfaceClassName}>

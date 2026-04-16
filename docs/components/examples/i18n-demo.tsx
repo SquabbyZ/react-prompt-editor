@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { Locale } from '../../../src';
 import { enUS, PromptEditor, zhCN } from '../../../src';
+import '../../../src/styles/tailwind.css';
 import {
   OptimizeRequest,
   RunTaskRequest,

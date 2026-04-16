@@ -13,5 +13,8 @@ export default defineConfig({
   cjs: {
     output: 'dist/lib',
     transformer: 'babel',
+    extraBabelPlugins: [
+      ['babel-plugin-transform-remove-console', { exclude: ['error', 'warn'] }],
+    ],
   },
 });
