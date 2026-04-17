@@ -141,11 +141,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/react-prompt-editor.git"
+    "url": "https://github.com/SquabbyZ/react-prompt-editor.git",
+    "branch": "master"
   },
-  "homepage": "https://github.com/yourusername/react-prompt-editor#readme",
+  "homepage": "https://github.com/SquabbyZ/react-prompt-editor#readme",
   "bugs": {
-    "url": "https://github.com/yourusername/react-prompt-editor/issues"
+    "url": "https://github.com/SquabbyZ/react-prompt-editor/issues"
   },
   "keywords": [
     "react",

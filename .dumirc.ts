@@ -15,6 +15,10 @@ export default defineConfig({
     },
     footer: 'Copyright © 2026 RPEditor',
     favicon: '/favicon.ico',
+    repository: {
+      url: 'https://github.com/SquabbyZ/react-prompt-editor',
+      branch: 'master',
+    },
   },
   resolve: {
     entryFile: 'src/index.ts',
