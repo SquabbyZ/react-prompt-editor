@@ -2,6 +2,8 @@
 
 树形 Prompt 编辑器 React 组件，适用于复杂 AI 工作流、节点编排和多段内容协作编辑。
 
+当前 npm 版本基于 Ant Design UI 体系构建，宿主项目需要提供 `antd` 与 `@ant-design/x`。后续会逐步提供其他 UI 库版本。
+
 - 官网文档: https://www.rpeditor.asia
 - npm: https://www.npmjs.com/package/react-prompt-editor
 - GitHub: https://github.com/SquabbyZ/react-prompt-editor
@@ -9,10 +11,10 @@
 ## 安装
 
 ```bash
-pnpm add react-prompt-editor antd @ant-design/x @uiw/react-codemirror @codemirror/commands @codemirror/lang-markdown @codemirror/theme-one-dark
+pnpm add react-prompt-editor antd @ant-design/x
 ```
 
-`antd`、`@ant-design/x` 和 CodeMirror 相关包为 `peerDependencies`，需要由使用方项目自行安装。
+`react`、`react-dom`、`antd` 和 `@ant-design/x` 为 `peerDependencies`。其中 React 应由你的应用本身提供，当前 UI 版本需要你额外安装 `antd` 与 `@ant-design/x`。
 
 ## 快速开始
 

@@ -50,11 +50,12 @@ RPEditor is built for structured prompt engineering rather than plain text entry
 
 ## Installation
 
+The current npm package is the Ant Design UI edition of RPEditor. It fits React apps that already use, or are comfortable adopting, the Ant Design ecosystem. Additional UI-library editions are planned for future releases.
+
 ### Full Installation (Recommended)
 
 ```bash
-pnpm add react-prompt-editor antd @ant-design/x @uiw/react-codemirror \
-  @codemirror/commands @codemirror/lang-markdown @codemirror/theme-one-dark
+pnpm add react-prompt-editor antd @ant-design/x
 ```
 
 ### Step-by-step Installation
@@ -64,18 +65,17 @@ pnpm add react-prompt-editor antd @ant-design/x @uiw/react-codemirror \
 pnpm add react-prompt-editor
 
 # 2. Install Peer Dependencies
-pnpm add antd @ant-design/x @uiw/react-codemirror \
-  @codemirror/commands @codemirror/lang-markdown @codemirror/theme-one-dark
+pnpm add antd @ant-design/x
 ```
 
 #### Why do I need to install these dependencies manually?
 
-To reduce bundle size (from ~300 KB to ~70 KB) and avoid duplicate packaging, we moved large universal libraries to `peerDependencies`:
+This release is intentionally positioned as the Ant Design UI edition, so `antd` and `@ant-design/x` stay as `peerDependencies` and are provided by the host app:
 
-- ✅ **No Duplication**: If your project already has antd, it won't be loaded twice
-- ✅ **Smaller Size**: The library itself is lighter and faster to transfer
-- ✅ **Version Control**: You have full control over dependency versions
-- ✅ **Best Practice**: Follows React component library industry standards
+- ✅ **Consistent UI system**: Reuses your app's Ant Design theme and configuration
+- ✅ **No duplication**: If your project already has antd, it won't be loaded twice
+- ✅ **Version control**: You keep control over Ant Design related versions
+- ✅ **Clear roadmap**: The current package focuses on Ant Design, with other UI-library editions planned later
 
 For detailed installation instructions, see [INSTALL.md](https://github.com/SquabbyZ/react-prompt-editor/blob/main/INSTALL.md)
 

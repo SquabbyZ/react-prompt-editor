@@ -1,5 +1,7 @@
 # 安装指南
 
+当前 npm 包为基于 Ant Design UI 的版本。它面向已使用或愿意接入 Ant Design 体系的 React 项目，后续会逐步提供其他 UI 库版本。
+
 ## 📦 快速开始
 
 ### 方式一：完整安装（推荐）
@@ -7,22 +9,19 @@
 一键安装所有必需的依赖：
 
 ```bash
-npm install react-prompt-editor antd @ant-design/x @uiw/react-codemirror \
-  @codemirror/commands @codemirror/lang-markdown @codemirror/theme-one-dark
+npm install react-prompt-editor antd @ant-design/x
 ```
 
 或使用 Yarn：
 
 ```bash
-yarn add react-prompt-editor antd @ant-design/x @uiw/react-codemirror \
-  @codemirror/commands @codemirror/lang-markdown @codemirror/theme-one-dark
+yarn add react-prompt-editor antd @ant-design/x
 ```
 
 或使用 pnpm：
 
 ```bash
-pnpm add react-prompt-editor antd @ant-design/x @uiw/react-codemirror \
-  @codemirror/commands @codemirror/lang-markdown @codemirror/theme-one-dark
+pnpm add react-prompt-editor antd @ant-design/x
 ```
 
 ---
@@ -47,8 +46,7 @@ but none is installed. You must install peer dependencies yourself.
 按照提示安装：
 
 ```bash
-npm install antd @ant-design/x @uiw/react-codemirror \
-  @codemirror/commands @codemirror/lang-markdown @codemirror/theme-one-dark
+npm install antd @ant-design/x
 ```
 
 ---
@@ -63,18 +61,15 @@ npm install antd @ant-design/x @uiw/react-codemirror \
 |------|---------|------|------|
 | **react** | >=16.9.0 | React 核心 | - |
 | **react-dom** | >=16.9.0 | React DOM | - |
-| **antd** | ^5.0.0 | UI 组件库 | ~300 KB |
-| **@ant-design/x** | ^2.0.0 | AI 对话组件 | ~50 KB |
-| **@uiw/react-codemirror** | ^4.0.0 | 代码编辑器封装 | ~80 KB |
-| **@codemirror/commands** | ^6.0.0 | CodeMirror 命令 | ~20 KB |
-| **@codemirror/lang-markdown** | ^6.0.0 | Markdown 语言支持 | ~10 KB |
-| **@codemirror/theme-one-dark** | ^6.0.0 | 暗色主题 | ~5 KB |
+| **antd** | ^5.0.0 | 当前 UI 基座 | ~300 KB |
+| **@ant-design/x** | ^2.0.0 | 当前 AI 交互 UI 组件 | ~50 KB |
 
 **为什么需要手动安装？**
+- ✅ 当前版本明确基于 Ant Design UI，由宿主项目提供 UI 体系
+- ✅ 复用你项目里的 Ant Design 主题、Token 和配置
 - ✅ 避免重复打包（如果你的项目已有 antd）
-- ✅ 减小库的体积（从 ~300 KB 减少到 ~70 KB）
-- ✅ 让你控制依赖版本
-- ✅ 符合行业最佳实践
+- ✅ 让你控制 Ant Design 相关依赖版本
+- ✅ 后续扩展其他 UI 库版本时，产品边界更清晰
 
 ---
 
@@ -83,6 +78,10 @@ npm install antd @ant-design/x @uiw/react-codemirror \
 这些依赖会**自动安装**，无需关心：
 
 - `clsx` - 样式类名工具
+- `@uiw/react-codemirror` - 编辑器 React 封装
+- `@codemirror/commands` - CodeMirror 命令
+- `@codemirror/lang-markdown` - Markdown 语言支持
+- `@codemirror/theme-one-dark` - 暗色主题
 - `highlight.js` - 语法高亮
 - `lucide-react` - 图标库
 - `markdown-it` + plugins - Markdown 解析
@@ -104,10 +103,6 @@ npm install antd @ant-design/x @uiw/react-codemirror \
     "react-dom": "^18.0.0",
     "antd": "^5.29.0",
     "@ant-design/x": "^2.5.0",
-    "@uiw/react-codemirror": "^4.25.0",
-    "@codemirror/commands": "^6.10.0",
-    "@codemirror/lang-markdown": "^6.5.0",
-    "@codemirror/theme-one-dark": "^6.1.0",
     "react-prompt-editor": "^1.0.0"
   }
 }
@@ -150,17 +145,11 @@ npm install antd@^5.0.0
 
 ---
 
-### Q3: 可以使用不同版本的 CodeMirror 吗？
+### Q3: 为什么只需要额外安装 antd 和 @ant-design/x？
 
-**A:** 理论上可以，但建议保持版本一致以避免兼容性问题。
+**A:** 因为当前版本定位为 Ant Design UI 版本。编辑器相关依赖已经由库本身自动安装，而 UI 体系依赖继续交由宿主项目提供。
 
-如果需要自定义版本：
-
-```bash
-npm install @codemirror/commands@6.5.0 --legacy-peer-deps
-```
-
-⚠️ 注意：这可能导致未预期的行为。
+如果你的项目不希望引入 Ant Design，可以等待后续其他 UI 库版本。
 
 ---
 

@@ -50,11 +50,12 @@ RPEditor 面向的是“结构化 Prompt 工程”而不是单一文本框输入
 
 ## 安装与接入
 
+当前 npm 版本是基于 Ant Design UI 的实现，适合已经使用或接受引入 Ant Design 体系的 React 项目。后续会逐步提供其他 UI 库版本。
+
 ### 完整安装（推荐）
 
 ```bash
-pnpm add react-prompt-editor antd @ant-design/x @uiw/react-codemirror \
-  @codemirror/commands @codemirror/lang-markdown @codemirror/theme-one-dark
+pnpm add react-prompt-editor antd @ant-design/x
 ```
 
 ### 分步安装
@@ -64,18 +65,17 @@ pnpm add react-prompt-editor antd @ant-design/x @uiw/react-codemirror \
 pnpm add react-prompt-editor
 
 # 2. 安装 Peer Dependencies
-pnpm add antd @ant-design/x @uiw/react-codemirror \
-  @codemirror/commands @codemirror/lang-markdown @codemirror/theme-one-dark
+pnpm add antd @ant-design/x
 ```
 
 #### 为什么需要手动安装这些依赖？
 
-为了减小包体积（从 ~300 KB 减少到 ~70 KB）并避免重复打包，我们将大型通用库设为 `peerDependencies`：
+当前版本明确定位为 Ant Design UI 版本，因此将 `antd` 和 `@ant-design/x` 作为 `peerDependencies` 交由宿主项目提供：
 
+- ✅ **UI 体系一致**：与你项目中的 Ant Design 主题和配置保持一致
 - ✅ **避免重复**：如果你的项目已有 antd，不会重复加载
-- ✅ **更小体积**：库本身更轻量，传输更快
-- ✅ **版本控制**：你可以完全控制依赖版本
-- ✅ **最佳实践**：符合 React 组件库行业标准
+- ✅ **版本控制**：你可以自行控制 Ant Design 相关版本
+- ✅ **版本规划清晰**：当前版本专注 Ant Design，后续再扩展其他 UI 库版本
 
 详细安装说明请查看 [INSTALL.md](https://github.com/SquabbyZ/react-prompt-editor/blob/main/INSTALL.md)
 

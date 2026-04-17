@@ -19,11 +19,12 @@ RPEditor is a prompt-engineering-focused tree editor component for hierarchical 
 
 ### 1. Install Dependencies
 
+The current npm package is the Ant Design UI edition. The built-in editor flow and AI optimization UI are designed around the Ant Design ecosystem, while additional UI-library editions are planned for later.
+
 #### Full Installation (Recommended)
 
 ```bash
-pnpm add react-prompt-editor antd @ant-design/x @uiw/react-codemirror \
-  @codemirror/commands @codemirror/lang-markdown @codemirror/theme-one-dark
+pnpm add react-prompt-editor antd @ant-design/x
 ```
 
 #### Step-by-step Installation
@@ -33,16 +34,16 @@ pnpm add react-prompt-editor antd @ant-design/x @uiw/react-codemirror \
 pnpm add react-prompt-editor
 
 # 2. Install Peer Dependencies
-pnpm add antd @ant-design/x @uiw/react-codemirror \
-  @codemirror/commands @codemirror/lang-markdown @codemirror/theme-one-dark
+pnpm add antd @ant-design/x
 ```
 
 > 💡 **Why do I need to install these dependencies manually?**
 >
-> To reduce bundle size (from ~300 KB to ~70 KB) and avoid duplicate packaging, we moved large universal libraries to `peerDependencies`. This allows:
+> This release is intentionally built as the Ant Design UI edition, so `antd` and `@ant-design/x` are provided by the host app. This allows:
+> - ✅ Reusing your app's Ant Design theme and configuration
 > - ✅ No duplication if your project already has antd
-> - ✅ Full control over dependency versions
-> - ✅ Following industry best practices
+> - ✅ Full control over Ant Design related versions
+> - ✅ Keeping a clear product boundary before other UI-library editions arrive
 >
 > For more details, see [INSTALL.md](https://github.com/SquabbyZ/react-prompt-editor/blob/main/INSTALL.md)
 

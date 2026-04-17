@@ -18,11 +18,12 @@ RPEditor 是一个面向 Prompt 工程化的树形编辑器组件，提供层级
 
 ### 1. 安装依赖
 
+当前 npm 包是基于 Ant Design UI 的版本，内置的编辑器与 AI 优化交互都围绕 Ant Design 体系设计。后续会再提供其他 UI 库版本。
+
 #### 完整安装（推荐）
 
 ```bash
-pnpm add react-prompt-editor antd @ant-design/x @uiw/react-codemirror \
-  @codemirror/commands @codemirror/lang-markdown @codemirror/theme-one-dark
+pnpm add react-prompt-editor antd @ant-design/x
 ```
 
 #### 分步安装
@@ -32,16 +33,16 @@ pnpm add react-prompt-editor antd @ant-design/x @uiw/react-codemirror \
 pnpm add react-prompt-editor
 
 # 2. 安装 Peer Dependencies
-pnpm add antd @ant-design/x @uiw/react-codemirror \
-  @codemirror/commands @codemirror/lang-markdown @codemirror/theme-one-dark
+pnpm add antd @ant-design/x
 ```
 
 > 💡 **为什么需要手动安装这些依赖？**
 >
-> 为了减小包体积（从 ~300 KB 减少到 ~70 KB）并避免重复打包，我们将大型通用库设为 `peerDependencies`。这样可以：
+> 当前版本明确基于 Ant Design UI，因此 `antd` 与 `@ant-design/x` 由宿主项目提供。这样可以：
+> - ✅ 复用你项目里的 Ant Design 主题和配置
 > - ✅ 如果你的项目已有 antd，不会重复加载
-> - ✅ 让你控制依赖版本
-> - ✅ 符合行业最佳实践
+> - ✅ 让你控制 Ant Design 相关依赖版本
+> - ✅ 为后续其他 UI 库版本预留清晰的产品边界
 >
 > 详细说明请查看 [INSTALL.md](https://github.com/SquabbyZ/react-prompt-editor/blob/main/INSTALL.md)
 
