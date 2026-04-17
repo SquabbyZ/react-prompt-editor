@@ -623,9 +623,42 @@ body {
 }
 
 @media (max-width: 767px) {
+  .dumi-default-header[data-static] {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
   .dumi-default-header-content {
     height: 64px;
     padding: 0 18px;
+  }
+
+  .dumi-default-navbar {
+    padding: 16px;
+    border: 1px solid var(--rpe-border);
+    border-radius: 24px;
+    background: var(--rpe-surface-strong);
+    box-shadow: var(--rpe-shadow-md);
+  }
+
+  .dumi-default-navbar > li {
+    padding: 0;
+  }
+
+  .dumi-default-navbar > li:not(:last-child) {
+    margin-inline-end: 0 !important;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--rpe-border);
+  }
+
+  .dumi-default-navbar-dropdown {
+    margin-top: 12px !important;
+    padding: 10px 12px;
+    border: 1px solid var(--rpe-border);
+    border-radius: 16px;
+    background: var(--rpe-surface-soft) !important;
   }
 
   .dumi-default-content:not([data-no-sidebar]) {
