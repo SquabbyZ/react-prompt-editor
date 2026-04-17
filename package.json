@@ -105,7 +105,7 @@
     "autoprefixer": "^10.4.27",
     "babel-plugin-transform-remove-console": "^6.9.4",
     "dotenv": "^17.4.2",
-    "dumi": "^2.4.21",
+    "dumi": "2.4.21",
     "eslint": "^8.23.0",
     "father": "^4.1.0",
     "husky": "^8.0.1",

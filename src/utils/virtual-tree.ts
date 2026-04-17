@@ -1,4 +1,4 @@
-import { TaskNode } from '../types';
+import { PreviewRenderMode, TaskNode } from '../types';
 
 export interface FlatNode extends TaskNode {
   level: number;
@@ -53,12 +53,32 @@ export function flattenVisibleNodes(
 export function estimateNodeHeight(
   node: FlatNode,
   isEditorExpanded: boolean,
+  options?: {
+    previewMode?: boolean;
+    previewRenderMode?: PreviewRenderMode;
+  },
 ): number {
   // 基础高度：节点头部约 48px
   const baseHeight = 48;
 
   if (!isEditorExpanded) {
     return baseHeight;
+  }
+
+  const isPreviewReadonlyEditor =
+    options?.previewMode &&
+    (options.previewRenderMode ?? 'readonly-editor') === 'readonly-editor';
+  const isPreviewMarkdown =
+    options?.previewMode && options.previewRenderMode === 'markdown';
+
+  if (isPreviewReadonlyEditor) {
+    return baseHeight + 180;
+  }
+
+  if (isPreviewMarkdown) {
+    const contentLines = node.content.split('\n').length;
+    const markdownHeight = Math.min(Math.max(contentLines * 24, 140), 520);
+    return baseHeight + markdownHeight + 24;
   }
 
   // 编辑器展开后的高度：根据内容长度估算
@@ -80,16 +100,20 @@ export function getNodeActualHeight(
   nodeId: string,
   expandedEditorId: string | null,
   nodeHeightsRef: React.MutableRefObject<Map<string, number>>,
+  options?: {
+    previewMode?: boolean;
+    previewRenderMode?: PreviewRenderMode;
+  },
 ): number {
   const isExpanded = expandedEditorId === nodeId;
+  const isPreviewReadonlyEditor =
+    options?.previewMode &&
+    (options.previewRenderMode ?? 'readonly-editor') === 'readonly-editor';
+  const expandedFallbackHeight = 220;
 
   // 如果已有缓存，返回缓存值
   if (nodeHeightsRef.current.has(nodeId)) {
     const cachedHeight = nodeHeightsRef.current.get(nodeId)!;
-    // 如果展开状态改变，需要重新计算
-    if (isExpanded && cachedHeight < 300) {
-      return 220; // 展开时返回编辑器实际高度（100px + 工具栏 + 依赖配置 + 按钮区）
-    }
     if (!isExpanded && cachedHeight > 300) {
       return 48; // 折叠时返回基础高度
     }
@@ -97,5 +121,5 @@ export function getNodeActualHeight(
   }
 
   // 默认高度
-  return isExpanded ? 220 : 48;
+  return isExpanded ? expandedFallbackHeight : 48;
 }

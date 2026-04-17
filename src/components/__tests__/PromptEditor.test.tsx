@@ -58,6 +58,14 @@ vi.mock('../CodeMirrorEditor', () => ({
   }),
 }));
 
+vi.mock('../AIOptimizeModal/MarkdownRenderer', () => ({
+  MarkdownRenderer: ({
+    content,
+  }: {
+    content: string;
+  }) => <div data-testid="mock-markdown-renderer">{content}</div>,
+}));
+
 const baseValue: TaskNode[] = [
   {
     id: '1',
@@ -175,5 +183,40 @@ describe('PromptEditor', () => {
 
     const latestTree = onChange.mock.calls.at(-1)?.[0] as TaskNode[];
     expect(latestTree).toEqual([]);
+  });
+
+  it('uses readonly editor as the default preview render mode', async () => {
+    const user = userEvent.setup();
+    renderPromptEditor({ previewMode: true });
+
+    await user.click(screen.getByText('Root Node'));
+
+    const readonlyEditor = await screen.findByLabelText('Mock CodeMirror Editor');
+    expect(readonlyEditor.getAttribute('readonly')).not.toBeNull();
+    expect(
+      screen.getByTestId('mock-virtual-list').querySelector(
+        '[data-preview-render-mode="readonly-editor"]',
+      ),
+    ).toBeTruthy();
+  });
+
+  it('renders markdown preview when previewRenderMode is markdown', async () => {
+    const user = userEvent.setup();
+    renderPromptEditor({
+      previewMode: true,
+      previewRenderMode: 'markdown',
+    });
+
+    await user.click(screen.getByText('Root Node'));
+
+    expect(
+      (await screen.findByTestId('mock-markdown-renderer')).textContent,
+    ).toContain('# Root Node');
+    expect(
+      screen.getByTestId('mock-virtual-list').querySelector(
+        '[data-preview-render-mode="markdown"]',
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByLabelText('Mock CodeMirror Editor')).toBeNull();
   });
 });

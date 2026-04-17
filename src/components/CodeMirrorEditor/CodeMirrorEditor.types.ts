@@ -5,6 +5,8 @@ export interface CodeMirrorEditorProps {
   onChange?: (value: string) => void;
   isReadOnly?: boolean;
   placeholder?: string;
+  minHeight?: string;
+  maxHeight?: string;
   className?: string;
   style?: React.CSSProperties;
   /**

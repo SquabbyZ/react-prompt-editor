@@ -8,6 +8,7 @@ import { DemoWrapper } from '../demo-wrapper';
  * 预览模式示例 - 只读展示提示词内容
  *
  * 使用 previewMode 属性隐藏所有操作按钮，只展示内容
+ * 默认使用 previewRenderMode="readonly-editor" 显示只读编辑器
  * 适合用于分享、演示或审查场景
  */
 export default () => {
@@ -50,7 +51,11 @@ export default () => {
 
   return (
     <DemoWrapper height="450px">
-      <PromptEditor value={data} previewMode={true} />
+      <PromptEditor
+        value={data}
+        previewMode={true}
+        previewRenderMode="readonly-editor"
+      />
     </DemoWrapper>
   );
 };

@@ -16,9 +16,11 @@ import {
   OptimizeConfig,
   OptimizeRequest,
   OptimizeResponse,
+  PreviewRenderMode,
   TaskNodeMinimal,
 } from '../../types';
 import { AIOptimizeModal } from '../AIOptimizeModal/AIOptimizeModal';
+import { MarkdownRenderer } from '../AIOptimizeModal/MarkdownRenderer';
 import { CodeMirrorEditor } from '../CodeMirrorEditor';
 import { DependencyConfigSection } from './DependencyConfigSection';
 import { EditableTitle } from './EditableTitle';
@@ -76,6 +78,7 @@ interface CustomNodeProps {
   onDislike?: (messageId: string) => void;
   // 预览模式
   previewMode?: boolean;
+  previewRenderMode?: PreviewRenderMode;
   // 国际化配置
   locale?: Locale;
   // 主题模式
@@ -119,6 +122,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
     onLike,
     onDislike,
     previewMode = false,
+    previewRenderMode = 'readonly-editor',
     locale,
     theme = 'system',
     draggable = false,
@@ -148,6 +152,10 @@ export const Node: React.FC<CustomNodeProps> = memo(
     const [availableWidth, setAvailableWidth] = React.useState(0);
     const headerRef = React.useRef<HTMLDivElement | null>(null);
     const nodeRef = React.useRef<HTMLDivElement | null>(null);
+    const previewContentRef = React.useRef<HTMLDivElement | null>(null);
+    const resolvedPreviewRenderMode = previewMode
+      ? previewRenderMode
+      : 'readonly-editor';
 
     React.useEffect(() => {
       const checkMobile = () => {
@@ -191,6 +199,35 @@ export const Node: React.FC<CustomNodeProps> = memo(
       return () => resizeObserver.disconnect();
     }, [nodeData.id, onHeightChange, isEditorExpanded, isChildrenExpanded]);
 
+    React.useEffect(() => {
+      if (!previewMode || !isEditorExpanded || !onHeightChange) return;
+
+      const previewElement = previewContentRef.current;
+      if (!previewElement) return;
+
+      const reportPreviewHeight = () => {
+        const nodeElement = nodeRef.current;
+        const targetElement = nodeElement || previewElement;
+        onHeightChange(nodeData.id, targetElement.getBoundingClientRect().height);
+      };
+
+      reportPreviewHeight();
+
+      const resizeObserver = new ResizeObserver(() => {
+        reportPreviewHeight();
+      });
+
+      resizeObserver.observe(previewElement);
+      return () => resizeObserver.disconnect();
+    }, [
+      isEditorExpanded,
+      nodeData.content,
+      nodeData.id,
+      onHeightChange,
+      previewMode,
+      resolvedPreviewRenderMode,
+    ]);
+
     // 根据可用宽度决定显示哪些按钮
     const showAllButtons = availableWidth > 650; // 宽度大于 650px 时显示所有按钮
     const dragInsideClassName = isDarkMode
@@ -203,8 +240,8 @@ export const Node: React.FC<CustomNodeProps> = memo(
       ? 'flex h-5 w-5 flex-shrink-0 cursor-pointer items-center justify-center rounded border-none bg-transparent text-slate-400 transition-all hover:bg-slate-800/80'
       : 'flex h-5 w-5 flex-shrink-0 cursor-pointer items-center justify-center rounded border-none bg-transparent text-gray-500 transition-all hover:bg-gray-100';
     const editorShellClassName = isDarkMode
-      ? 'prompt-editor-editor-shell relative z-0 overflow-hidden border-0 bg-[rgba(8,20,40,0.96)] shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]'
-      : 'prompt-editor-editor-shell relative z-0 overflow-hidden border-0 bg-gray-100';
+      ? 'prompt-editor-editor-shell relative z-0 rounded-t-lg overflow-hidden border-0 bg-[rgba(8,20,40,0.96)] shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]'
+      : 'prompt-editor-editor-shell relative z-0 rounded-t-lg overflow-hidden border-0 bg-gray-100';
     const editorShellStyle: React.CSSProperties = isDarkMode
       ? {
           borderBottom: '4px double rgba(59, 130, 246, 0.16)',
@@ -215,6 +252,9 @@ export const Node: React.FC<CustomNodeProps> = memo(
     const editorSurfaceClassName = isDarkMode
       ? 'prompt-editor-editor-surface m-2 rounded-md border border-blue-500/10 bg-[rgba(7,16,31,1)] p-3'
       : 'prompt-editor-editor-surface m-2 rounded-md border border-gray-200 bg-white p-3';
+    const markdownPreviewClassName = isDarkMode
+      ? 'prompt-editor-markdown-preview m-2 rounded-md border border-blue-500/10 bg-[rgba(7,16,31,1)] p-4 text-slate-100'
+      : 'prompt-editor-markdown-preview m-2 rounded-md border border-gray-200 bg-white p-4 text-gray-900';
     const footerClassName = isDarkMode
       ? 'prompt-editor-editor-footer flex items-center justify-between gap-3 border-t border-indigo-900/40 bg-[rgba(7,16,31,1)] px-3 py-2'
       : 'prompt-editor-editor-footer flex items-center justify-between gap-3 border-t border-gray-200 bg-white px-3 py-2';
@@ -635,16 +675,45 @@ export const Node: React.FC<CustomNodeProps> = memo(
                   ...editorShellStyle,
                 }}
               >
-                <div className={editorSurfaceClassName}>
-                  <CodeMirrorEditor
-                    ref={editorRef}
-                    value={nodeData.content}
-                    onChange={handleContentChange}
-                    isReadOnly={nodeData.isLocked || previewMode}
-                    locale={locale}
-                    theme={theme}
-                  />
-                </div>
+                {previewMode ? (
+                  <div ref={previewContentRef}>
+                    {resolvedPreviewRenderMode === 'markdown' ? (
+                      <div
+                        className={markdownPreviewClassName}
+                        data-preview-render-mode="markdown"
+                      >
+                        <MarkdownRenderer content={nodeData.content} />
+                      </div>
+                    ) : (
+                      <div
+                        className={editorSurfaceClassName}
+                        data-preview-render-mode="readonly-editor"
+                      >
+                        <CodeMirrorEditor
+                          ref={editorRef}
+                          value={nodeData.content}
+                          onChange={handleContentChange}
+                          isReadOnly={true}
+                          minHeight="64px"
+                          maxHeight="220px"
+                          locale={locale}
+                          theme={theme}
+                        />
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className={editorSurfaceClassName}>
+                    <CodeMirrorEditor
+                      ref={editorRef}
+                      value={nodeData.content}
+                      onChange={handleContentChange}
+                      isReadOnly={nodeData.isLocked}
+                      locale={locale}
+                      theme={theme}
+                    />
+                  </div>
+                )}
 
                 {/* 依赖任务配置区域 - 预览模式下隐藏 */}
                 {!previewMode && (

@@ -171,6 +171,7 @@ const AppDark = () => <PromptEditor theme="dark" />;
 | renderToolbar | Custom top toolbar | `(actions) => ReactNode` | - |
 | optimizeCustomContent | Enables an external custom optimize flow; when non-null, clicking AI optimize skips the built-in modal | `ReactNode \| null` | `null` |
 | previewMode | Preview mode (read-only, hides editing features) | `boolean` | `false` |
+| previewRenderMode | Preview content renderer used in `previewMode`, supports read-only editor or Markdown reading view | `'readonly-editor' \| 'markdown'` | `'readonly-editor'` |
 | locale | Internationalization configuration (similar to Ant Design's language pack) | `Locale` | `zhCN` |
 | theme | Theme mode (controls light/dark theme) | `'system' \| 'light' \| 'dark'` | `'system'` |
 | draggable | Enable drag-and-drop sorting (allows adjusting node positions and hierarchy via dragging) | `boolean` | `false` |
@@ -401,13 +402,25 @@ Use the `previewMode` prop to enable read-only display:
 <PromptEditor
   value={data}
   previewMode={true}  // Hide all operation buttons
+  previewRenderMode="readonly-editor" // Default, or use "markdown"
+/>
+```
+
+If you want expanded preview content to render as a Markdown reading view instead, use:
+
+```typescript
+<PromptEditor
+  value={data}
+  previewMode={true}
+  previewRenderMode="markdown"
 />
 ```
 
 **Preview Mode Features:**
 
 - ✅ Display node titles and numbers
-- ✅ Display editor content (read-only)
+- ✅ Display read-only editor content by default
+- ✅ Optionally render a Markdown reading view
 - ✅ Can expand/collapse child nodes
 - ❌ Hide top toolbar
 - ❌ Hide all operation buttons (edit, add, lock, delete, etc.)

@@ -40,6 +40,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   onLike,
   onDislike,
   previewMode = false,
+  previewRenderMode = 'readonly-editor',
   locale,
   theme = 'system',
   draggable = false,
@@ -454,10 +455,18 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
         node.id,
         expandedEditorId,
         nodeHeightsRef,
+        {
+          previewMode,
+          previewRenderMode,
+        },
       );
       const estimatedHeight = estimateNodeHeight(
         node,
         expandedEditorId === node.id,
+        {
+          previewMode,
+          previewRenderMode,
+        },
       );
 
       if (nodeHeightsRef.current.has(node.id)) {
@@ -505,6 +514,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       onLike,
       onDislike,
       previewMode: prevMode,
+      previewRenderMode: previewRenderKind,
       locale: loc,
       theme: thm,
       draggable: drag,
@@ -566,6 +576,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
             onLike={onLike}
             onDislike={onDislike}
             previewMode={prevMode}
+            previewRenderMode={previewRenderKind}
             locale={loc}
             theme={thm}
           />
@@ -609,6 +620,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       onLike,
       onDislike,
       previewMode,
+      previewRenderMode,
       locale,
       theme,
       draggable,
@@ -645,6 +657,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       onLike,
       onDislike,
       previewMode,
+      previewRenderMode,
       locale,
       theme,
       draggable,

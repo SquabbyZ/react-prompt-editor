@@ -132,6 +132,8 @@ export interface OptimizeResponse {
   meta?: Record<string, unknown>;
 }
 
+export type PreviewRenderMode = 'readonly-editor' | 'markdown';
+
 export interface PromptEditorProps {
   initialValue?: TaskNode[];
   value?: TaskNode[];
@@ -205,6 +207,14 @@ export interface PromptEditorProps {
    * @default false
    */
   previewMode?: boolean;
+  /**
+   * 预览模式下内容区的渲染方式
+   * - 'readonly-editor': 使用只读编辑器展示（默认）
+   * - 'markdown': 使用 Markdown 阅读视图展示
+   * 仅在 previewMode=true 时生效
+   * @default 'readonly-editor'
+   */
+  previewRenderMode?: PreviewRenderMode;
   /**
    * 国际化配置 - 类似 Ant Design 的语言包
    * @example import zhCN from 'react-prompt-editor/locale/zh-CN';

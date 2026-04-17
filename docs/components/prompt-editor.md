@@ -143,6 +143,7 @@ pnpm add antd @ant-design/x @uiw/react-codemirror \
 | renderToolbar  | 自定义顶部工具栏                                           | `(actions) => ReactNode`        | -          |
 | optimizeCustomContent | 启用外部自定义优化流程；非 null 时点击 AI 优化不会打开内置弹窗 | `ReactNode \| null`             | `null`     |
 | previewMode    | 预览模式（只读，隐藏编辑功能）                             | `boolean`                       | `false`    |
+| previewRenderMode | 预览模式内容区渲染方式，仅在 `previewMode` 下生效，支持只读编辑器或 Markdown 阅读视图 | `'readonly-editor' \| 'markdown'` | `'readonly-editor'` |
 | locale         | 国际化配置（类似 Ant Design 的语言包）                     | `Locale`                        | `zhCN`     |
 | theme          | 主题模式（控制明亮/暗色主题）                              | `'system' \| 'light' \| 'dark'` | `'system'` |
 | draggable      | 是否支持拖拽排序（启用后可通过拖拽调整节点位置和层级）     | `boolean`                       | `false`    |
@@ -373,13 +374,25 @@ const handleOptimizeRequest = async (request: OptimizeRequest) => {
 <PromptEditor
   value={data}
   previewMode={true}  // 隐藏所有操作按钮
+  previewRenderMode="readonly-editor" // 默认值，可选 "markdown"
+/>
+```
+
+如果希望预览态展开后直接显示 Markdown 阅读视图，可改为：
+
+```typescript
+<PromptEditor
+  value={data}
+  previewMode={true}
+  previewRenderMode="markdown"
 />
 ```
 
 **预览模式特性：**
 
 - ✅ 显示节点标题和序号
-- ✅ 显示编辑器内容（只读）
+- ✅ 默认显示只读编辑器内容
+- ✅ 可选显示 Markdown 阅读视图
 - ✅ 可以展开/折叠子节点
 - ❌ 隐藏顶部工具栏
 - ❌ 隐藏所有操作按钮（编辑、添加、锁定、删除等）
