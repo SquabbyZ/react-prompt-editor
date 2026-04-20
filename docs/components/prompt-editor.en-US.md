@@ -40,6 +40,7 @@ pnpm add antd @ant-design/x
 > 💡 **Why do I need to install these dependencies manually?**
 >
 > This release is intentionally built as the Ant Design UI edition, so `antd` and `@ant-design/x` are provided by the host app. This allows:
+>
 > - ✅ Reusing your app's Ant Design theme and configuration
 > - ✅ No duplication if your project already has antd
 > - ✅ Full control over Ant Design related versions
@@ -89,6 +90,36 @@ Use the `draggable` prop to enable node drag-and-drop sorting functionality, all
 - ✅ Automatically detects and prevents circular dependencies (cannot drag parent into its child)
 - ❌ Locked nodes cannot be dragged
 - ❌ Cannot drag in preview mode
+
+## Controlled vs Uncontrolled Mode
+
+The component supports two data management approaches: **controlled mode** (`value` + `onChange`) and **uncontrolled mode** (`initialValue`). Controlled mode is ideal when you need to sync state externally; uncontrolled mode suits simple standalone usage:
+
+<code src="./examples/controlled-uncontrolled.tsx"></code>
+
+## Custom Toolbar
+
+Use the `renderToolbar` prop to fully customize the top toolbar's content and layout. The callback provides built-in actions like `addRootNode` for seamless integration with your custom UI:
+
+<code src="./examples/custom-toolbar.tsx"></code>
+
+## Node Dependencies
+
+Use the `dependencies` field to establish relationships between nodes. When running a node, the `dependenciesContent` in the `onRunRequest` callback automatically includes all dependency nodes' content, perfect for building agents or multi-stage generation flows:
+
+<code src="./examples/dependencies.tsx"></code>
+
+## Preview Render Mode Comparison
+
+`previewRenderMode` supports two rendering modes: `readonly-editor` (preserves code highlighting and line numbers) and `markdown` (better suited for non-technical readers):
+
+<code src="./examples/preview-render-modes.tsx"></code>
+
+## Multiple Editor Instances
+
+Each `<PromptEditor />` instance has its own independent Zustand store with no interference. Ideal for managing multiple prompt templates simultaneously (e.g., editing System Prompt and User Prompt side by side):
+
+<code src="./examples/multi-instance.tsx"></code>
 
 ## Large Dataset Demo
 
@@ -161,35 +192,35 @@ const AppDark = () => <PromptEditor theme="dark" />;
 
 #### Props
 
-| Parameter | Description | Type | Default |
-| --- | --- | --- | --- |
-| initialValue | Initial tree data (uncontrolled mode) | `TaskNode[]` | `[]` |
-| value | Tree data (controlled mode) | `TaskNode[]` | - |
-| optimizeConfig | AI optimization config (component handles requests and streaming/non-streaming rendering) | `OptimizeConfig` | - |
-| autoOptimize | Whether to automatically start optimization when opening the optimization modal | `boolean` | `true` |
-| className | Custom class name | `string` | - |
-| style | Custom styles | `React.CSSProperties` | - |
-| renderToolbar | Custom top toolbar | `(actions) => ReactNode` | - |
-| optimizeCustomContent | Enables an external custom optimize flow; when non-null, clicking AI optimize skips the built-in modal | `ReactNode \| null` | `null` |
-| previewMode | Preview mode (read-only, hides editing features) | `boolean` | `false` |
-| previewRenderMode | Preview content renderer used in `previewMode`, supports read-only editor or Markdown reading view | `'readonly-editor' \| 'markdown'` | `'readonly-editor'` |
-| locale | Internationalization configuration (similar to Ant Design's language pack) | `Locale` | `zhCN` |
-| theme | Theme mode (controls light/dark theme) | `'system' \| 'light' \| 'dark'` | `'system'` |
-| draggable | Enable drag-and-drop sorting (allows adjusting node positions and hierarchy via dragging) | `boolean` | `false` |
+| Parameter             | Description                                                                                            | Type                              | Default             |
+| --------------------- | ------------------------------------------------------------------------------------------------------ | --------------------------------- | ------------------- |
+| initialValue          | Initial tree data (uncontrolled mode)                                                                  | `TaskNode[]`                      | `[]`                |
+| value                 | Tree data (controlled mode)                                                                            | `TaskNode[]`                      | -                   |
+| optimizeConfig        | AI optimization config (component handles requests and streaming/non-streaming rendering)              | `OptimizeConfig`                  | -                   |
+| autoOptimize          | Whether to automatically start optimization when opening the optimization modal                        | `boolean`                         | `true`              |
+| className             | Custom class name                                                                                      | `string`                          | -                   |
+| style                 | Custom styles                                                                                          | `React.CSSProperties`             | -                   |
+| renderToolbar         | Custom top toolbar                                                                                     | `(actions) => ReactNode`          | -                   |
+| optimizeCustomContent | Enables an external custom optimize flow; when non-null, clicking AI optimize skips the built-in modal | `ReactNode \| null`               | `null`              |
+| previewMode           | Preview mode (read-only, hides editing features)                                                       | `boolean`                         | `false`             |
+| previewRenderMode     | Preview content renderer used in `previewMode`, supports read-only editor or Markdown reading view     | `'readonly-editor' \| 'markdown'` | `'readonly-editor'` |
+| locale                | Internationalization configuration (similar to Ant Design's language pack)                             | `Locale`                          | `zhCN`              |
+| theme                 | Theme mode (controls light/dark theme)                                                                 | `'system' \| 'light' \| 'dark'`   | `'system'`          |
+| draggable             | Enable drag-and-drop sorting (allows adjusting node positions and hierarchy via dragging)              | `boolean`                         | `false`             |
 
 #### Events
 
-| Parameter | Description | Type | Default |
-| --- | --- | --- | --- |
-| onChange | Data change callback | `(data: TaskNode[]) => void` | - |
-| onRunRequest | Run request callback (called when triggered, user handles async requests) | `(request: RunTaskRequest) => void` | - |
-| onOptimizeRequest | Optimize request callback (advanced mode, user handles requests and applies results via request.applyOptimizedContent) | `(request: OptimizeRequest) => void` | - |
-| onNodeRun | Node run completion callback (user calls after completing run request to notify component) | `(nodeId: string, result: RunTaskResponse) => void` | - |
-| onNodeOptimize | Node optimize completion callback (user calls after completing optimize request) | `(nodeId: string, result: OptimizeResponse) => void` | - |
-| onNodeLock | Node lock callback | `(nodeId: string, isLocked: boolean) => void` | - |
-| onTreeChange | Tree change callback | `(tree: TaskNode[]) => void` | - |
-| onLike | AI optimization message like callback | `(messageId: string) => void` | - |
-| onDislike | AI optimization message dislike callback | `(messageId: string) => void` | - |
+| Parameter         | Description                                                                                                            | Type                                                 | Default |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | ------- |
+| onChange          | Data change callback                                                                                                   | `(data: TaskNode[]) => void`                         | -       |
+| onRunRequest      | Run request callback (called when triggered, user handles async requests)                                              | `(request: RunTaskRequest) => void`                  | -       |
+| onOptimizeRequest | Optimize request callback (advanced mode, user handles requests and applies results via request.applyOptimizedContent) | `(request: OptimizeRequest) => void`                 | -       |
+| onNodeRun         | Node run completion callback (user calls after completing run request to notify component)                             | `(nodeId: string, result: RunTaskResponse) => void`  | -       |
+| onNodeOptimize    | Node optimize completion callback (user calls after completing optimize request)                                       | `(nodeId: string, result: OptimizeResponse) => void` | -       |
+| onNodeLock        | Node lock callback                                                                                                     | `(nodeId: string, isLocked: boolean) => void`        | -       |
+| onTreeChange      | Tree change callback                                                                                                   | `(tree: TaskNode[]) => void`                         | -       |
+| onLike            | AI optimization message like callback                                                                                  | `(messageId: string) => void`                        | -       |
+| onDislike         | AI optimization message dislike callback                                                                               | `(messageId: string) => void`                        | -       |
 
 ## Data Types
 

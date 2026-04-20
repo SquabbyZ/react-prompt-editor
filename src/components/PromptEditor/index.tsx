@@ -1,5 +1,5 @@
-import { Plus } from 'lucide-react';
 import { Button, message } from 'antd';
+import { Plus } from 'lucide-react';
 import React, {
   memo,
   useCallback,
@@ -11,7 +11,7 @@ import React, {
 import { List } from 'react-window';
 import { useI18n } from '../../hooks/useI18n';
 import { useResolvedTheme } from '../../hooks/useResolvedTheme';
-import { createEditorStore, EditorStoreType } from '../../stores';
+import { EditorStoreType, createEditorStore } from '../../stores';
 import { TaskNode } from '../../types';
 import {
   estimateNodeHeight,
@@ -44,6 +44,8 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   locale,
   theme = 'system',
   draggable = false,
+  dataSelector,
+  onVariableChange,
 }) => {
   // 国际化 Hook
   const { t } = useI18n(locale);
@@ -116,17 +118,20 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
     [updateNode, onChange, store],
   );
 
-  const handleNodeHeightChange = useCallback((nodeId: string, height: number) => {
-    const nextHeight = Math.ceil(height);
-    const prevHeight = nodeHeightsRef.current.get(nodeId);
+  const handleNodeHeightChange = useCallback(
+    (nodeId: string, height: number) => {
+      const nextHeight = Math.ceil(height);
+      const prevHeight = nodeHeightsRef.current.get(nodeId);
 
-    if (prevHeight === nextHeight) {
-      return;
-    }
+      if (prevHeight === nextHeight) {
+        return;
+      }
 
-    nodeHeightsRef.current.set(nodeId, nextHeight);
-    setHeightVersion((version) => version + 1);
-  }, []);
+      nodeHeightsRef.current.set(nodeId, nextHeight);
+      setHeightVersion((version) => version + 1);
+    },
+    [],
+  );
 
   // 处理节点运行结果
   const handleNodeRunCallback = useCallback(
@@ -518,6 +523,8 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       locale: loc,
       theme: thm,
       draggable: drag,
+      dataSelector,
+      onVariableChange,
     }: any) => {
       const node = nodes[index];
       if (!node) return null;
@@ -579,6 +586,8 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
             previewRenderMode={previewRenderKind}
             locale={loc}
             theme={thm}
+            dataSelector={dataSelector}
+            onVariableChange={onVariableChange}
           />
         </div>
       );
@@ -624,6 +633,8 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       locale,
       theme,
       draggable,
+      dataSelector,
+      onVariableChange,
     }),
     [
       visibleNodes,
@@ -661,6 +672,8 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       locale,
       theme,
       draggable,
+      dataSelector,
+      onVariableChange,
     ],
   );
 

@@ -1,22 +1,26 @@
+import { Button, Modal, Tooltip, message } from 'antd';
 import {
-  Trash2,
   Lock,
   PlayCircle,
   Plus,
-  Zap,
+  Trash2,
   Unlock,
+  Variable,
+  Zap,
 } from 'lucide-react';
-import { Button, message, Modal, Tooltip } from 'antd';
 import React, { memo, useCallback } from 'react';
 import { useI18n } from '../../hooks/useI18n';
 import { useNodeEditor } from '../../hooks/useNodeEditor';
 import { useResolvedTheme } from '../../hooks/useResolvedTheme';
 import type { Locale } from '../../i18n/locales/zh-CN';
 import {
+  DataSelectorComponentProps,
+  EditorVariable,
   OptimizeConfig,
   OptimizeRequest,
   OptimizeResponse,
   PreviewRenderMode,
+  TagData,
   TaskNodeMinimal,
 } from '../../types';
 import { AIOptimizeModal } from '../AIOptimizeModal/AIOptimizeModal';
@@ -94,6 +98,12 @@ interface CustomNodeProps {
   onDragLeave?: (e: React.DragEvent) => void;
   onDrop?: (e: React.DragEvent) => void;
   onDragEnd?: () => void;
+  /** 数据选择器组件 */
+  dataSelector?: React.ComponentType<DataSelectorComponentProps>;
+  /** 变量列表 */
+  variables?: EditorVariable[];
+  /** 变量变化回调 */
+  onVariableChange?: (nodeId: string, variables: EditorVariable[]) => void;
 }
 
 export const Node: React.FC<CustomNodeProps> = memo(
@@ -134,6 +144,9 @@ export const Node: React.FC<CustomNodeProps> = memo(
     onDragLeave,
     onDrop,
     onDragEnd,
+    dataSelector,
+    variables = [],
+    onVariableChange,
   }) => {
     // 国际化 Hook
     const { t } = useI18n(locale);
@@ -208,7 +221,10 @@ export const Node: React.FC<CustomNodeProps> = memo(
       const reportPreviewHeight = () => {
         const nodeElement = nodeRef.current;
         const targetElement = nodeElement || previewElement;
-        onHeightChange(nodeData.id, targetElement.getBoundingClientRect().height);
+        onHeightChange(
+          nodeData.id,
+          targetElement.getBoundingClientRect().height,
+        );
       };
 
       reportPreviewHeight();
@@ -269,11 +285,20 @@ export const Node: React.FC<CustomNodeProps> = memo(
       from: number;
       to: number;
     } | null>(null);
-    const optimizeAbortControllerRef =
-      React.useRef<AbortController | null>(null);
+    const optimizeAbortControllerRef = React.useRef<AbortController | null>(
+      null,
+    );
     // 编辑器展开动画状态
     const [isEditorAnimating, setIsEditorAnimating] = React.useState(false);
     const prevExpandedRef = React.useRef(isEditorExpanded);
+
+    // 数据选择器相关状态
+    const [dataSelectorOpen, setDataSelectorOpen] = React.useState(false);
+    const [cursorPosition, setCursorPosition] = React.useState<number>(0);
+
+    // 将 prop 重命名为大写开头的组件变量（仅在渲染时确保存在）
+    const DataSelectorComponent =
+      dataSelector as React.ComponentType<DataSelectorComponentProps>;
 
     React.useEffect(() => {
       if (prevExpandedRef.current !== isEditorExpanded) {
@@ -342,6 +367,48 @@ export const Node: React.FC<CustomNodeProps> = memo(
         onNodeRun(nodeData.id);
       },
       [nodeData.id, onNodeRun],
+    );
+
+    // 处理打开数据选择器
+    const handleOpenDataSelector = useCallback(
+      (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const view = editorRef.current?.view;
+        if (view) {
+          const pos = view.state.selection.main.from;
+          setCursorPosition(pos);
+          setDataSelectorOpen(true);
+        }
+      },
+      [editorRef],
+    );
+
+    // 处理插入变量
+    const handleInsertVariable = useCallback(
+      (data: TagData) => {
+        const view = editorRef.current?.view;
+        if (!view) return;
+
+        const insertText = data.label;
+
+        // 在光标位置插入文本
+        view.dispatch({
+          changes: { from: cursorPosition, insert: insertText },
+          selection: { anchor: cursorPosition + insertText.length },
+        });
+
+        // 更新变量列表
+        const newVariable: EditorVariable = {
+          id: `${nodeData.id}_${data.id}_${Date.now()}`,
+          position: cursorPosition,
+          length: insertText.length,
+          data,
+        };
+
+        onVariableChange?.(nodeData.id, [...variables, newVariable]);
+        setDataSelectorOpen(false);
+      },
+      [editorRef, cursorPosition, nodeData.id, variables, onVariableChange],
     );
 
     const applyOptimizedResult = useCallback(
@@ -432,37 +499,37 @@ export const Node: React.FC<CustomNodeProps> = memo(
 
           Promise.resolve(
             onOptimizeRequest({
-            content: nodeData.content,
-            selectedText: resolvedSelectedContent,
-            instruction: undefined,
-            messages: [
-              {
-                role: 'system',
-                content: '你是一个提示词优化助手。',
+              content: nodeData.content,
+              selectedText: resolvedSelectedContent,
+              instruction: undefined,
+              messages: [
+                {
+                  role: 'system',
+                  content: '你是一个提示词优化助手。',
+                },
+                {
+                  role: 'user',
+                  content: resolvedSelectedContent,
+                },
+              ],
+              signal: abortController.signal,
+              config: optimizeConfig,
+              applyOptimizedContent: (optimizedContent: string) => {
+                applyOptimizedResult(optimizedContent);
+                optimizeAbortControllerRef.current = null;
               },
-              {
-                role: 'user',
-                content: resolvedSelectedContent,
+              setOptimizeError: (error: string | Error) => {
+                const errorMessage =
+                  typeof error === 'string' ? error : error.message;
+                message.error(errorMessage);
               },
-            ],
-            signal: abortController.signal,
-            config: optimizeConfig,
-            applyOptimizedContent: (optimizedContent: string) => {
-              applyOptimizedResult(optimizedContent);
-              optimizeAbortControllerRef.current = null;
-            },
-            setOptimizeError: (error: string | Error) => {
-              const errorMessage =
-                typeof error === 'string' ? error : error.message;
-              message.error(errorMessage);
-            },
-            closeOptimizeDialog: () => {
-              optimizeAbortControllerRef.current?.abort();
-              optimizeAbortControllerRef.current = null;
-              setSelectedContent(undefined);
-              setSelectedRange(null);
-              setOptimizeModalOpen(false);
-            },
+              closeOptimizeDialog: () => {
+                optimizeAbortControllerRef.current?.abort();
+                optimizeAbortControllerRef.current = null;
+                setSelectedContent(undefined);
+                setSelectedRange(null);
+                setOptimizeModalOpen(false);
+              },
             }),
           ).catch((error) => {
             const errorMessage =
@@ -561,9 +628,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
           {/* 节点头部和编辑器容器 */}
           <div
             className={`flex h-full flex-col gap-2 rounded-lg border-2 border-transparent transition-all ${
-              isDragOver && dragPosition === 'inside'
-                ? dragInsideClassName
-                : ''
+              isDragOver && dragPosition === 'inside' ? dragInsideClassName : ''
             }`}
             onDragOver={draggable ? onDragOver : undefined}
             onDragLeave={draggable ? onDragLeave : undefined}
@@ -742,6 +807,18 @@ export const Node: React.FC<CustomNodeProps> = memo(
                     />
 
                     <div className="flex items-center gap-2">
+                      {dataSelector && (
+                        <Tooltip title={t('editor.insertVariable')}>
+                          <Button
+                            icon={<Variable size={14} />}
+                            onClick={handleOpenDataSelector}
+                            size="small"
+                            aria-label={t('editor.insertVariable')}
+                            className={secondaryActionButtonClassName}
+                          />
+                        </Tooltip>
+                      )}
+
                       <Tooltip title={t('editor.run')}>
                         <Button
                           type="primary"
@@ -781,6 +858,15 @@ export const Node: React.FC<CustomNodeProps> = memo(
                     onApply={applyOptimizedResult}
                     onLike={onLike}
                     onDislike={onDislike}
+                  />
+                )}
+
+                {/* 数据选择器弹窗 - 预览模式下不渲染 */}
+                {!previewMode && dataSelector && dataSelectorOpen && (
+                  <DataSelectorComponent
+                    onSelect={handleInsertVariable}
+                    onCancel={() => setDataSelectorOpen(false)}
+                    cursorPosition={cursorPosition}
                   />
                 )}
               </div>

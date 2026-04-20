@@ -55,6 +55,7 @@ export default {
     titleUpdated: '标题修改成功',
     nodeMoved: '节点移动成功',
     missingOnRunRequest: '请提供 onRunRequest 回调',
+    insertVariable: '插入变量',
   },
 
   // Node 操作按钮

@@ -1,5 +1,12 @@
 import { markdown } from '@codemirror/lang-markdown';
+import { RangeSetBuilder } from '@codemirror/state';
 import { oneDark } from '@codemirror/theme-one-dark';
+import {
+  Decoration,
+  DecorationSet,
+  ViewPlugin,
+  WidgetType,
+} from '@codemirror/view';
 import CodeMirror from '@uiw/react-codemirror';
 import React, {
   forwardRef,
@@ -11,11 +18,68 @@ import React, {
 } from 'react';
 import { getCodeMirrorPhrases } from '../../i18n/codemirror';
 import { createTranslator, defaultLocale } from '../../i18n/types';
+import { EditorVariable, TagData } from '../../types';
 import { CodeMirrorEditorProps } from './CodeMirrorEditor.types';
 
 export interface CodeMirrorRef {
   view: any;
 }
+
+class VariableWidget extends WidgetType {
+  constructor(readonly data: TagData) {
+    super();
+  }
+
+  toDOM(): HTMLElement {
+    const span = document.createElement('span');
+    span.className = 'cm-variable-tag';
+    span.setAttribute('data-variable-id', this.data.id);
+    span.setAttribute('contenteditable', 'false');
+    span.textContent = this.data.label;
+    return span;
+  }
+
+  eq(other: VariableWidget) {
+    return this.data.id === other.data.id;
+  }
+
+  ignoreEvent(): boolean {
+    return true;
+  }
+}
+
+function buildVariableDecorations(variables: EditorVariable[]): DecorationSet {
+  const builder = new RangeSetBuilder<Decoration>();
+  if (!variables || variables.length === 0) {
+    return builder.finish();
+  }
+  for (const v of variables) {
+    builder.add(
+      v.position,
+      v.position + 1,
+      Decoration.widget({ widget: new VariableWidget(v.data), side: 1 }),
+    );
+  }
+  return builder.finish();
+}
+
+const createVariablePlugin = (variables: EditorVariable[]) =>
+  ViewPlugin.fromClass(
+    class {
+      decorations: DecorationSet;
+
+      constructor() {
+        this.decorations = buildVariableDecorations(variables);
+      }
+
+      update() {
+        this.decorations = buildVariableDecorations(variables);
+      }
+    },
+    {
+      decorations: (v: any) => v.decorations,
+    },
+  );
 
 export const CodeMirrorEditor = memo(
   forwardRef<CodeMirrorRef, CodeMirrorEditorProps>(
@@ -31,6 +95,9 @@ export const CodeMirrorEditor = memo(
         style,
         locale = defaultLocale,
         theme = 'system',
+        variables = [],
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        onVariableChange,
       },
       ref,
     ) => {
@@ -189,6 +256,9 @@ export const CodeMirrorEditor = memo(
       const extensions = [markdown()];
       if (isDarkMode) {
         extensions.push(oneDark as any);
+      }
+      if (variables.length > 0) {
+        extensions.push(createVariablePlugin(variables) as any);
       }
 
       return (

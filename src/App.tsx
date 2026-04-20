@@ -1,13 +1,17 @@
 import { ConfigProvider } from 'antd';
 import React from 'react';
+import { SimpleDataSelector } from '../examples/SimpleDataSelector';
 import { PromptEditor } from './components/PromptEditor';
-import {
-  OptimizeRequest,
-  RunTaskRequest,
-  TaskNode,
-} from './types';
+import { OptimizeRequest, RunTaskRequest, TaskNode } from './types';
 
 const App: React.FC = () => {
+  // 变量状态管理（可选）
+  // const [variables, setVariables] = useState<Record<string, EditorVariable[]>>({});
+  // const handleVariableChange = (nodeId: string, vars: EditorVariable[]) => {
+  //   console.log('变量变化:', nodeId, vars);
+  //   setVariables((prev) => ({ ...prev, [nodeId]: vars }));
+  // };
+
   const initialValue: TaskNode[] = [
     {
       id: '1',
@@ -123,8 +127,7 @@ const App: React.FC = () => {
           onTreeChange={handleTreeChange}
           onLike={handleLike}
           onDislike={handleDislike}
-          className="rounded-lg border border-gray-300"
-          theme="system" // 可以修改为 'light' 或 'dark' 进行测试
+          dataSelector={SimpleDataSelector}
         />
       </div>
     </ConfigProvider>

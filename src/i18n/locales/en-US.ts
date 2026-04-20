@@ -55,6 +55,7 @@ export default {
     titleUpdated: 'Title modified successfully',
     nodeMoved: 'Node moved successfully',
     missingOnRunRequest: 'Please provide onRunRequest callback',
+    insertVariable: 'Insert Variable',
   },
 
   // Node Action Buttons

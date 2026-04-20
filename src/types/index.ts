@@ -132,6 +132,35 @@ export interface OptimizeResponse {
   meta?: Record<string, unknown>;
 }
 
+/**
+ * 变量选择器数据结构
+ */
+export interface TagData {
+  id: string;
+  label: string;
+  value: string;
+  metadata?: Record<string, any>;
+}
+
+/**
+ * 数据选择器组件 Props
+ */
+export interface DataSelectorComponentProps {
+  onSelect: (data: TagData) => void;
+  onCancel: () => void;
+  cursorPosition?: number;
+}
+
+/**
+ * 编辑器内部变量状态
+ */
+export interface EditorVariable {
+  id: string;
+  position: number;
+  length: number;
+  data: TagData;
+}
+
 export type PreviewRenderMode = 'readonly-editor' | 'markdown';
 
 export interface PromptEditorProps {
@@ -234,4 +263,12 @@ export interface PromptEditorProps {
    * @default false
    */
   draggable?: boolean;
+  /**
+   * 数据选择器组件
+   */
+  dataSelector?: React.ComponentType<DataSelectorComponentProps>;
+  /**
+   * 变量变化回调
+   */
+  onVariableChange?: (nodeId: string, variables: EditorVariable[]) => void;
 }

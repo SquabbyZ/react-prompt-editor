@@ -12,6 +12,20 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Added `dataSelector` and `onVariableChange` props to `PromptEditor` to support
+  custom data/variable selection functionality.
+  为 `PromptEditor` 新增 `dataSelector` 和 `onVariableChange` 属性，支持自定义
+  数据/变量选择功能。
+- Added `@` variable insertion feature with CodeMirror Widget rendering for
+  dynamic variable tags in editor content.
+  新增 `@` 变量插入功能，使用 CodeMirror Widget 在编辑器内容中渲染动态变量标签。
+- Added `renderToolbar` prop to `PromptEditor` for customizing the top toolbar
+  layout and actions.
+  为 `PromptEditor` 新增 `renderToolbar` 属性，支持自定义顶部工具栏布局和操作。
+- Added multiple new documentation examples: data-selector, custom-toolbar,
+  dependencies, multi-instance, controlled-uncontrolled, preview-render-modes.
+  新增多个文档示例：数据选择器、自定义工具栏、依赖节点、多实例、受控/非受控模式、
+  预览渲染模式。
 - Added `previewRenderMode` to `PromptEditor` to support two preview renderers:
   `readonly-editor` and `markdown`.
   为 `PromptEditor` 新增 `previewRenderMode` 配置，支持 `readonly-editor`
