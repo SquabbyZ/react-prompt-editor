@@ -59,14 +59,73 @@ export default function App() {
 | `optimizeConfig` | 内置 AI 优化配置 |
 | `onOptimizeRequest` | 自定义 AI 优化流程 |
 | `previewMode` | 只读预览模式 |
+| `previewRenderMode` | 预览渲染模式，支持 `readonly-editor` 和 `markdown` |
 | `draggable` | 是否启用拖拽排序 |
 | `theme` | 主题模式，支持 `system` / `light` / `dark` |
 | `locale` | 国际化语言包 |
+| `renderToolbar` | 自定义顶部工具栏渲染函数 |
+| `dataSelector` | 数据选择器组件，支持 `@` 变量插入功能 |
+| `onVariableChange` | 变量变化回调函数 |
 
 ## 额外导出
 
 ```tsx
 import { enUS, zhCN } from 'react-prompt-editor';
+```
+
+## 主要特性
+
+###  数据选择器（变量插入）
+
+支持通过 `@` 符号触发数据选择器，在编辑器中插入变量标签：
+
+```tsx
+import { PromptEditor } from 'react-prompt-editor';
+import { SimpleDataSelector } from './MyDataSelector';
+
+const App = () => (
+  <PromptEditor
+    initialValue={initialValue}
+    dataSelector={SimpleDataSelector}
+    onVariableChange={(nodeId, variables) => {
+      console.log('Node', nodeId, 'has variables:', variables);
+    }}
+  />
+);
+```
+
+### 🎨 自定义工具栏
+
+使用 `renderToolbar` 完全控制顶部工具栏的内容和布局：
+
+```tsx
+<PromptEditor
+  initialValue={initialValue}
+  renderToolbar={(actions) => (
+    <div style={{ display: 'flex', gap: '8px' }}>
+      <span>📝 我的 Prompt 工作区</span>
+      <button onClick={() => actions.addRootNode()}>添加节点</button>
+    </div>
+  )}
+/>
+```
+
+### 👁️ 预览模式
+
+提供两种预览渲染方式：
+
+```tsx
+// 只读编辑器模式
+<PromptEditor
+  previewMode
+  previewRenderMode="readonly-editor"
+/>
+
+// Markdown 阅读模式
+<PromptEditor
+  previewMode
+  previewRenderMode="markdown"
+/>
 ```
 
 ## 文档
