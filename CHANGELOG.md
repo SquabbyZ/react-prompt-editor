@@ -10,6 +10,42 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.4] - 2026-04-21
+
+### Changed
+
+- Optimized CodeMirror variable rendering by wrapping `extensions` array with
+  `useMemo`, ensuring the variable plugin updates correctly when the variable
+  list changes.
+  使用 `useMemo` 优化 CodeMirror `extensions` 数组，确保变量列表变化时插件能正确更新。
+
+### Fixed
+
+- Fixed variable tag rendering in CodeMirror by switching from
+  `Decoration.widget` to `Decoration.replace`, covering the entire variable
+  label (position to position + length) so it displays as a styled tag instead
+  of plain text.
+  修复 CodeMirror 变量标签渲染：从 `Decoration.widget` 改为
+  `Decoration.replace`，覆盖整个变量标签（position 到 position + length），
+  使其以样式标签而非纯文本显示。
+- Fixed runtime variable replacement logic: now strips the `@` prefix from the
+  label and replaces tags from back to front to avoid position offsets. Added
+  fallback to global string replacement if exact position match fails.
+  修复运行时变量替换逻辑：去掉 label 的 `@` 前缀，按位置从后往前替换避免偏移；
+  增加位置匹配失败时的全局字符串替换兜底。
+- Fixed missing `@` prefix in `SimpleDataSelector` mock data labels.
+  修复 `SimpleDataSelector` 示例数据中 label 缺少 `@` 前缀的问题。
+- Fixed `onRunRequest` callback missing in documentation examples by adding it
+  to `docs/components/examples/data-selector.tsx`.
+  修复文档示例中缺失 `onRunRequest` 回调的问题。
+- Fixed variable management in `PromptEditor` by properly passing
+  `nodeVariables` and `onVariableChange` through `rowProps` to avoid stale
+  closures in virtualized rows.
+  修复 `PromptEditor` 变量管理：通过 `rowProps` 正确传递 `nodeVariables` 和
+  `onVariableChange`，避免虚拟滚动行中的闭包过期问题。
+
+## [Unreleased]
+
 ### Added
 
 - Added `dataSelector` and `onVariableChange` props to `PromptEditor` to support

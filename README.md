@@ -75,9 +75,9 @@ import { enUS, zhCN } from 'react-prompt-editor';
 
 ## 主要特性
 
-###  数据选择器（变量插入）
+### 🔖 数据选择器（变量插入）
 
-支持通过 `@` 符号触发数据选择器，在编辑器中插入变量标签：
+支持通过 `@` 符号触发数据选择器，在编辑器中插入变量标签。变量在编辑器中以高亮 Tag 样式显示，并在运行节点时自动替换为实际值：
 
 ```tsx
 import { PromptEditor } from 'react-prompt-editor';
@@ -89,6 +89,12 @@ const App = () => (
     dataSelector={SimpleDataSelector}
     onVariableChange={(nodeId, variables) => {
       console.log('Node', nodeId, 'has variables:', variables);
+    }}
+    onRunRequest={(request) => {
+      // request.content 中的变量标签已被自动替换为实际值（如 {{user.name}}）
+      console.log('处理后的内容:', request.content);
+      // 执行异步请求...
+      request.meta?.onNodeRun?.(request.nodeId, { result: '✅ 成功' });
     }}
   />
 );
