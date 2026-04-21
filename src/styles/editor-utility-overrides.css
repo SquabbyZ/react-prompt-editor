@@ -232,3 +232,41 @@
     color: #9ca3af !important;
   }
 }
+
+/* CodeMirror 变量标签样式 */
+.cm-variable-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  margin: 0 2px;
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border-radius: 4px;
+  font-size: 0.875em;
+  font-weight: 500;
+  cursor: default;
+  user-select: none;
+  vertical-align: middle;
+  line-height: 1.5;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 5%);
+  transition: all 0.15s ease;
+}
+
+.cm-variable-tag:hover {
+  background-color: #bae6fd;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 10%);
+}
+
+.dark .cm-variable-tag,
+[data-theme='dark'] .cm-variable-tag,
+[data-prefers-color='dark'] .cm-variable-tag {
+  background-color: rgba(56, 189, 248, 15%);
+  color: #7dd3fc;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 20%);
+}
+
+.dark .cm-variable-tag:hover,
+[data-theme='dark'] .cm-variable-tag:hover,
+[data-prefers-color='dark'] .cm-variable-tag:hover {
+  background-color: rgba(56, 189, 248, 25%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 30%);
+}

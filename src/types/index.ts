@@ -271,4 +271,19 @@ export interface PromptEditorProps {
    * 变量变化回调
    */
   onVariableChange?: (nodeId: string, variables: EditorVariable[]) => void;
+  /**
+   * 自定义节点底部操作按钮区域
+   * @param node 当前节点数据
+   * @param defaultActions 默认操作函数
+   * @param isDarkMode 是否为暗色模式
+   */
+  renderNodeActions?: (props: {
+    node: TaskNode;
+    defaultActions: {
+      handleOpenDataSelector: (e: React.MouseEvent) => void;
+      handleRun: (e: React.MouseEvent) => void;
+      handleOptimize: (e: React.MouseEvent) => void;
+    };
+    isDarkMode: boolean;
+  }) => React.ReactNode;
 }

@@ -21,6 +21,7 @@ import {
   OptimizeResponse,
   PreviewRenderMode,
   TagData,
+  TaskNode,
   TaskNodeMinimal,
 } from '../../types';
 import { AIOptimizeModal } from '../AIOptimizeModal/AIOptimizeModal';
@@ -104,6 +105,16 @@ interface CustomNodeProps {
   variables?: EditorVariable[];
   /** 变量变化回调 */
   onVariableChange?: (nodeId: string, variables: EditorVariable[]) => void;
+  /** 自定义节点底部操作按钮 */
+  renderNodeActions?: (props: {
+    node: TaskNode;
+    defaultActions: {
+      handleOpenDataSelector: (e: React.MouseEvent) => void;
+      handleRun: (e: React.MouseEvent) => void;
+      handleOptimize: (e: React.MouseEvent) => void;
+    };
+    isDarkMode: boolean;
+  }) => React.ReactNode;
 }
 
 export const Node: React.FC<CustomNodeProps> = memo(
@@ -147,6 +158,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
     dataSelector,
     variables = [],
     onVariableChange,
+    renderNodeActions,
   }) => {
     // 国际化 Hook
     const { t } = useI18n(locale);
@@ -776,6 +788,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
                       isReadOnly={nodeData.isLocked}
                       locale={locale}
                       theme={theme}
+                      variables={variables}
                     />
                   </div>
                 )}
@@ -806,39 +819,60 @@ export const Node: React.FC<CustomNodeProps> = memo(
                       inline
                     />
 
-                    <div className="flex items-center gap-2">
-                      {dataSelector && (
-                        <Tooltip title={t('editor.insertVariable')}>
+                    {renderNodeActions ? (
+                      renderNodeActions({
+                        node: {
+                          ...nodeData,
+                          children: nodeData.children.map((childId: string) => ({
+                            id: childId,
+                            title: '',
+                            content: '',
+                            isLocked: false,
+                            hasRun: false,
+                          })),
+                        },
+                        defaultActions: {
+                          handleOpenDataSelector,
+                          handleRun,
+                          handleOptimize,
+                        },
+                        isDarkMode,
+                      })
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        {dataSelector && (
+                          <Tooltip title={t('editor.insertVariable')}>
+                            <Button
+                              icon={<Variable size={14} />}
+                              onClick={handleOpenDataSelector}
+                              size="small"
+                              aria-label={t('editor.insertVariable')}
+                              className={secondaryActionButtonClassName}
+                            />
+                          </Tooltip>
+                        )}
+
+                        <Tooltip title={t('editor.run')}>
                           <Button
-                            icon={<Variable size={14} />}
-                            onClick={handleOpenDataSelector}
+                            type="primary"
+                            icon={<PlayCircle size={14} />}
+                            onClick={handleRun}
                             size="small"
-                            aria-label={t('editor.insertVariable')}
+                            aria-label={t('editor.run')}
+                          />
+                        </Tooltip>
+
+                        <Tooltip title={t('editor.aiOptimize')}>
+                          <Button
+                            icon={<Zap size={14} />}
+                            onClick={handleOptimize}
+                            size="small"
+                            aria-label={t('editor.aiOptimize')}
                             className={secondaryActionButtonClassName}
                           />
                         </Tooltip>
-                      )}
-
-                      <Tooltip title={t('editor.run')}>
-                        <Button
-                          type="primary"
-                          icon={<PlayCircle size={14} />}
-                          onClick={handleRun}
-                          size="small"
-                          aria-label={t('editor.run')}
-                        />
-                      </Tooltip>
-
-                      <Tooltip title={t('editor.aiOptimize')}>
-                        <Button
-                          icon={<Zap size={14} />}
-                          onClick={handleOptimize}
-                          size="small"
-                          aria-label={t('editor.aiOptimize')}
-                          className={secondaryActionButtonClassName}
-                        />
-                      </Tooltip>
-                    </div>
+                      </div>
+                    )}
                   </div>
                 )}
 

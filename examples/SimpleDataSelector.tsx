@@ -17,25 +17,25 @@ export const SimpleDataSelector: React.FC<DataSelectorComponentProps> = ({
   const mockData: TagData[] = [
     {
       id: 'user_name',
-      label: '用户名',
+      label: '@用户名',
       value: '{{user.name}}',
       metadata: { type: 'user' },
     },
     {
       id: 'user_email',
-      label: '用户邮箱',
+      label: '@用户邮箱',
       value: '{{user.email}}',
       metadata: { type: 'user' },
     },
     {
       id: 'current_date',
-      label: '当前日期',
+      label: '@当前日期',
       value: '{{date.now}}',
       metadata: { type: 'system' },
     },
     {
       id: 'ai_model',
-      label: 'AI 模型',
+      label: '@AI 模型',
       value: '{{model.name}}',
       metadata: { type: 'system' },
     },

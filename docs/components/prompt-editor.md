@@ -147,7 +147,7 @@ pnpm add antd @ant-design/x
 ### 核心特性
 
 - ✅ **自定义数据源**：完全控制变量的数据来源和展示方式
-- ✅ **可视化标签**：插入的变量以醒目的标签形式显示在编辑器中
+- ✅ **可视化标签**：插入的变量以醒目的标签形式显示在编辑器中（浅蓝色背景，圆角边框）
 - ✅ **光标定位**：自动在光标位置插入选中的变量
 - ✅ **纯文本序列化**：复制或删除时表现为普通文本，便于下游处理
 - ✅ **组件化设计**：传入任意 React 组件作为数据选择器 UI
@@ -210,6 +210,78 @@ pnpm add antd @ant-design/x
 | length   | `number`   | 变量标签的长度           |
 | data     | `TagData`  | 变量的完整数据           |
 
+## 🎯 自定义节点底部操作按钮
+
+使用 `renderNodeActions` 属性可以完全自定义节点底部操作按钮区域的内容和布局。默认情况下，节点底部会显示三个按钮：**插入变量**、**运行** 和 **AI 优化**。通过提供此属性，您可以替换为任何自定义的 UI。
+
+<code src="./examples/custom-actions-simple.tsx"></code>
+
+### 核心特性
+
+- ✅ **完全自定义**：可以替换为任意 React 组件，不受默认按钮限制
+- ✅ **访问默认操作**：回调参数中提供了所有默认操作函数，方便复用
+- ✅ **主题适配**：提供 `isDarkMode` 参数，便于自定义组件适配暗色模式
+- ✅ **节点信息**：可以访问当前节点的完整数据，实现条件渲染
+
+### 使用方式
+
+`renderNodeActions` 接收一个回调函数，该函数的参数包含：
+
+**Props 参数：**
+- `node`: 当前节点的数据（`TaskNode` 类型）
+- `defaultActions`: 默认操作函数集合
+  - `handleOpenDataSelector`: 打开数据选择器
+  - `handleRun`: 执行节点运行
+  - `handleOptimize`: 打开 AI 优化弹窗
+- `isDarkMode`: 是否为暗色模式（`boolean`）
+
+**示例：**
+
+```tsx | pure
+const renderCustomActions = ({ node, defaultActions, isDarkMode }) => {
+  return (
+    <Space size="small">
+      <Button
+        icon={<Variable size={14} />}
+        onClick={defaultActions.handleOpenDataSelector}
+        size="small"
+      >
+        插入变量
+      </Button>
+      <Button
+        icon={<PlayCircle size={14} />}
+        onClick={defaultActions.handleRun}
+        size="small"
+        type="primary"
+      >
+        执行
+      </Button>
+      {/* 可以添加更多自定义按钮 */}
+      <Button
+        icon={<Settings size={14} />}
+        onClick={() => console.log('设置', node.id)}
+        size="small"
+      >
+        设置
+      </Button>
+    </Space>
+  );
+};
+
+<PromptEditor
+  value={value}
+  onChange={setValue}
+  renderNodeActions={renderCustomActions}
+/>
+```
+
+### 应用场景
+
+- **简化界面**：如果不需要某些功能，可以只保留必要的按钮
+- **添加新功能**：比如添加“复制”、“分享”、“导出”等自定义操作
+- **条件显示**：根据节点状态（如是否已运行、是否锁定）显示不同的按钮
+- **品牌定制**：使用符合产品风格的按钮样式和图标
+
 ## 🌍 国际化
 
 组件支持中英文切换，CodeMirror 编辑器的搜索框等 UI 元素也会自动切换语言：
@@ -252,6 +324,7 @@ pnpm add antd @ant-design/x
 | theme                 | 主题模式（控制明亮/暗色主题）                                                         | `'system' \| 'light' \| 'dark'`   | `'system'`          |
 | draggable             | 是否支持拖拽排序（启用后可通过拖拽调整节点位置和层级）                                | `boolean`                         | `false`             |
 | dataSelector          | 数据选择器组件（用于在编辑器中插入变量，如 @用户名、@当前日期等）                     | `React.ComponentType<DataSelectorComponentProps>` | -      |
+| renderNodeActions     | 自定义节点底部操作按钮区域（提供此项可完全替换默认的变量/运行/AI优化按钮）            | `(props) => ReactNode`            | -                   |
 
 #### 事件 (Events)
 

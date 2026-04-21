@@ -1,5 +1,5 @@
 import { markdown } from '@codemirror/lang-markdown';
-import { RangeSetBuilder } from '@codemirror/state';
+import { Compartment, RangeSetBuilder } from '@codemirror/state';
 import { oneDark } from '@codemirror/theme-one-dark';
 import {
   Decoration,
@@ -13,6 +13,7 @@ import React, {
   memo,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -50,14 +51,13 @@ class VariableWidget extends WidgetType {
 
 function buildVariableDecorations(variables: EditorVariable[]): DecorationSet {
   const builder = new RangeSetBuilder<Decoration>();
-  if (!variables || variables.length === 0) {
-    return builder.finish();
-  }
-  for (const v of variables) {
+  if (!variables || variables.length === 0) return builder.finish();
+  const sorted = [...variables].sort((a, b) => a.position - b.position);
+  for (const v of sorted) {
     builder.add(
       v.position,
-      v.position + 1,
-      Decoration.widget({ widget: new VariableWidget(v.data), side: 1 }),
+      v.position + v.length,
+      Decoration.replace({ widget: new VariableWidget(v.data), side: 1 }),
     );
   }
   return builder.finish();
@@ -67,18 +67,14 @@ const createVariablePlugin = (variables: EditorVariable[]) =>
   ViewPlugin.fromClass(
     class {
       decorations: DecorationSet;
-
       constructor() {
         this.decorations = buildVariableDecorations(variables);
       }
-
       update() {
         this.decorations = buildVariableDecorations(variables);
       }
     },
-    {
-      decorations: (v: any) => v.decorations,
-    },
+    { decorations: (v: any) => v.decorations },
   );
 
 export const CodeMirrorEditor = memo(
@@ -252,14 +248,25 @@ export const CodeMirrorEditor = memo(
         },
       }));
 
-      // 根据暗色模式动态设置扩展
-      const extensions = [markdown()];
-      if (isDarkMode) {
-        extensions.push(oneDark as any);
-      }
-      if (variables.length > 0) {
-        extensions.push(createVariablePlugin(variables) as any);
-      }
+      const variableCompartment = useRef(new Compartment()).current;
+
+      // 根据暗色模式设置基础扩展（不含变量插件）
+      const extensions = useMemo(() => {
+        const exts: any[] = [markdown(), variableCompartment.of([])];
+        if (isDarkMode) exts.push(oneDark as any);
+        return exts;
+      }, [isDarkMode, variableCompartment]);
+
+      // 当 variables 变化时，通过 Compartment 动态更新装饰，无需重新挂载编辑器
+      useEffect(() => {
+        const view = cmRef.current?.view;
+        if (!view) return;
+        view.dispatch({
+          effects: variableCompartment.reconfigure(
+            variables.length > 0 ? [createVariablePlugin(variables) as any] : [],
+          ),
+        });
+      }, [variables, variableCompartment]);
 
       return (
         <CodeMirror

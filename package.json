@@ -1,6 +1,6 @@
 {
   "name": "react-prompt-editor",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A powerful tree-structured prompt editor for complex AI workflows, featuring Markdown editing, AI optimization with streaming responses, dependency management, and node execution tracking.",
   "license": "MIT",
   "exports": {

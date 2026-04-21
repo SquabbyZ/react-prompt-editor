@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import { message } from 'antd';
 import { PromptEditor } from '../../../src';
 import { SimpleDataSelector } from '../../../examples/SimpleDataSelector';
-import type { TaskNode, EditorVariable } from '../../../src/types';
+import type { TaskNode, EditorVariable, RunTaskRequest, RunTaskResponse } from '../../../src/types';
 
 /**
  * 数据选择器示例 - 在编辑器中插入 @变量
@@ -48,6 +49,30 @@ const DataSelectorDemo: React.FC = () => {
     console.log('编辑器数据变化:', data);
   };
 
+  // 处理运行请求
+  const handleRunRequest = (request: RunTaskRequest) => {
+    console.log('🚀 运行请求:', request);
+    console.log('📝 节点内容（已替换变量）:', request.content);
+    
+    // 打印详细信息
+    message.info({
+      content: '运行请求已触发，请查看控制台查看详细内容',
+      duration: 3,
+    });
+    
+    // 模拟运行完成
+    setTimeout(() => {
+      const result: RunTaskResponse = {
+        result: `✅ 运行成功！\n\n节点：${request.nodeId}\n\n处理后的内容：\n${request.content}`,
+      };
+      
+      // 通知编辑器运行完成
+      if (request.meta?.onNodeRun) {
+        request.meta.onNodeRun(request.nodeId, result);
+      }
+    }, 1000);
+  };
+
   return (
     <div style={{ height: '600px' }}>
       <PromptEditor
@@ -56,6 +81,8 @@ const DataSelectorDemo: React.FC = () => {
         dataSelector={SimpleDataSelector}
         // 如果需要追踪变量，可以传入回调
         onVariableChange={handleVariableChange}
+        // 运行请求回调
+        onRunRequest={handleRunRequest}
       />
       
       {/* 显示当前变量信息（调试用） */}
