@@ -2,7 +2,6 @@ import React from 'react';
 import { List, Modal, Tag, Typography, message } from 'antd';
 import {
   DataSelectorComponentProps,
-  EditorVariable,
   PromptEditor,
   RunTaskRequest,
   RunTaskResponse,
@@ -86,19 +85,6 @@ export default () => {
     },
   ]);
 
-  // 追踪每个节点中的变量（key 为 nodeId）
-  const [variableMap, setVariableMap] = React.useState<
-    Record<string, EditorVariable[]>
-  >({});
-
-  const handleVariableChange = (
-    nodeId: string,
-    variables: EditorVariable[],
-  ) => {
-    setVariableMap((prev) => ({ ...prev, [nodeId]: variables }));
-    console.log(`[节点 ${nodeId}] 当前变量:`, variables);
-  };
-
   // 处理运行请求
   const handleRunRequest = (request: RunTaskRequest) => {
     console.log('🚀 运行请求:', request);
@@ -129,18 +115,8 @@ export default () => {
         value={value}
         onChange={setValue}
         dataSelector={DataSelector}
-        onVariableChange={handleVariableChange}
         onRunRequest={handleRunRequest}
       />
-      <div style={{ padding: 12, borderTop: '1px solid #f0f0f0' }}>
-        <Text type="secondary">
-          已插入变量：
-          {Object.values(variableMap)
-            .flat()
-            .map((v) => v.data.label)
-            .join('、') || '（暂无）'}
-        </Text>
-      </div>
     </DemoWrapper>
   );
 };

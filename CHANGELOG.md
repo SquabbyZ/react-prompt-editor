@@ -10,6 +10,29 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.5] - 2026-04-22
+
+### Changed
+
+- Migrated CodeMirror from v6 (`@uiw/react-codemirror`) to v5 (`codemirror@5.65.20` + `react-codemirror2@7.3.0`) to fix Chinese IME input.
+  将 CodeMirror 从 v6（`@uiw/react-codemirror`）迁移至 v5（`codemirror@5.65.20` + `react-codemirror2@7.3.0`），修复中文 IME 输入问题。
+
+- Replaced variable tag widgets with plain text insertion. Variables are now inserted as plain text labels at the cursor position.
+  将变量标签 widget 替换为纯文本插入，变量现在以纯文本标签形式插入到光标位置。
+
+- Fixed editor height to 220px with internal scrollbar, eliminating dynamic height calculation issues.
+  将编辑器高度固定为 220px 并启用内部滚动条，消除动态高度计算问题。
+
+### Removed
+
+- Removed `onVariableChange` prop and `EditorVariable` type from public API. Variable tracking is no longer needed since variables are plain text.
+  从公共 API 中移除 `onVariableChange` 属性和 `EditorVariable` 类型，变量为纯文本后无需跟踪。
+
+### Fixed
+
+- Fixed node title position shifting after pressing Enter in the editor (caused by height cache invalidation on every keystroke).
+  修复在编辑器中按下回车后节点标题位置偏移的问题（由每次按键时高度缓存失效引起）。
+
 ## [1.0.4] - 2026-04-21
 
 ### Changed

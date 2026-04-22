@@ -1,5 +1,4 @@
 import type { Locale } from '../../i18n/locales/zh-CN';
-import type { EditorVariable } from '../../types';
 
 export interface CodeMirrorEditorProps {
   value: string;
@@ -10,14 +9,6 @@ export interface CodeMirrorEditorProps {
   maxHeight?: string;
   className?: string;
   style?: React.CSSProperties;
-  /**
-   * 变量列表，用于渲染 Widget
-   */
-  variables?: EditorVariable[];
-  /**
-   * 变量变化回调
-   */
-  onVariableChange?: (variables: EditorVariable[]) => void;
   /**
    * 国际化配置
    */

@@ -15,7 +15,6 @@ import { useResolvedTheme } from '../../hooks/useResolvedTheme';
 import type { Locale } from '../../i18n/locales/zh-CN';
 import {
   DataSelectorComponentProps,
-  EditorVariable,
   OptimizeConfig,
   OptimizeRequest,
   OptimizeResponse,
@@ -101,10 +100,6 @@ interface CustomNodeProps {
   onDragEnd?: () => void;
   /** 数据选择器组件 */
   dataSelector?: React.ComponentType<DataSelectorComponentProps>;
-  /** 变量列表 */
-  variables?: EditorVariable[];
-  /** 变量变化回调 */
-  onVariableChange?: (nodeId: string, variables: EditorVariable[]) => void;
   /** 自定义节点底部操作按钮 */
   renderNodeActions?: (props: {
     node: TaskNode;
@@ -113,6 +108,11 @@ interface CustomNodeProps {
       handleRun: (e: React.MouseEvent) => void;
       handleOptimize: (e: React.MouseEvent) => void;
     };
+    isDarkMode: boolean;
+  }) => React.ReactNode;
+  /** 自定义节点头部下方、内容区上方插槽 */
+  renderNodeTopSlot?: (props: {
+    node: TaskNode;
     isDarkMode: boolean;
   }) => React.ReactNode;
 }
@@ -156,9 +156,8 @@ export const Node: React.FC<CustomNodeProps> = memo(
     onDrop,
     onDragEnd,
     dataSelector,
-    variables = [],
-    onVariableChange,
     renderNodeActions,
+    renderNodeTopSlot,
   }) => {
     // 国际化 Hook
     const { t } = useI18n(locale);
@@ -397,30 +396,21 @@ export const Node: React.FC<CustomNodeProps> = memo(
 
     // 处理插入变量
     const handleInsertVariable = useCallback(
-      (data: TagData) => {
+      (data: TagData | TagData[]) => {
         const view = editorRef.current?.view;
         if (!view) return;
 
-        const insertText = data.label;
+        const dataArray = Array.isArray(data) ? data : [data];
+        const insertText = dataArray.map((item) => item.label).join(' ');
 
-        // 在光标位置插入文本
         view.dispatch({
           changes: { from: cursorPosition, insert: insertText },
           selection: { anchor: cursorPosition + insertText.length },
         });
 
-        // 更新变量列表
-        const newVariable: EditorVariable = {
-          id: `${nodeData.id}_${data.id}_${Date.now()}`,
-          position: cursorPosition,
-          length: insertText.length,
-          data,
-        };
-
-        onVariableChange?.(nodeData.id, [...variables, newVariable]);
         setDataSelectorOpen(false);
       },
-      [editorRef, cursorPosition, nodeData.id, variables, onVariableChange],
+      [editorRef, cursorPosition],
     );
 
     const applyOptimizedResult = useCallback(
@@ -752,6 +742,24 @@ export const Node: React.FC<CustomNodeProps> = memo(
                   ...editorShellStyle,
                 }}
               >
+                {/* 节点头部下方自定义插槽 */}
+                {!previewMode && renderNodeTopSlot && (
+                  <div className="px-2 pt-2">
+                    {renderNodeTopSlot({
+                      node: {
+                        ...nodeData,
+                        children: nodeData.children.map((childId: string) => ({
+                          id: childId,
+                          title: '',
+                          content: '',
+                          isLocked: false,
+                          hasRun: false,
+                        })),
+                      },
+                      isDarkMode,
+                    })}
+                  </div>
+                )}
                 {previewMode ? (
                   <div ref={previewContentRef}>
                     {resolvedPreviewRenderMode === 'markdown' ? (
@@ -786,9 +794,10 @@ export const Node: React.FC<CustomNodeProps> = memo(
                       value={nodeData.content}
                       onChange={handleContentChange}
                       isReadOnly={nodeData.isLocked}
+                      minHeight="64px"
+                      maxHeight="220px"
                       locale={locale}
                       theme={theme}
-                      variables={variables}
                     />
                   </div>
                 )}
@@ -823,13 +832,15 @@ export const Node: React.FC<CustomNodeProps> = memo(
                       renderNodeActions({
                         node: {
                           ...nodeData,
-                          children: nodeData.children.map((childId: string) => ({
-                            id: childId,
-                            title: '',
-                            content: '',
-                            isLocked: false,
-                            hasRun: false,
-                          })),
+                          children: nodeData.children.map(
+                            (childId: string) => ({
+                              id: childId,
+                              title: '',
+                              content: '',
+                              isLocked: false,
+                              hasRun: false,
+                            }),
+                          ),
                         },
                         defaultActions: {
                           handleOpenDataSelector,
@@ -901,6 +912,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
                     onSelect={handleInsertVariable}
                     onCancel={() => setDataSelectorOpen(false)}
                     cursorPosition={cursorPosition}
+                    multiple={true} // 默认启用多选支持
                   />
                 )}
               </div>

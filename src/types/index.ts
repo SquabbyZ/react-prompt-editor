@@ -146,9 +146,11 @@ export interface TagData {
  * 数据选择器组件 Props
  */
 export interface DataSelectorComponentProps {
-  onSelect: (data: TagData) => void;
+  onSelect: (data: TagData | TagData[]) => void;
   onCancel: () => void;
   cursorPosition?: number;
+  /** 是否支持多选模式 */
+  multiple?: boolean;
 }
 
 /**
@@ -284,6 +286,13 @@ export interface PromptEditorProps {
       handleRun: (e: React.MouseEvent) => void;
       handleOptimize: (e: React.MouseEvent) => void;
     };
+    isDarkMode: boolean;
+  }) => React.ReactNode;
+  /**
+   * 自定义节点头部下方、内容区上方插槽
+   */
+  renderNodeTopSlot?: (props: {
+    node: TaskNode;
     isDarkMode: boolean;
   }) => React.ReactNode;
 }

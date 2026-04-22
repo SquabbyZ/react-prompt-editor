@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, List, Input } from 'antd';
+import { Modal, List, Input, Button } from 'antd';
 import type { DataSelectorComponentProps, TagData } from '../src/types';
 
 /**
@@ -9,9 +9,10 @@ import type { DataSelectorComponentProps, TagData } from '../src/types';
 export const SimpleDataSelector: React.FC<DataSelectorComponentProps> = ({
   onSelect,
   onCancel,
-  cursorPosition,
+  multiple = false,
 }) => {
   const [searchText, setSearchText] = useState('');
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
   // 模拟数据源
   const mockData: TagData[] = [
@@ -46,12 +47,45 @@ export const SimpleDataSelector: React.FC<DataSelectorComponentProps> = ({
     item.label.toLowerCase().includes(searchText.toLowerCase())
   );
 
+  const handleItemClick = (item: TagData) => {
+    if (multiple) {
+      // 多选模式：切换选中状态
+      setSelectedItems(prev => 
+        prev.includes(item.id) 
+          ? prev.filter(id => id !== item.id)
+          : [...prev, item.id]
+      );
+    } else {
+      // 单选模式：直接选中
+      onSelect(item);
+    }
+  };
+
+  const handleConfirm = () => {
+    if (multiple && selectedItems.length > 0) {
+      const selectedData = mockData.filter(item => selectedItems.includes(item.id));
+      onSelect(selectedData);
+    }
+  };
+
   return (
     <Modal
-      title="选择变量"
+      title={multiple ? "选择变量（可多选）" : "选择变量"}
       open={true}
       onCancel={onCancel}
-      footer={null}
+      footer={multiple ? [
+        <Button key="cancel" onClick={onCancel}>
+          取消
+        </Button>,
+        <Button 
+          key="confirm" 
+          type="primary" 
+          onClick={handleConfirm}
+          disabled={selectedItems.length === 0}
+        >
+          确定 {selectedItems.length > 0 && `(${selectedItems.length})`}
+        </Button>
+      ] : null}
       width={500}
     >
       <Input
@@ -66,13 +100,11 @@ export const SimpleDataSelector: React.FC<DataSelectorComponentProps> = ({
         renderItem={(item) => (
           <List.Item
             style={{
-              cursor: 'pointer',
+              cursor: multiple ? 'pointer' : 'pointer',
               padding: '12px 16px',
+              backgroundColor: selectedItems.includes(item.id) ? '#f0f9ff' : 'transparent'
             }}
-            onClick={() => {
-              console.log('选中变量:', item, '光标位置:', cursorPosition);
-              onSelect(item);
-            }}
+            onClick={() => handleItemClick(item)}
           >
             <List.Item.Meta
               title={item.label}

@@ -56,10 +56,11 @@ export function estimateNodeHeight(
   options?: {
     previewMode?: boolean;
     previewRenderMode?: PreviewRenderMode;
+    hasTopSlot?: boolean;
   },
 ): number {
-  // 基础高度：节点头部约 48px
   const baseHeight = 48;
+  const topSlotHeight = options?.hasTopSlot && isEditorExpanded ? 60 : 0;
 
   if (!isEditorExpanded) {
     return baseHeight;
@@ -72,21 +73,19 @@ export function estimateNodeHeight(
     options?.previewMode && options.previewRenderMode === 'markdown';
 
   if (isPreviewReadonlyEditor) {
-    return baseHeight + 180;
+    return baseHeight + 180 + topSlotHeight;
   }
 
   if (isPreviewMarkdown) {
     const contentLines = node.content.split('\n').length;
     const markdownHeight = Math.min(Math.max(contentLines * 24, 140), 520);
-    return baseHeight + markdownHeight + 24;
+    return baseHeight + markdownHeight + 24 + topSlotHeight;
   }
 
-  // 编辑器展开后的高度：根据内容长度估算
-  // CodeMirror 编辑器最小高度约 200px，最大约 600px
-  const contentLines = node.content.split('\n').length;
-  const editorHeight = Math.min(Math.max(contentLines * 20, 200), 600);
+  const editorHeight = 220;
+  const dependencyHeight = 140;
 
-  return baseHeight + editorHeight + 16; // 16px 为间距
+  return baseHeight + editorHeight + dependencyHeight + topSlotHeight;
 }
 
 /**

@@ -161,6 +161,7 @@ pnpm add antd @ant-design/x
 3. 调用 `onSelect(item)` 插入选中的变量，调用 `onCancel()` 关闭选择器
 
 **组件接收的 Props：**
+
 - `onSelect`: 选中变量时的回调函数，接收 `TagData` 参数
 - `onCancel`: 取消选择时的回调函数
 - `cursorPosition`: 打开选择器时光标的位置（可选）
@@ -168,6 +169,7 @@ pnpm add antd @ant-design/x
 完整的示例代码请参考 [data-selector.tsx](./examples/data-selector.tsx) 示例文件。
 
 **关键点：**
+
 - 组件接收 `onSelect`、`onCancel` 和 `cursorPosition` 三个 props
 - 调用 `onSelect(item)` 即可插入选中的变量
 - 调用 `onCancel()` 关闭选择器
@@ -176,39 +178,113 @@ pnpm add antd @ant-design/x
 
 **TagData** - 变量数据结构：
 
-| 字段     | 类型                   | 说明                           |
-| -------- | ---------------------- | ------------------------------ |
-| id       | `string`               | 变量的唯一标识符               |
-| label    | `string`               | 显示在编辑器中的标签文本       |
-| value    | `string`               | 变量的实际值（用于后续处理）   |
-| metadata | `Record<string, any>`  | 可选的元数据，存储额外信息     |
+| 字段     | 类型                  | 说明                         |
+| -------- | --------------------- | ---------------------------- |
+| id       | `string`              | 变量的唯一标识符             |
+| label    | `string`              | 显示在编辑器中的标签文本     |
+| value    | `string`              | 变量的实际值（用于后续处理） |
+| metadata | `Record<string, any>` | 可选的元数据，存储额外信息   |
 
 **DataSelectorComponentProps** - 选择器组件 Props：
 
-| 字段           | 类型                       | 说明                               |
-| -------------- | -------------------------- | ---------------------------------- |
-| onSelect       | `(data: TagData) => void`  | 选中变量时的回调                   |
-| onCancel       | `() => void`               | 取消选择时的回调                   |
-| cursorPosition | `number`                   | 打开选择器时光标的位置（可选）     |
+| 字段           | 类型                                   | 说明                                 |
+| -------------- | -------------------------------------- | ------------------------------------ |
+| onSelect       | `(data: TagData \| TagData[]) => void` | 选中变量时的回调，支持单选或多选     |
+| onCancel       | `() => void`                           | 取消选择时的回调                     |
+| cursorPosition | `number`                               | 打开选择器时光标的位置（可选）       |
+| multiple       | `boolean`                              | 是否启用多选模式（可选，默认 false） |
 
-### 追踪变量状态（可选）
+### 多选功能
 
-如果需要追踪每个节点中插入的变量，可以使用 `onVariableChange` 回调。具体做法是：
+数据选择器组件支持多选模式，允许用户一次性选择多个变量并批量插入到编辑器中：
 
-1. 使用 `useState` 创建一个状态来存储变量信息，类型为 `Record<string, EditorVariable[]>`
-2. 定义一个处理函数，接收 `nodeId` 和 `variables` 参数，更新对应节点的变量列表
-3. 将该处理函数作为 `onVariableChange` prop 传入 PromptEditor
+1. 在自定义数据选择器组件中，通过 `multiple` prop 判断是否启用多选模式
+2. 在多选模式下，`onSelect` 回调可以接收 `TagData[]` 数组
+3. 编辑器会自动将多个变量按顺序插入到光标位置
 
-完整的示例代码请参考 [data-selector.tsx](./examples/data-selector.tsx) 示例文件。
+推荐先看完整示例：[data-selector.tsx](./examples/data-selector.tsx)（包含运行回调与变量追踪）。
 
-**EditorVariable** - 编辑器内部变量状态：
+### 标签删除（Tag Close）
 
-| 字段     | 类型       | 说明                     |
-| -------- | ---------- | ------------------------ |
-| id       | `string`   | 变量的唯一标识符         |
-| position | `number`   | 变量在文本中的起始位置   |
-| length   | `number`   | 变量标签的长度           |
-| data     | `TagData`  | 变量的完整数据           |
+当前版本支持在编辑器中的变量标签右侧显示关闭按钮（`×`）：
+
+- 点击 `×` 会删除整个变量标签
+
+这在用户频繁编辑 Prompt 时非常实用，不需要手动删除整段变量文本。
+
+### 运行时内容处理（去掉 `@` 前缀）
+
+如果标签显示为 `@用户名`、`@当前日期`，点击运行时会将内容中的标签文本转换为去掉 `@` 的纯文本：
+
+- `@用户名` → `用户名`
+- `@当前日期` → `当前日期`
+
+也就是说，传给 `onRunRequest` 的 `request.content` 是处理后的文本。
+
+### 最小示例（多选 + 删除 + 运行）
+
+```tsx | pure
+const handleRunRequest = (request: RunTaskRequest) => {
+  console.log('处理后的内容:', request.content); // 标签文本已去掉 @
+};
+
+<PromptEditor
+  value={value}
+  onChange={setValue}
+  dataSelector={DataSelector}
+  onRunRequest={handleRunRequest}
+/>
+```
+
+## 🧩 自定义节点顶部插槽
+
+使用 `renderNodeTopSlot` 可以在每个节点的**头部下方、内容区上方**渲染自定义 ReactNode（也就是你截图标注的那一行位置）。
+
+<code src="../examples/node-top-slot.tsx"></code>
+
+### 适用场景
+
+- 在节点内展示状态条、提示信息、审批标记
+- 插入你自己的按钮组、统计信息、辅助说明
+- 根据节点数据动态渲染不同的 UI
+
+### 使用方式
+
+```tsx | pure
+<PromptEditor
+  value={value}
+  onChange={setValue}
+  renderNodeTopSlot={({ node, isDarkMode }) => (
+    <div>
+      当前节点：{node.title}
+    </div>
+  )}
+/>
+```
+
+`renderNodeTopSlot` 回调参数：
+
+- `node`: 当前节点数据（`TaskNode`）
+- `isDarkMode`: 当前是否暗色模式（`boolean`）
+
+### 与 `renderNodeActions` 组合使用
+
+如果你既要在节点中间区域扩展 UI，又要自定义底部按钮区域，可以同时传入这两个配置：
+
+<code src="../examples/node-slot-with-actions.tsx"></code>
+
+布局顺序如下：
+
+1. 节点头部（标题、锁定、删除等）
+2. `renderNodeTopSlot`（你新增的中间插槽）
+3. CodeMirror 内容区
+4. 底部工具栏/`renderNodeActions`
+
+### 注意事项
+
+- 当你传入 `renderNodeActions` 后，会覆盖默认底部按钮区域；如果仍需要“插入变量”能力，请在自定义按钮中调用 `defaultActions.handleOpenDataSelector`。
+- 如果仍需要“运行”和“AI 优化”能力，请分别调用 `defaultActions.handleRun`、`defaultActions.handleOptimize`。
+- `renderNodeTopSlot` 仅负责中间插槽渲染，不会影响底部按钮逻辑；建议将状态展示放在 top slot，将交互按钮放在 actions 区域。
 
 ## 🎯 自定义节点底部操作按钮
 
@@ -228,6 +304,7 @@ pnpm add antd @ant-design/x
 `renderNodeActions` 接收一个回调函数，该函数的参数包含：
 
 **Props 参数：**
+
 - `node`: 当前节点的数据（`TaskNode` 类型）
 - `defaultActions`: 默认操作函数集合
   - `handleOpenDataSelector`: 打开数据选择器
@@ -272,7 +349,7 @@ const renderCustomActions = ({ node, defaultActions, isDarkMode }) => {
   value={value}
   onChange={setValue}
   renderNodeActions={renderCustomActions}
-/>
+/>;
 ```
 
 ### 应用场景
@@ -308,38 +385,38 @@ const renderCustomActions = ({ node, defaultActions, isDarkMode }) => {
 
 #### 属性 (Props)
 
-| 参数                  | 说明                                                                                  | 类型                              | 默认值              |
-| --------------------- | ------------------------------------------------------------------------------------- | --------------------------------- | ------------------- |
-| initialValue          | 初始树形数据（非受控模式）                                                            | `TaskNode[]`                      | `[]`                |
-| value                 | 树形数据（受控模式）                                                                  | `TaskNode[]`                      | -                   |
-| optimizeConfig        | AI 优化配置（提供此项后组件自动处理请求与流式/非流式渲染）                            | `OptimizeConfig`                  | -                   |
-| autoOptimize          | 是否在打开优化弹窗时自动开始优化                                                      | `boolean`                         | `true`              |
-| className             | 自定义类名                                                                            | `string`                          | -                   |
-| style                 | 自定义样式                                                                            | `React.CSSProperties`             | -                   |
-| renderToolbar         | 自定义顶部工具栏                                                                      | `(actions) => ReactNode`          | -                   |
-| optimizeCustomContent | 启用外部自定义优化流程；非 null 时点击 AI 优化不会打开内置弹窗                        | `ReactNode \| null`               | `null`              |
-| previewMode           | 预览模式（只读，隐藏编辑功能）                                                        | `boolean`                         | `false`             |
-| previewRenderMode     | 预览模式内容区渲染方式，仅在 `previewMode` 下生效，支持只读编辑器或 Markdown 阅读视图 | `'readonly-editor' \| 'markdown'` | `'readonly-editor'` |
-| locale                | 国际化配置（类似 Ant Design 的语言包）                                                | `Locale`                          | `zhCN`              |
-| theme                 | 主题模式（控制明亮/暗色主题）                                                         | `'system' \| 'light' \| 'dark'`   | `'system'`          |
-| draggable             | 是否支持拖拽排序（启用后可通过拖拽调整节点位置和层级）                                | `boolean`                         | `false`             |
-| dataSelector          | 数据选择器组件（用于在编辑器中插入变量，如 @用户名、@当前日期等）                     | `React.ComponentType<DataSelectorComponentProps>` | -      |
-| renderNodeActions     | 自定义节点底部操作按钮区域（提供此项可完全替换默认的变量/运行/AI优化按钮）            | `(props) => ReactNode`            | -                   |
+| 参数                  | 说明                                                                                  | 类型                                              | 默认值              |
+| --------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------- | ------------------- |
+| initialValue          | 初始树形数据（非受控模式）                                                            | `TaskNode[]`                                      | `[]`                |
+| value                 | 树形数据（受控模式）                                                                  | `TaskNode[]`                                      | -                   |
+| optimizeConfig        | AI 优化配置（提供此项后组件自动处理请求与流式/非流式渲染）                            | `OptimizeConfig`                                  | -                   |
+| autoOptimize          | 是否在打开优化弹窗时自动开始优化                                                      | `boolean`                                         | `true`              |
+| className             | 自定义类名                                                                            | `string`                                          | -                   |
+| style                 | 自定义样式                                                                            | `React.CSSProperties`                             | -                   |
+| renderToolbar         | 自定义顶部工具栏                                                                      | `(actions) => ReactNode`                          | -                   |
+| optimizeCustomContent | 启用外部自定义优化流程；非 null 时点击 AI 优化不会打开内置弹窗                        | `ReactNode \| null`                               | `null`              |
+| previewMode           | 预览模式（只读，隐藏编辑功能）                                                        | `boolean`                                         | `false`             |
+| previewRenderMode     | 预览模式内容区渲染方式，仅在 `previewMode` 下生效，支持只读编辑器或 Markdown 阅读视图 | `'readonly-editor' \| 'markdown'`                 | `'readonly-editor'` |
+| locale                | 国际化配置（类似 Ant Design 的语言包）                                                | `Locale`                                          | `zhCN`              |
+| theme                 | 主题模式（控制明亮/暗色主题）                                                         | `'system' \| 'light' \| 'dark'`                   | `'system'`          |
+| draggable             | 是否支持拖拽排序（启用后可通过拖拽调整节点位置和层级）                                | `boolean`                                         | `false`             |
+| dataSelector          | 数据选择器组件（用于在编辑器中插入变量，如 @用户名、@当前日期等）                     | `React.ComponentType<DataSelectorComponentProps>` | -                   |
+| renderNodeActions     | 自定义节点底部操作按钮区域（提供此项可完全替换默认的变量/运行/AI优化按钮）            | `(props) => ReactNode`                            | -                   |
+| renderNodeTopSlot     | 自定义节点头部下方、内容区上方插槽（支持渲染任意 ReactNode）                           | `(props) => ReactNode`                            | -                   |
 
 #### 事件 (Events)
 
-| 参数              | 说明                                                                                      | 类型                                                 | 默认值 |
-| ----------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------- | ------ |
-| onChange          | 数据变化回调                                                                              | `(data: TaskNode[]) => void`                         | -      |
-| onRunRequest      | 运行请求回调（触发运行时调用，用户自行处理异步请求）                                      | `(request: RunTaskRequest) => void`                  | -      |
-| onOptimizeRequest | 优化请求回调（高级模式，用户自行处理请求，并通过 request.applyOptimizedContent 应用结果） | `(request: OptimizeRequest) => void`                 | -      |
-| onNodeRun         | 节点运行完成回调（用户执行完运行请求后调用，通知组件更新状态）                            | `(nodeId: string, result: RunTaskResponse) => void`  | -      |
-| onNodeOptimize    | 节点优化完成回调（用户执行完优化请求后调用，通知组件）                                    | `(nodeId: string, result: OptimizeResponse) => void` | -      |
-| onNodeLock        | 节点锁定回调                                                                              | `(nodeId: string, isLocked: boolean) => void`        | -      |
-| onTreeChange      | 树变化回调                                                                                | `(tree: TaskNode[]) => void`                         | -      |
-| onLike            | AI 优化消息点赞回调                                                                       | `(messageId: string) => void`                        | -      |
-| onDislike         | AI 优化消息点踩回调                                                                       | `(messageId: string) => void`                        | -      |
-| onVariableChange  | 变量变化回调（当用户插入或删除变量时触发）                                                | `(nodeId: string, variables: EditorVariable[]) => void` | -      |
+| 参数              | 说明                                                                                      | 类型                                                    | 默认值 |
+| ----------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------- | ------ |
+| onChange          | 数据变化回调                                                                              | `(data: TaskNode[]) => void`                            | -      |
+| onRunRequest      | 运行请求回调（触发运行时调用，用户自行处理异步请求）                                      | `(request: RunTaskRequest) => void`                     | -      |
+| onOptimizeRequest | 优化请求回调（高级模式，用户自行处理请求，并通过 request.applyOptimizedContent 应用结果） | `(request: OptimizeRequest) => void`                    | -      |
+| onNodeRun         | 节点运行完成回调（用户执行完运行请求后调用，通知组件更新状态）                            | `(nodeId: string, result: RunTaskResponse) => void`     | -      |
+| onNodeOptimize    | 节点优化完成回调（用户执行完优化请求后调用，通知组件）                                    | `(nodeId: string, result: OptimizeResponse) => void`    | -      |
+| onNodeLock        | 节点锁定回调                                                                              | `(nodeId: string, isLocked: boolean) => void`           | -      |
+| onTreeChange      | 树变化回调                                                                                | `(tree: TaskNode[]) => void`                            | -      |
+| onLike            | AI 优化消息点赞回调                                                                       | `(messageId: string) => void`                           | -      |
+| onDislike         | AI 优化消息点踩回调                                                                       | `(messageId: string) => void`                           | -      |
 
 ## 数据类型
 
@@ -490,6 +567,7 @@ const handleOptimizeRequest = async (request: OptimizeRequest) => {
 如果您使用的是符合 OpenAI 接口规范的后端（支持 SSE 流式响应），可以直接通过 `optimizeConfig` 配置。组件将自动处理所有的请求发起、流式解析和对话展示。
 
 配置项包括：
+
 - `url`: API 地址
 - `headers`: 请求头（如 Authorization）
 - `model`: 模型名称

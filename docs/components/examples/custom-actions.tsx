@@ -4,7 +4,6 @@ import { PlayCircle, Variable, Zap } from 'lucide-react';
 import { PromptEditor } from '../../../src';
 import '../../../src/styles/tailwind.css';
 import {
-  EditorVariable,
   OptimizeRequest,
   RunTaskRequest,
   RunTaskResponse,
@@ -147,22 +146,6 @@ export default () => {
     );
   };
 
-  // 监听变量变化
-  const handleVariableChange = (
-    nodeId: string,
-    variables: EditorVariable[],
-  ) => {
-    console.log(`📍 Node ${nodeId} variables changed:`, variables);
-    console.log(
-      'Variables:',
-      variables.map((v) => ({
-        id: v.data.id,
-        label: v.data.label,
-        position: v.position,
-      })),
-    );
-  };
-
   return (
     <DemoWrapper height="550px">
       <PromptEditor
@@ -171,7 +154,6 @@ export default () => {
         onRunRequest={handleRunRequest}
         onOptimizeRequest={handleOptimizeRequest}
         dataSelector={DataSelector}
-        onVariableChange={handleVariableChange}
         renderNodeActions={renderCustomActions}
       />
     </DemoWrapper>

@@ -65,7 +65,7 @@ export default function App() {
 | `locale` | 国际化语言包 |
 | `renderToolbar` | 自定义顶部工具栏渲染函数 |
 | `dataSelector` | 数据选择器组件，支持 `@` 变量插入功能 |
-| `onVariableChange` | 变量变化回调函数 |
+
 
 ## 额外导出
 
@@ -87,15 +87,28 @@ const App = () => (
   <PromptEditor
     initialValue={initialValue}
     dataSelector={SimpleDataSelector}
-    onVariableChange={(nodeId, variables) => {
-      console.log('Node', nodeId, 'has variables:', variables);
-    }}
     onRunRequest={(request) => {
       // request.content 中的变量标签已被自动替换为实际值（如 {{user.name}}）
       console.log('处理后的内容:', request.content);
       // 执行异步请求...
       request.meta?.onNodeRun?.(request.nodeId, { result: '✅ 成功' });
     }}
+  />
+);
+```
+
+#### 多选模式
+
+数据选择器支持多选模式，允许用户一次性选择多个变量并批量插入到编辑器中：
+
+```tsx
+import { PromptEditor } from 'react-prompt-editor';
+import { MultiSelectDataSelector } from './MultiSelectDataSelector';
+
+const App = () => (
+  <PromptEditor
+    initialValue={initialValue}
+    dataSelector={MultiSelectDataSelector} // 支持多选的选择器组件
   />
 );
 ```

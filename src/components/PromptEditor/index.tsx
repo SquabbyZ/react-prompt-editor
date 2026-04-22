@@ -12,7 +12,7 @@ import { List } from 'react-window';
 import { useI18n } from '../../hooks/useI18n';
 import { useResolvedTheme } from '../../hooks/useResolvedTheme';
 import { EditorStoreType, createEditorStore } from '../../stores';
-import type { EditorVariable, TaskNode } from '../../types';
+import type { TaskNode } from '../../types';
 import {
   estimateNodeHeight,
   flattenVisibleNodes,
@@ -45,8 +45,8 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   theme = 'system',
   draggable = false,
   dataSelector,
-  onVariableChange,
   renderNodeActions,
+  renderNodeTopSlot,
 }) => {
   // 国际化 Hook
   const { t } = useI18n(locale);
@@ -87,8 +87,6 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   const [expandedEditorId, setExpandedEditorId] = useState<string | null>(null);
   // 子节点展开状态：可以多节点同时展开
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
-  // 节点变量管理：记录每个节点的变量列表
-  const [nodeVariables, setNodeVariables] = useState<Record<string, EditorVariable[]>>({});
 
   // 虚拟滚动相关状态
   const [containerHeight, setContainerHeight] = useState(600); // 容器高度
@@ -112,20 +110,8 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
     return () => resizeObserver.disconnect();
   }, []);
 
-  const handleNodeVariableChange = useCallback(
-    (nodeId: string, variables: EditorVariable[]) => {
-      setNodeVariables((prev) => ({
-        ...prev,
-        [nodeId]: variables,
-      }));
-      onVariableChange?.(nodeId, variables);
-    },
-    [onVariableChange],
-  );
-
   const handleContentChange = useCallback(
     (nodeId: string, content: string) => {
-      nodeHeightsRef.current.delete(nodeId);
       updateNode(nodeId, { content });
       onChange?.(store.getState().getTree());
     },
@@ -168,29 +154,6 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       const node = store.getState().getNode(nodeId);
       if (!node) return;
 
-      // 处理变量替换：把变量标签替换为实际值
-      let processedContent = node.content;
-      const nodeVars = nodeVariables[nodeId] || [];
-      if (nodeVars.length > 0) {
-        // 去掉 label 的 @ 前缀，按位置从后往前替换
-        const sortedVars = [...nodeVars].sort((a, b) => b.position - a.position);
-        for (const variable of sortedVars) {
-          const { label } = variable.data;
-          const stripped = label.startsWith('@') ? label.slice(1) : label;
-          const startPos = variable.position;
-          const endPos = variable.position + variable.length;
-          const slice = processedContent.substring(startPos, endPos);
-          if (slice === label) {
-            processedContent =
-              processedContent.substring(0, startPos) +
-              stripped +
-              processedContent.substring(endPos);
-          } else {
-            processedContent = processedContent.split(label).join(stripped);
-          }
-        }
-      }
-
       // 构建依赖节点详细信息
       const dependenciesContent = node.dependencies.map((depId) => {
         const depNode = store.getState().getNode(depId);
@@ -205,14 +168,14 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       // 触发运行请求回调，由用户自行处理异步请求
       onRunRequest({
         nodeId,
-        content: processedContent,
+        content: node.content,
         dependenciesContent,
         meta: {
           onNodeRun: handleNodeRunCallback,
         },
       });
     },
-    [onRunRequest, store, handleNodeRunCallback, t, nodeVariables],
+    [onRunRequest, store, handleNodeRunCallback, t],
   );
 
   const handleNodeLock = useCallback(
@@ -508,6 +471,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
         {
           previewMode,
           previewRenderMode,
+          hasTopSlot: !!renderNodeTopSlot,
         },
       );
 
@@ -561,9 +525,8 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       theme: thm,
       draggable: drag,
       dataSelector,
-      nodeVariables: nodeVars,
-      onVariableChange: onVarChange,
       renderNodeActions,
+      renderNodeTopSlot,
     }: any) => {
       const node = nodes[index];
       if (!node) return null;
@@ -626,9 +589,8 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
             locale={loc}
             theme={thm}
             dataSelector={dataSelector}
-            variables={nodeVars[node.id] || []}
-            onVariableChange={onVarChange}
             renderNodeActions={renderNodeActions}
+            renderNodeTopSlot={renderNodeTopSlot}
           />
         </div>
       );
@@ -675,9 +637,8 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       theme,
       draggable,
       dataSelector,
-      nodeVariables,
-      onVariableChange: handleNodeVariableChange,
       renderNodeActions,
+      renderNodeTopSlot,
     }),
     [
       visibleNodes,
@@ -716,9 +677,8 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       theme,
       draggable,
       dataSelector,
-      nodeVariables,
-      handleNodeVariableChange,
       renderNodeActions,
+      renderNodeTopSlot,
     ],
   );
 

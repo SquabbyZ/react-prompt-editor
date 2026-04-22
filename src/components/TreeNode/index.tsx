@@ -92,6 +92,8 @@ export const TreeNode: React.FC<TreeNodeProps> = memo(
                 value={node.content}
                 onChange={onContentChange}
                 isReadOnly={isLocked}
+                minHeight="64px"
+                maxHeight="220px"
               />
             ) : (
               <div

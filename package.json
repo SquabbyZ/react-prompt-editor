@@ -1,6 +1,6 @@
 {
   "name": "react-prompt-editor",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A powerful tree-structured prompt editor for complex AI workflows, featuring Markdown editing, AI optimization with streaming responses, dependency management, and node execution tracking.",
   "license": "MIT",
   "exports": {
@@ -73,6 +73,8 @@
     ]
   },
   "dependencies": {
+    "codemirror": "5.65.20",
+    "react-codemirror2": "7.3.0",
     "clsx": "^2.1.1",
     "highlight.js": "^11.11.1",
     "lucide-react": "^1.7.0",
@@ -85,13 +87,7 @@
     "react-window": "^2.2.7",
     "tailwind-merge": "^3.5.0",
     "uuid": "^13.0.0",
-    "zustand": "^5.0.12",
-    "@uiw/react-codemirror": "^4.0.0",
-    "@codemirror/view": "^6.0.0",
-    "@codemirror/state": "^6.0.0",
-    "@codemirror/commands": "^6.0.0",
-    "@codemirror/lang-markdown": "^6.0.0",
-    "@codemirror/theme-one-dark": "^6.0.0"
+    "zustand": "^5.0.12"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.1.2",
@@ -133,10 +129,10 @@
     "vitest": "^0.34.6"
   },
   "peerDependencies": {
-    "react": ">=16.9.0",
-    "react-dom": ">=16.9.0",
+    "@ant-design/x": "^2.0.0",
     "antd": "^5.0.0",
-    "@ant-design/x": "^2.0.0"
+    "react": ">=16.9.0",
+    "react-dom": ">=16.9.0"
   },
   "publishConfig": {
     "access": "public"
