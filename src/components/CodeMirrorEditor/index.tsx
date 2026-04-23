@@ -42,6 +42,7 @@ export const CodeMirrorEditor = memo(
       ref,
     ) => {
       const editorRef = useRef<CodeMirror.EditorFromTextArea | CodeMirror.Editor | null>(null);
+      const isInternalChange = useRef(false);
       const [isDarkMode, setIsDarkMode] = useState(false);
 
       const t = createTranslator(locale);
@@ -136,11 +137,14 @@ export const CodeMirrorEditor = memo(
 
       useEffect(() => {
         const editor = editorRef.current;
-        if (!editor) return;
+        if (!editor || isInternalChange.current) return;
         const current = editor.getValue();
-        if (current !== value) {
+        const next = value || '';
+        if (current !== next) {
           const cursor = editor.getCursor();
-          editor.setValue(value || '');
+          editor.operation(() => {
+            editor.replaceRange(next, { line: 0, ch: 0 }, { line: editor.lastLine(), ch: editor.getLine(editor.lastLine()).length });
+          });
           editor.setCursor(cursor);
         }
       }, [value]);
@@ -156,13 +160,14 @@ export const CodeMirrorEditor = memo(
           }}
         >
           <ReactCodeMirror
-            value={value}
             options={options as any}
             editorDidMount={(editor: CodeMirror.Editor) => {
               editorRef.current = editor;
             }}
             onChange={(editor: CodeMirror.Editor) => {
+              isInternalChange.current = true;
               onChange?.(editor.getValue());
+              setTimeout(() => { isInternalChange.current = false; }, 0);
             }}
           />
         </div>
