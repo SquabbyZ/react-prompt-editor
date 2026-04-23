@@ -95,3 +95,41 @@ Complete these steps before using the component:
 - [Streaming Example](/en-US/components/prompt-editor#streaming-output-example)
 - [Internationalization](/en-US/i18n)
 - [GitHub Repository](https://github.com/SquabbyZ/react-prompt-editor)
+
+## 🤖 AI-Assisted Development Tools
+
+### Peaks Skills for RPEditor
+
+We provide a dedicated **peaks-react-prompt-editor** Skill to help you use RPEditor more efficiently with AI-assisted development.
+
+**Features**:
+
+- ✅ Complete component API reference and usage examples
+- ✅ Best practices for common scenarios
+- ✅ Troubleshooting and debugging tips
+- ✅ Configuration optimization and performance tuning guides
+
+**How to Use**:
+
+1. **Install Skills**
+
+   ```bash
+   npx skills add https://www.npmjs.com/package/peaks-skills
+   ```
+
+2. **Use in AI Conversations**
+   - The AI will automatically load this Skill when you ask RPEditor-related questions
+   - For example: "How to use the PromptEditor component?"
+   - For example: "How to implement variable insertion?"
+   - For example: "How to configure streaming output?"
+
+3. **Get Help**
+   - Visit [peaks-skills NPM package](https://www.npmjs.com/package/peaks-skills)
+   - Check the `peaks-react-prompt-editor` Skill documentation
+
+**Use Cases**:
+
+- 🚀 Quickly understand component features and APIs
+- 🔧 Solve integration and usage issues
+- 💡 Learn best practices and design patterns
+- 📚 Get detailed code examples

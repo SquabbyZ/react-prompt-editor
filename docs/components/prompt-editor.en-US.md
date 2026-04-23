@@ -8,6 +8,14 @@ demo:
 
 RPEditor is a prompt-engineering-focused tree editor component for hierarchical authoring, node-level execution, dependency orchestration, streaming AI optimization, and structured showcase flows.
 
+## 🤖 AI-Assisted Development
+
+We provide the **peaks-react-prompt-editor** Skill to help you use RPEditor more efficiently with AI-assisted development.
+
+- 📦 NPM Package: [peaks-skills](https://www.npmjs.com/package/peaks-skills)
+- 🔧 Install Command: `npx skills add https://www.npmjs.com/package/peaks-skills`
+- 💡 Usage: When asking RPEditor-related questions in AI conversations, the AI will automatically load this Skill
+
 ## Best Fit Scenarios
 
 - Maintaining complex system prompts, rule blocks, few-shot examples and multi-step task instructions

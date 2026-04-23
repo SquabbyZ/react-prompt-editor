@@ -7,6 +7,14 @@ demo:
 
 RPEditor 是一个面向 Prompt 工程化的树形编辑器组件，提供层级化提示词管理、节点级运行、依赖组织、流式 AI 优化与展示能力。
 
+## 🤖 AI 辅助开发
+
+我们提供了 **peaks-react-prompt-editor** Skill，帮助你在 AI 辅助开发中更高效地使用 RPEditor。
+
+- 📦 NPM 包：[peaks-skills](https://www.npmjs.com/package/peaks-skills)
+- 🔧 安装命令：`npx skills add https://www.npmjs.com/package/peaks-skills`
+- 💡 使用方式：在 AI 对话中询问 RPEditor 相关问题时，AI 会自动加载该 Skill
+
 ## 适用场景
 
 - 维护复杂的 system prompt、规则块、few-shot 示例和多步骤任务说明
@@ -233,7 +241,7 @@ const handleRunRequest = (request: RunTaskRequest) => {
   onChange={setValue}
   dataSelector={DataSelector}
   onRunRequest={handleRunRequest}
-/>
+/>;
 ```
 
 ## 🧩 自定义节点顶部插槽
@@ -255,9 +263,7 @@ const handleRunRequest = (request: RunTaskRequest) => {
   value={value}
   onChange={setValue}
   renderNodeTopSlot={({ node, isDarkMode }) => (
-    <div>
-      当前节点：{node.title}
-    </div>
+    <div>当前节点：{node.title}</div>
   )}
 />
 ```
@@ -402,21 +408,21 @@ const renderCustomActions = ({ node, defaultActions, isDarkMode }) => {
 | draggable             | 是否支持拖拽排序（启用后可通过拖拽调整节点位置和层级）                                | `boolean`                                         | `false`             |
 | dataSelector          | 数据选择器组件（用于在编辑器中插入变量，如 @用户名、@当前日期等）                     | `React.ComponentType<DataSelectorComponentProps>` | -                   |
 | renderNodeActions     | 自定义节点底部操作按钮区域（提供此项可完全替换默认的变量/运行/AI优化按钮）            | `(props) => ReactNode`                            | -                   |
-| renderNodeTopSlot     | 自定义节点头部下方、内容区上方插槽（支持渲染任意 ReactNode）                           | `(props) => ReactNode`                            | -                   |
+| renderNodeTopSlot     | 自定义节点头部下方、内容区上方插槽（支持渲染任意 ReactNode）                          | `(props) => ReactNode`                            | -                   |
 
 #### 事件 (Events)
 
-| 参数              | 说明                                                                                      | 类型                                                    | 默认值 |
-| ----------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------- | ------ |
-| onChange          | 数据变化回调                                                                              | `(data: TaskNode[]) => void`                            | -      |
-| onRunRequest      | 运行请求回调（触发运行时调用，用户自行处理异步请求）                                      | `(request: RunTaskRequest) => void`                     | -      |
-| onOptimizeRequest | 优化请求回调（高级模式，用户自行处理请求，并通过 request.applyOptimizedContent 应用结果） | `(request: OptimizeRequest) => void`                    | -      |
-| onNodeRun         | 节点运行完成回调（用户执行完运行请求后调用，通知组件更新状态）                            | `(nodeId: string, result: RunTaskResponse) => void`     | -      |
-| onNodeOptimize    | 节点优化完成回调（用户执行完优化请求后调用，通知组件）                                    | `(nodeId: string, result: OptimizeResponse) => void`    | -      |
-| onNodeLock        | 节点锁定回调                                                                              | `(nodeId: string, isLocked: boolean) => void`           | -      |
-| onTreeChange      | 树变化回调                                                                                | `(tree: TaskNode[]) => void`                            | -      |
-| onLike            | AI 优化消息点赞回调                                                                       | `(messageId: string) => void`                           | -      |
-| onDislike         | AI 优化消息点踩回调                                                                       | `(messageId: string) => void`                           | -      |
+| 参数              | 说明                                                                                      | 类型                                                 | 默认值 |
+| ----------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------- | ------ |
+| onChange          | 数据变化回调                                                                              | `(data: TaskNode[]) => void`                         | -      |
+| onRunRequest      | 运行请求回调（触发运行时调用，用户自行处理异步请求）                                      | `(request: RunTaskRequest) => void`                  | -      |
+| onOptimizeRequest | 优化请求回调（高级模式，用户自行处理请求，并通过 request.applyOptimizedContent 应用结果） | `(request: OptimizeRequest) => void`                 | -      |
+| onNodeRun         | 节点运行完成回调（用户执行完运行请求后调用，通知组件更新状态）                            | `(nodeId: string, result: RunTaskResponse) => void`  | -      |
+| onNodeOptimize    | 节点优化完成回调（用户执行完优化请求后调用，通知组件）                                    | `(nodeId: string, result: OptimizeResponse) => void` | -      |
+| onNodeLock        | 节点锁定回调                                                                              | `(nodeId: string, isLocked: boolean) => void`        | -      |
+| onTreeChange      | 树变化回调                                                                                | `(tree: TaskNode[]) => void`                         | -      |
+| onLike            | AI 优化消息点赞回调                                                                       | `(messageId: string) => void`                        | -      |
+| onDislike         | AI 优化消息点踩回调                                                                       | `(messageId: string) => void`                        | -      |
 
 ## 数据类型
 

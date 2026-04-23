@@ -95,3 +95,41 @@ pnpm add antd @ant-design/x
 - [流式输出示例](/components/prompt-editor#流式输出示例)
 - [国际化](/i18n)
 - [GitHub 仓库](https://github.com/SquabbyZ/react-prompt-editor)
+
+## AI 辅助开发工具
+
+### 🤖 Peaks Skills for RPEditor
+
+我们提供了专门的 **peaks-react-prompt-editor** Skill，帮助你在 AI 辅助开发中更高效地使用 RPEditor。
+
+**功能特性**：
+
+- ✅ 完整的组件 API 参考和用法示例
+- ✅ 常见场景的最佳实践指导
+- ✅ 问题排查和调试建议
+- ✅ 配置优化和性能调优指南
+
+**使用方式**：
+
+1. **安装 Skills**
+
+   ```bash
+   npx skills add https://www.npmjs.com/package/peaks-skills
+   ```
+
+2. **在 AI 对话中使用**
+   - 当你询问 RPEditor 相关问题时，AI 会自动加载该 Skill
+   - 例如："如何使用 PromptEditor 组件？"
+   - 例如："如何实现变量插入功能？"
+   - 例如："如何配置流式输出？"
+
+3. **获取帮助**
+   - 访问 [peaks-skills NPM 包](https://www.npmjs.com/package/peaks-skills)
+   - 查看 `peaks-react-prompt-editor` Skill 的详细文档
+
+**适用场景**：
+
+- 🚀 快速了解组件功能和 API
+- 🔧 解决集成和使用中的问题
+- 💡 学习最佳实践和设计模式
+- 📚 获取详细的代码示例
