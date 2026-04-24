@@ -53,6 +53,7 @@ export default () => {
   // 处理运行请求
   const handleRunRequest = (request: RunTaskRequest) => {
     console.log('🚀 Run API called:', request);
+    console.log('📋 Node Number:', request.nodeNumber); // e.g., "1", "1.1", "2", "2.1"
     // 模拟 API 调用
     setTimeout(() => {
       const result: RunTaskResponse = {

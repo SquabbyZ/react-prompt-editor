@@ -113,6 +113,43 @@ const App = () => (
 );
 ```
 
+### 🔗 节点依赖管理
+
+通过 `dependencies` 字段建立节点间的依赖关系。运行节点时，`onRunRequest` 回调的 `dependenciesContent` 会自动包含所有依赖节点的详细信息（包括 id、标号、标题、内容和运行状态）：
+
+```tsx
+const [value, setValue] = useState<TaskNode[]>([
+  {
+    id: 'role',
+    title: '角色定义',
+    content: '# Role\n\nYou are a helpful assistant.',
+    hasRun: true,
+    dependencies: [],
+  },
+  {
+    id: 'task',
+    title: '当前任务',
+    content: '基于角色定义完成任务...',
+    dependencies: ['role'], // 依赖 "角色定义" 节点
+  },
+]);
+
+<PromptEditor
+  value={value}
+  onChange={setValue}
+  onRunRequest={(request) => {
+    // request.dependenciesContent 包含依赖节点的完整信息
+    console.log('依赖节点:', request.dependenciesContent.map(d => ({
+      id: d.nodeId,
+      number: d.nodeNumber, // 节点标号，如 "1", "1.1"
+      title: d.title,
+      content: d.content,
+      hasRun: d.hasRun,
+    })));
+  }}
+/>
+```
+
 ### 🎨 自定义工具栏
 
 使用 `renderToolbar` 完全控制顶部工具栏的内容和布局：

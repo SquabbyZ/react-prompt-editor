@@ -44,10 +44,11 @@ export default () => {
   // 处理运行请求
   const handleRunRequest = (request: RunTaskRequest) => {
     console.log('🚀 Run API called:', request);
+    console.log('📋 节点序号:', request.nodeNumber); // 例如："1", "1.1", "2", "2.1"
     // 模拟 API 调用
     setTimeout(() => {
       const result: RunTaskResponse = {
-        result: `✅ 运行成功！\n\n节点：${request.nodeId}\n内容长度：${request.content.length} 字符\n依赖数量：${request.dependenciesContent.length}`,
+        result: `✅ 运行成功！\n\n节点：${request.nodeId}\n序号：${request.nodeNumber}\n内容长度：${request.content.length} 字符\n依赖数量：${request.dependenciesContent.length}`,
       };
       // 通知组件运行完成（通过 meta.onNodeRun）
       if (request.meta?.onNodeRun) {

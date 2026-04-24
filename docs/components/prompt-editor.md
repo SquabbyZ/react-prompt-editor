@@ -112,7 +112,13 @@ pnpm add antd @ant-design/x
 
 ## 节点依赖
 
-通过 `dependencies` 字段建立节点间的依赖关系。运行节点时，`onRunRequest` 回调的 `dependenciesContent` 会自动包含所有依赖节点的内容，适合构建 Agent 或多阶段生成流程：
+通过 `dependencies` 字段建立节点间的依赖关系。运行节点时，`onRunRequest` 回调的 `dependenciesContent` 会自动包含所有依赖节点的详细信息（包括 **id**、**标号**、**标题**、**内容** 和 **运行状态**），适合构建 Agent 或多阶段生成流程：
+
+- `nodeId`: 依赖节点的唯一标识符
+- `nodeNumber`: 依赖节点标号（如 "1", "1.1", "2"）
+- `title`: 依赖节点标题
+- `content`: 依赖节点内容
+- `hasRun`: 依赖节点是否已运行
 
 <code src="./examples/dependencies.tsx"></code>
 
@@ -165,21 +171,26 @@ pnpm add antd @ant-design/x
 创建一个自定义的数据选择器组件需要：
 
 1. 定义一个 React 函数组件，接收 `DataSelectorComponentProps` 类型的 props
-2. 在组件中使用 Ant Design 的 Modal、List 等组件构建 UI
-3. 调用 `onSelect(item)` 插入选中的变量，调用 `onCancel()` 关闭选择器
+2. 在组件中使用 Ant Design 的 Modal、List、Checkbox 等组件构建 UI
+3. 调用 `onSelect(data)` 插入选中的变量（支持单选或多选），调用 `onCancel()` 关闭选择器
 
 **组件接收的 Props：**
 
-- `onSelect`: 选中变量时的回调函数，接收 `TagData` 参数
+- `onSelect`: 选中变量时的回调函数，接收 `TagData | TagData[]` 参数（支持单选和多选）
 - `onCancel`: 取消选择时的回调函数
 - `cursorPosition`: 打开选择器时光标的位置（可选）
+- `multiple`: 是否启用多选模式（可选，默认 false）
 
-完整的示例代码请参考 [data-selector.tsx](./examples/data-selector.tsx) 示例文件。
+完整的示例代码请参考：
+- [data-selector.tsx](./examples/data-selector.tsx) - 基础单选示例
+- [multi-select-data-selector.tsx](./examples/multi-select-data-selector.tsx) - 多选功能示例
+- [SimpleDataSelector.tsx](../../examples/SimpleDataSelector.tsx) - 完整的多选实现参考
 
 **关键点：**
 
-- 组件接收 `onSelect`、`onCancel` 和 `cursorPosition` 三个 props
-- 调用 `onSelect(item)` 即可插入选中的变量
+- 组件需要根据 `multiple` prop 判断是单选还是多选模式
+- 单选模式：直接调用 `onSelect(item)` 插入单个变量
+- 多选模式：收集多个选中项后，调用 `onSelect([item1, item2, ...])` 批量插入
 - 调用 `onCancel()` 关闭选择器
 
 ### 数据结构说明
@@ -204,36 +215,62 @@ pnpm add antd @ant-design/x
 
 ### 多选功能
 
-数据选择器组件支持多选模式，允许用户一次性选择多个变量并批量插入到编辑器中：
+数据选择器组件原生支持多选模式，允许用户一次性选择多个变量并批量插入到编辑器中：
 
-1. 在自定义数据选择器组件中，通过 `multiple` prop 判断是否启用多选模式
-2. 在多选模式下，`onSelect` 回调可以接收 `TagData[]` 数组
-3. 编辑器会自动将多个变量按顺序插入到光标位置
+**实现要点：**
 
-推荐先看完整示例：[data-selector.tsx](./examples/data-selector.tsx)（包含运行回调与变量追踪）。
+1. 通过 `multiple` prop 判断是否启用多选模式
+2. 在多选模式下，维护一个选中项列表（如使用 `useState<string[]>`）
+3. 提供确认按钮，点击时将所有选中项作为数组传递给 `onSelect`
+4. 编辑器会自动将多个变量按顺序插入到光标位置，用空格分隔
 
-### 标签删除（Tag Close）
+**多选模式下的最佳实践：**
 
-当前版本支持在编辑器中的变量标签右侧显示关闭按钮（`×`）：
+- 使用 Checkbox 或高亮样式显示选中状态
+- 提供"确定"按钮，显示已选数量
+- 支持搜索和过滤功能，提升用户体验
+- 在空状态下给出友好提示
 
-- 点击 `×` 会删除整个变量标签
+完整的多选实现示例请查看 [SimpleDataSelector.tsx](../../examples/SimpleDataSelector.tsx)，该示例包含：
+- ✅ 搜索过滤功能
+- ✅ 多选状态管理
+- ✅ 确认/取消操作
+- ✅ 空状态提示
 
-这在用户频繁编辑 Prompt 时非常实用，不需要手动删除整段变量文本。
-
-### 运行时内容处理（去掉 `@` 前缀）
-
-如果标签显示为 `@用户名`、`@当前日期`，点击运行时会将内容中的标签文本转换为去掉 `@` 的纯文本：
-
-- `@用户名` → `用户名`
-- `@当前日期` → `当前日期`
-
-也就是说，传给 `onRunRequest` 的 `request.content` 是处理后的文本。
-
-### 最小示例（多选 + 删除 + 运行）
+### 最小示例（多选 + 运行）
 
 ```tsx | pure
 const handleRunRequest = (request: RunTaskRequest) => {
-  console.log('处理后的内容:', request.content); // 标签文本已去掉 @
+  // request.nodeId - 节点 ID
+  // request.nodeNumber - 节点序号（如 "1", "1.1", "2", "2.1"）
+  // request.content - 节点内容
+  // request.dependenciesContent - 依赖节点信息
+  
+  console.log('节点序号:', request.nodeNumber); // 例如："1", "1.1", "2", "2.1"
+  
+  // 1. 执行你的 API 调用
+  fetch('/api/run', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      nodeId: request.nodeId,
+      nodeNumber: request.nodeNumber,
+      content: request.content,
+      dependencies: request.dependenciesContent.map(dep => ({
+        id: dep.nodeId,
+        number: dep.nodeNumber,  // 依赖节点标号
+        title: dep.title,
+        content: dep.content,
+      })),
+    }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      // 2. 通知组件运行完成
+      request.meta?.onNodeRun?.(request.nodeId, {
+        result: data.result,
+      });
+    });
 };
 
 <PromptEditor
@@ -446,6 +483,8 @@ interface TaskNode {
 ```typescript
 interface RunTaskRequest {
   nodeId: string; // 节点 ID
+  /** 节点标题序号（如 "1", "1.1", "2", "2.1"） */
+  nodeNumber: string;
   content: string; // 节点内容
   dependenciesContent: DependencyInfo[]; // 依赖节点信息
   stream?: boolean; // 是否流式输出
@@ -454,6 +493,8 @@ interface RunTaskRequest {
 
 interface DependencyInfo {
   nodeId: string; // 依赖节点 ID
+  /** 依赖节点标号（如 "1", "1.1", "2"） */
+  nodeNumber: string;
   title: string; // 依赖节点标题
   content: string; // 依赖节点内容
   hasRun: boolean; // 是否已运行
@@ -524,6 +565,13 @@ interface OptimizeConfig {
 
 ```typescript
 const handleRunRequest = (request: RunTaskRequest) => {
+  // request.nodeId - 节点 ID
+  // request.nodeNumber - 节点序号（如 "1", "1.1", "2", "2.1"）
+  // request.content - 节点内容
+  // request.dependenciesContent - 依赖节点信息
+  
+  console.log('节点序号:', request.nodeNumber); // 例如："1", "1.1", "2", "2.1"
+  
   // 1. 执行你的 API 调用
   fetch('/api/run', {
     method: 'POST',

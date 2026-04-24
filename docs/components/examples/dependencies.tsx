@@ -45,14 +45,15 @@ export default () => {
 
   const handleRunRequest = (request: RunTaskRequest) => {
     console.log('🚀 运行请求:', request);
+    console.log('📋 节点序号:', request.nodeNumber); // 例如："1", "1.1", "2", "2.1"
     console.log(
       '📎 依赖内容:',
-      request.dependenciesContent.map((d) => `${d.title}: ${d.content.slice(0, 50)}...`),
+      request.dependenciesContent.map((d) => `${d.nodeNumber}. ${d.title}: ${d.content.slice(0, 50)}...`),
     );
 
     setTimeout(() => {
       const depsInfo = request.dependenciesContent
-        .map((d) => `- **${d.title}** (${d.hasRun ? '已运行' : '未运行'})`)
+        .map((d) => `- **${d.nodeNumber}. ${d.title}** (${d.hasRun ? '已运行' : '未运行'})`)
         .join('\n');
 
       const result: RunTaskResponse = {

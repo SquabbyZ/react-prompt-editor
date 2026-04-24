@@ -35,6 +35,8 @@ export type NodeStore = Map<string, TaskNodeMinimal>;
 
 export interface DependencyInfo {
   nodeId: string;
+  /** 依赖节点标号（如 "1", "1.1", "2"） */
+  nodeNumber: string;
   title: string;
   content: string;
   hasRun: boolean;
@@ -48,6 +50,8 @@ export interface RunTaskResponse {
 
 export interface RunTaskRequest {
   nodeId: string;
+  /** 节点标题序号（如 "1", "1.1", "2", "2.1"） */
+  nodeNumber: string;
   content: string;
   dependenciesContent: DependencyInfo[];
   stream?: boolean;

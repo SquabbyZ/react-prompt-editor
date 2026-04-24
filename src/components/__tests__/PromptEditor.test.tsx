@@ -140,6 +140,7 @@ describe('PromptEditor', () => {
     expect(onRunRequest).toHaveBeenCalledWith(
       expect.objectContaining({
         nodeId: '1',
+        nodeNumber: '1',
         content: '# Root Node',
         dependenciesContent: [],
         meta: expect.objectContaining({

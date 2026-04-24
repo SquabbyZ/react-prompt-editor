@@ -154,11 +154,16 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       const node = store.getState().getNode(nodeId);
       if (!node) return;
 
+      // 获取节点序号
+      const nodeNumber = store.getState().getNodeNumber(nodeId);
+
       // 构建依赖节点详细信息
       const dependenciesContent = node.dependencies.map((depId) => {
         const depNode = store.getState().getNode(depId);
+        const depNodeNumber = store.getState().getNodeNumber(depId);
         return {
           nodeId: depId,
+          nodeNumber: depNodeNumber,
           title: depNode?.title || '',
           content: depNode?.content || '',
           hasRun: depNode?.hasRun || false,
@@ -168,6 +173,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       // 触发运行请求回调，由用户自行处理异步请求
       onRunRequest({
         nodeId,
+        nodeNumber,
         content: node.content,
         dependenciesContent,
         meta: {

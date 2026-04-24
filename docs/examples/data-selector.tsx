@@ -88,6 +88,7 @@ export default () => {
   // 处理运行请求
   const handleRunRequest = (request: RunTaskRequest) => {
     console.log('🚀 运行请求:', request);
+    console.log('📋 节点序号:', request.nodeNumber); // 例如："1", "1.1", "2", "2.1"
     console.log('📝 节点内容（已替换变量）:', request.content);
     
     // 打印详细信息

@@ -10,6 +10,25 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Enhanced `DependencyInfo` interface with `nodeNumber` field to provide dependency node sequence numbers (e.g., "1", "1.1", "2").
+  增强 `DependencyInfo` 接口，添加 `nodeNumber` 字段以提供依赖节点标号（如 "1", "1.1", "2"）。
+
+- Updated `RunTaskRequest` interface with `nodeNumber` field for the current node's sequence number.
+  为 `RunTaskRequest` 接口添加 `nodeNumber` 字段，用于获取当前节点的标号。
+
+- Improved dependency configuration UI to display node sequence numbers in dependency tags.
+  改进依赖配置 UI，在依赖标签中显示节点标号。
+
+### Changed
+
+- Updated documentation examples to demonstrate usage of `nodeNumber` in dependency information.
+  更新文档示例，展示如何在依赖信息中使用 `nodeNumber`。
+
+- Enhanced Chinese and English documentation for dependency management features.
+  完善了中英文档中关于依赖管理功能的说明。
+
 ## [1.0.5] - 2026-04-22
 
 ### Changed

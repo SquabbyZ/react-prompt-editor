@@ -50,11 +50,12 @@ const App: React.FC = () => {
   // 运行请求回调 - 用户自行处理异步请求
   const handleRunRequest = (request: RunTaskRequest) => {
     console.log('运行请求:', request);
+    console.log('📋 节点序号:', request.nodeNumber); // 例如："1", "1.1", "2", "2.1"
 
     // 模拟异步请求
     setTimeout(() => {
       const result = {
-        result: `✅ 运行成功！节点 ID: ${request.nodeId}\n内容长度：${request.content.length}\n依赖数量：${request.dependenciesContent.length}`,
+        result: `✅ 运行成功！\n节点 ID: ${request.nodeId}\n节点序号: ${request.nodeNumber}\n内容长度：${request.content.length}\n依赖数量：${request.dependenciesContent.length}`,
         stream: false,
       };
 

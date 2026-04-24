@@ -252,6 +252,8 @@ interface TaskNode {
 ```typescript
 interface RunTaskRequest {
   nodeId: string; // Node ID
+  /** Node title number (e.g., "1", "1.1", "2", "2.1") */
+  nodeNumber: string;
   content: string; // Node content
   dependenciesContent: DependencyInfo[]; // Dependent node information
   stream?: boolean; // Whether streaming output
@@ -260,6 +262,8 @@ interface RunTaskRequest {
 
 interface DependencyInfo {
   nodeId: string; // Dependent node ID
+  /** Dependent node number (e.g., "1", "1.1", "2") */
+  nodeNumber: string;
   title: string; // Dependent node title
   content: string; // Dependent node content
   hasRun: boolean; // Whether executed
@@ -347,6 +351,13 @@ The component uses a **pure callback mode** design, giving users control over as
 
 ```typescript
 const handleRunRequest = (request: RunTaskRequest) => {
+  // request.nodeId - Node ID
+  // request.nodeNumber - Node number (e.g., "1", "1.1", "2", "2.1")
+  // request.content - Node content
+  // request.dependenciesContent - Dependency node information
+  
+  console.log('Node Number:', request.nodeNumber); // e.g., "1", "1.1", "2", "2.1"
+  
   // 1. Execute your API call
   fetch('/api/run', {
     method: 'POST',
