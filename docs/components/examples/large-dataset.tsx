@@ -616,6 +616,12 @@ export default function LargeDatasetDemo() {
             padding: '16px',
           }}
         >
+          <div style={{ marginBottom: '12px' }}>
+            <p style={{ margin: 0, color: '#666', fontSize: '13px' }}>
+              此示例设置了 <code>maxChildLevel={'{4}'}</code>，表示最多只能有 4 层子标题（根节点为第 1 层）。
+              当达到最大层级时，&quot;添加子标题&quot; 按钮会自动隐藏。
+            </p>
+          </div>
           <div
             style={{
               display: 'flex',
@@ -923,6 +929,7 @@ export default function LargeDatasetDemo() {
             value={value}
             onChange={setValue}
             locale={locale === 'en-US' ? enUS : zhCN}
+            maxChildLevel={4}
           />
         </div>
       </div>

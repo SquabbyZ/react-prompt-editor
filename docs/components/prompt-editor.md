@@ -446,6 +446,7 @@ const renderCustomActions = ({ node, defaultActions, isDarkMode }) => {
 | dataSelector          | 数据选择器组件（用于在编辑器中插入变量，如 @用户名、@当前日期等）                     | `React.ComponentType<DataSelectorComponentProps>` | -                   |
 | renderNodeActions     | 自定义节点底部操作按钮区域（提供此项可完全替换默认的变量/运行/AI优化按钮）            | `(props) => ReactNode`                            | -                   |
 | renderNodeTopSlot     | 自定义节点头部下方、内容区上方插槽（支持渲染任意 ReactNode）                          | `(props) => ReactNode`                            | -                   |
+| maxChildLevel         | 最大子标题层级限制（控制可以添加的最大子标题层级深度，根节点为第 1 层，该值必须大于 0）                                | `number`                                          | `undefined`         |
 
 #### 事件 (Events)
 

@@ -39,6 +39,10 @@ export interface NodeActionsProps {
   locale?: Locale;
   /** 主题模式 */
   theme?: ThemeMode;
+  /** 当前节点层级 */
+  currentLevel?: number;
+  /** 最大子标题层级限制 */
+  maxChildLevel?: number;
 }
 
 /**
@@ -61,6 +65,8 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
     handleDelete,
     locale,
     theme = 'system',
+    currentLevel,
+    maxChildLevel,
   }) => {
     const { t } = useI18n(locale);
     const { isDarkMode } = useResolvedTheme(theme);
@@ -70,6 +76,18 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
     const dangerButtonClassName = isDarkMode
       ? 'hover:bg-red-900/20'
       : 'hover:bg-red-50';
+
+    // 计算是否应该显示添加子节点按钮
+    const shouldShowAddChildButton = React.useMemo(() => {
+      if (maxChildLevel === undefined || maxChildLevel === null) {
+        return true; // 未设置限制，始终显示
+      }
+      if (currentLevel === undefined) {
+        return true; // 无法获取层级，默认显示
+      }
+      // currentLevel 是当前节点的层级（根节点为第 1 层），如果当前层级 >= 最大层级，则不显示
+      return currentLevel < maxChildLevel;
+    }, [currentLevel, maxChildLevel]);
 
     return (
       <div className="relative z-20 flex flex-shrink-0 items-center gap-1">
@@ -102,23 +120,25 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
         {/* 大屏显示独立按钮 - 宽度大于 650px 且非移动端 */}
         {showAllButtons && !isMobile && (
           <div className="flex items-center gap-1">
-            <Tooltip
-              title={
-                nodeData.isLocked
-                  ? t('editor.lockedCannotAddChild')
-                  : t('editor.addChildNode')
-              }
-            >
-              <Button
-                type="text"
-                size="small"
-                icon={<Plus size={14} />}
-                onClick={handleAddChild}
-                disabled={nodeData.isLocked}
-                aria-label={t('editor.addChildNode')}
-                className={ghostButtonClassName}
-              />
-            </Tooltip>
+            {shouldShowAddChildButton && (
+              <Tooltip
+                title={
+                  nodeData.isLocked
+                    ? t('editor.lockedCannotAddChild')
+                    : t('editor.addChildNode')
+                }
+              >
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<Plus size={14} />}
+                  onClick={handleAddChild}
+                  disabled={nodeData.isLocked}
+                  aria-label={t('editor.addChildNode')}
+                  className={ghostButtonClassName}
+                />
+              </Tooltip>
+            )}
 
             <Tooltip
               title={

@@ -84,9 +84,11 @@ export const CodeMirrorEditor = memo(
 
       useImperativeHandle(ref, () => ({
         get view() {
+          const editor = editorRef.current;
+          const fullText = editor?.getValue() || '';
+          
           return {
             dispatch: ({ changes, selection }: any) => {
-              const editor = editorRef.current;
               if (!editor) return;
               if (changes) {
                 const from = editor.posFromIndex(changes.from);
@@ -100,11 +102,12 @@ export const CodeMirrorEditor = memo(
             },
             state: {
               doc: {
-                length: editorRef.current?.getValue().length || 0,
+                length: fullText.length,
+                toString: () => fullText,
+                sliceString: (from: number, to: number) => fullText.slice(from, to),
               },
               selection: {
                 main: (() => {
-                  const editor = editorRef.current;
                   if (!editor) return { from: 0, to: 0, empty: true };
                   const fromPos = editor.getCursor('from');
                   const toPos = editor.getCursor('to');

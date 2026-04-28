@@ -128,10 +128,10 @@ export const MessageList: React.FC<MessageListProps> = memo(
           <div className="flex-shrink-0 border-b border-gray-200 bg-white px-6 py-3 dark:border-gray-700 dark:bg-gray-900">
             <div className="flex items-center gap-1 text-xs font-medium text-primary">
               <FileText size={14} />
-              选中的内容（{selectedContent.length} 字）
+              选中的内容（{typeof selectedContent === 'string' ? selectedContent.length : String(selectedContent).length} 字）
             </div>
             <div className="scroll-thin mt-1 max-h-32 overflow-y-auto whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">
-              {selectedContent}
+              {typeof selectedContent === 'string' ? selectedContent : String(selectedContent)}
             </div>
           </div>
         )}

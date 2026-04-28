@@ -115,6 +115,8 @@ interface CustomNodeProps {
     node: TaskNode;
     isDarkMode: boolean;
   }) => React.ReactNode;
+  /** 最大子标题层级限制 */
+  maxChildLevel?: number;
 }
 
 export const Node: React.FC<CustomNodeProps> = memo(
@@ -158,6 +160,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
     dataSelector,
     renderNodeActions,
     renderNodeTopSlot,
+    maxChildLevel,
   }) => {
     // 国际化 Hook
     const { t } = useI18n(locale);
@@ -553,18 +556,31 @@ export const Node: React.FC<CustomNodeProps> = memo(
       ],
     );
 
+    // 计算是否应该显示添加子节点按钮
+    const shouldShowAddChildButton = React.useMemo(() => {
+      if (maxChildLevel === undefined || maxChildLevel === null) {
+        return true; // 未设置限制，始终显示
+      }
+      // node.level 是当前节点的层级（根节点为第 1 层），如果当前层级 >= 最大层级，则不显示
+      return node.level < maxChildLevel;
+    }, [node.level, maxChildLevel]);
+
     // 下拉菜单项
     const menuItems = [
-      {
-        key: 'addChild',
-        label: t('editor.childTitle'),
-        icon: <Plus size={14} />,
-        disabled: nodeData.isLocked,
-        onClick: (info: any) => {
-          info.domEvent.stopPropagation();
-          handleAddChild(info.domEvent);
-        },
-      },
+      ...(shouldShowAddChildButton
+        ? [
+            {
+              key: 'addChild',
+              label: t('editor.childTitle'),
+              icon: <Plus size={14} />,
+              disabled: nodeData.isLocked,
+              onClick: (info: any) => {
+                info.domEvent.stopPropagation();
+                handleAddChild(info.domEvent);
+              },
+            },
+          ]
+        : []),
       {
         key: 'lock',
         label: nodeData.isLocked ? t('editor.unlock') : t('editor.lock'),
@@ -729,6 +745,8 @@ export const Node: React.FC<CustomNodeProps> = memo(
                   handleDelete={handleDelete}
                   locale={locale}
                   theme={theme}
+                  currentLevel={node.level}
+                  maxChildLevel={maxChildLevel}
                 />
               )}
             </div>

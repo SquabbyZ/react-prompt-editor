@@ -40,7 +40,7 @@ export function flattenVisibleNodes(
     }
   }
 
-  traverse(nodes, 0);
+  traverse(nodes, 1);
   return result;
 }
 

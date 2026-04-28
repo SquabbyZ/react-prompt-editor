@@ -299,4 +299,13 @@ export interface PromptEditorProps {
     node: TaskNode;
     isDarkMode: boolean;
   }) => React.ReactNode;
+  /**
+   * 最大子标题层级限制
+   * 用于控制节点可以添加的最大子标题层级深度
+   * 根节点为第 1 层，每增加一个子节点层级 +1
+   * @default undefined (不限制)
+   * @example 3 - 表示最多只能有 3 层子标题（根节点为第 1 层）
+   * @remarks 该值必须大于 0，否则配置无效
+   */
+  maxChildLevel?: number;
 }

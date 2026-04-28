@@ -215,6 +215,7 @@ const AppDark = () => <PromptEditor theme="dark" />;
 | locale                | Internationalization configuration (similar to Ant Design's language pack)                             | `Locale`                          | `zhCN`              |
 | theme                 | Theme mode (controls light/dark theme)                                                                 | `'system' \| 'light' \| 'dark'`   | `'system'`          |
 | draggable             | Enable drag-and-drop sorting (allows adjusting node positions and hierarchy via dragging)              | `boolean`                         | `false`             |
+| maxChildLevel         | Maximum child level limit (controls the maximum depth of child nodes that can be added, root node is level 1, value must be greater than 0)                | `number`                          | `undefined`         |
 
 #### Events
 

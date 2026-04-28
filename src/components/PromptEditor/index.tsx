@@ -47,6 +47,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   dataSelector,
   renderNodeActions,
   renderNodeTopSlot,
+  maxChildLevel,
 }) => {
   // 国际化 Hook
   const { t } = useI18n(locale);
@@ -597,6 +598,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
             dataSelector={dataSelector}
             renderNodeActions={renderNodeActions}
             renderNodeTopSlot={renderNodeTopSlot}
+            maxChildLevel={maxChildLevel}
           />
         </div>
       );
