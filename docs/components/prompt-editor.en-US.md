@@ -99,6 +99,15 @@ Use the `draggable` prop to enable node drag-and-drop sorting functionality, all
 - ❌ Locked nodes cannot be dragged
 - ❌ Cannot drag in preview mode
 
+### Delete Node Confirmation
+
+When deleting a node with children, a confirmation dialog displays the complete tree structure:
+
+- ✅ Shows all descendant nodes with their titles and level numbers
+- ✅ Nodes with children are displayed in bold
+- ✅ Shows the direct child count for each node
+- ✅ Locked nodes cannot be deleted
+
 ## Controlled vs Uncontrolled Mode
 
 The component supports two data management approaches: **controlled mode** (`value` + `onChange`) and **uncontrolled mode** (`initialValue`). Controlled mode is ideal when you need to sync state externally; uncontrolled mode suits simple standalone usage:
@@ -113,7 +122,13 @@ Use the `renderToolbar` prop to fully customize the top toolbar's content and la
 
 ## Node Dependencies
 
-Use the `dependencies` field to establish relationships between nodes. When running a node, the `dependenciesContent` in the `onRunRequest` callback automatically includes all dependency nodes' content, perfect for building agents or multi-stage generation flows:
+Use the `dependencies` field to establish relationships between nodes. When running a node, the `dependenciesContent` in the `onRunRequest` callback automatically includes detailed information about all dependent nodes (including **id**, **number**, **title**, **content**, and **execution status**), perfect for building agents or multi-stage generation flows:
+
+### Lock and Dependency Behavior
+
+- ✅ Locked nodes display the **"Locked"** indicator
+- ✅ When **unlocking** a node, it is **automatically removed** from other nodes' dependency lists
+- ✅ In the dependency dropdown, locked nodes cannot be selected
 
 <code src="./examples/dependencies.tsx"></code>
 
