@@ -1,0 +1,30 @@
+{
+  "project": "react-prompt-editor",
+  "initialized": "2026-05-09",
+  "techStack": {
+    "frontend": "react@18",
+    "language": "typescript",
+    "ui": "antd@5 + @ant-design/x@2",
+    "state": "zustand@5",
+    "editor": "codemirror@5 + markdown-it",
+    "styling": "tailwindcss@3",
+    "build": "father@4",
+    "doc": "dumi@2",
+    "testing": "vitest + playwright",
+    "devPort": 8000
+  },
+  "agents": [
+    "frontend",
+    "peaksfeat",
+    "peaksbug",
+    "product",
+    "qa",
+    "devops",
+    "security-reviewer",
+    "code-reviewer-frontend",
+    "code-reviewer-backend",
+    "triage"
+  ],
+  "contextEstimate": 0,
+  "lastCompact": null
+}

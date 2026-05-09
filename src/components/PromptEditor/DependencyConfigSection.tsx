@@ -14,6 +14,7 @@ interface DependencyConfigSectionProps {
     title: string;
     number: string;
     hasRun: boolean;
+    isLocked: boolean;
     parentId?: string;
     children: string[];
   }>;
@@ -66,7 +67,7 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
       };
 
       // 判断节点是否可选：
-      // 1. 已锁定（hasRun=true）
+      // 1. 已锁定（isLocked=true）
       // 2. 不是自身
       // 3. 未在选择列表中
       const isNodeSelectable = (nodeIdToCheck: string): boolean => {
@@ -74,7 +75,7 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
         if (dependencies.includes(nodeIdToCheck)) return false;
         const node = availableNodes.find((n) => n.id === nodeIdToCheck);
         if (!node) return false;
-        return node.hasRun;
+        return node.isLocked;
       };
 
       // 构建树形数据结构
@@ -100,7 +101,7 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
                     <span className="mr-1 font-bold">[{childNode.number}]</span>
                     {childNode.title}
                   </span>
-                  {childNode.hasRun && (
+                  {childNode.isLocked && (
                     <Tag
                       color="green"
                       className="flex-shrink-0 px-1 py-0 text-xs font-bold"
@@ -141,7 +142,7 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
                   <span className="mr-1 font-bold">[{rootNode.number}]</span>
                   {rootNode.title}
                 </span>
-                {rootNode.hasRun && (
+                {rootNode.isLocked && (
                   <Tag
                     color="green"
                     className="flex-shrink-0 px-1 py-0 text-xs font-bold"

@@ -46,6 +46,7 @@ export default {
     deleteConfirmTitle: '删除节点',
     deleteConfirmDesc: '确定要删除这个节点吗？',
     confirmDeleteNode: '确定要删除这个节点吗？',
+    willDeleteChildren: '将同时删除以下子标题：',
     cancelledDelete: '已取消删除',
     editPrompt: '编辑提示词',
     run: '运行',

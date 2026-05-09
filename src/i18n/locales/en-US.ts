@@ -46,6 +46,7 @@ export default {
     deleteConfirmTitle: 'Delete Node',
     deleteConfirmDesc: 'Are you sure you want to delete this node?',
     confirmDeleteNode: 'Are you sure you want to delete this node?',
+    willDeleteChildren: 'The following child nodes will also be deleted:',
     cancelledDelete: 'Delete cancelled',
     editPrompt: 'Edit Prompt',
     run: 'Run',

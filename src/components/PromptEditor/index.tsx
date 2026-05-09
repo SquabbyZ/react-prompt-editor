@@ -192,9 +192,37 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
 
       const newLocked = !node.isLocked;
       updateNode(nodeId, { isLocked: newLocked });
-      message.success(
-        newLocked ? t('editor.nodeLocked') : t('editor.nodeUnlocked'),
-      );
+
+      // 解锁时，自动清除其他节点对该节点的依赖引用
+      if (!newLocked) {
+        const allNodes = store.getState().getAllNodes();
+        const updates: { nodeId: string; dependencies: string[] }[] = [];
+
+        allNodes.forEach((n) => {
+          if (n.id !== nodeId && n.dependencies.includes(nodeId)) {
+            updates.push({
+              nodeId: n.id,
+              dependencies: n.dependencies.filter((id) => id !== nodeId),
+            });
+          }
+        });
+
+        // 批量更新依赖
+        updates.forEach(({ nodeId: depNodeId, dependencies: depValue }) => {
+          updateNode(depNodeId, { dependencies: depValue });
+        });
+
+        if (updates.length > 0) {
+          message.info(
+            `${t('editor.nodeUnlocked')}，已自动清除 ${updates.length} 个节点的依赖引用`,
+          );
+        } else {
+          message.success(newLocked ? t('editor.nodeLocked') : t('editor.nodeUnlocked'));
+        }
+      } else {
+        message.success(newLocked ? t('editor.nodeLocked') : t('editor.nodeUnlocked'));
+      }
+
       onNodeLock?.(nodeId, newLocked);
       onChange?.(store.getState().getTree());
     },
@@ -266,6 +294,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       title: node.title,
       number: getNodeNumber(node.id),
       hasRun: node.hasRun,
+      isLocked: node.isLocked,
       parentId: node.parentId,
       children: node.children,
     }));

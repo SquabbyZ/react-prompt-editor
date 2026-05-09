@@ -61,6 +61,7 @@ interface CustomNodeProps {
     title: string;
     number: string;
     hasRun: boolean;
+    isLocked: boolean;
     parentId?: string;
     children: string[];
   }>;
@@ -172,6 +173,40 @@ export const Node: React.FC<CustomNodeProps> = memo(
     const isEditorExpanded = expandedEditorId === nodeData.id;
     // 判断子节点是否展开
     const isChildrenExpanded = expandedNodes.has(nodeData.id);
+    // 计算将被删除的子节点树形结构（用于删除确认提示）
+    const childNodesTree = React.useMemo(() => {
+      if (!isInternal || !availableNodes) return null;
+
+      // 递归收集所有子孙节点
+      function collectTree(nodeId: string, level: number): {
+        id: string;
+        title: string;
+        level: number;
+        children: ReturnType<typeof collectTree>[];
+      } | null {
+        const node = availableNodes.find((n) => n.id === nodeId);
+        if (!node) return null;
+        return {
+          id: node.id,
+          title: node.title,
+          level,
+          children: node.children
+            .map((childId: string) => collectTree(childId, level + 1))
+            .filter(Boolean) as ReturnType<typeof collectTree>[],
+        };
+      }
+
+      const tree = nodeData.children
+        .map((childId: string) => collectTree(childId,1))
+        .filter(Boolean) as Array<{
+        id: string;
+        title: string;
+        level: number;
+        children: Array<{ id: string; title: string; level: number; children: any[] }>;
+      }>;
+
+      return tree.length > 0 ? tree : null;
+    }, [isInternal, nodeData.children, availableNodes]);
 
     // 屏幕尺寸检测：小屏显示下拉菜单，大屏显示独立按钮
     // 使用 useEffect 在客户端检测，避免 SSR 问题
@@ -747,6 +782,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
                   theme={theme}
                   currentLevel={node.level}
                   maxChildLevel={maxChildLevel}
+                  childNodesTree={childNodesTree}
                 />
               )}
             </div>

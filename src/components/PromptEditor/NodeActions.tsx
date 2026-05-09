@@ -43,6 +43,18 @@ export interface NodeActionsProps {
   currentLevel?: number;
   /** 最大子标题层级限制 */
   maxChildLevel?: number;
+  /** 子节点树形结构（用于删除确认提示） */
+  childNodesTree?: Array<{
+    id: string;
+    title: string;
+    level: number;
+    children: Array<{
+      id: string;
+      title: string;
+      level: number;
+      children: any[];
+    }>;
+  }> | null;
 }
 
 /**
@@ -67,6 +79,7 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
     theme = 'system',
     currentLevel,
     maxChildLevel,
+    childNodesTree = null,
   }) => {
     const { t } = useI18n(locale);
     const { isDarkMode } = useResolvedTheme(theme);
@@ -88,6 +101,44 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
       // currentLevel 是当前节点的层级（根节点为第 1 层），如果当前层级 >= 最大层级，则不显示
       return currentLevel < maxChildLevel;
     }, [currentLevel, maxChildLevel]);
+
+    // 渲染树形节点（递归）
+    const renderTreeNodes = (
+      nodes: Array<{
+        id: string;
+        title: string;
+        level: number;
+        children: any[];
+      }>,
+      prefix = '',
+    ) => {
+      return nodes.map((node, index) => {
+        const currentPrefix = prefix ? `${prefix}.${index + 1}` : `${index + 1}`;
+        const hasChildren = node.children.length > 0;
+        return (
+          <div key={node.id || index} className="py-0.5">
+            <div className="flex items-center gap-1">
+              {node.level > 1 && (
+                <span className="text-gray-400">
+                  {'  '.repeat(node.level - 1)}
+                </span>
+              )}
+              <span className={hasChildren ? 'font-medium text-orange-600 dark:text-orange-400' : ''}>
+                {node.level > 1 && '└ '}
+                <span className="text-orange-500 mr-1">{currentPrefix}.</span>
+                {node.title}
+              </span>
+              {hasChildren && (
+                <span className="text-xs text-gray-400 ml-1">
+                  ({node.children.length})
+                </span>
+              )}
+            </div>
+            {hasChildren && renderTreeNodes(node.children, currentPrefix)}
+          </div>
+        );
+      });
+    };
 
     return (
       <div className="relative z-20 flex flex-shrink-0 items-center gap-1">
@@ -168,7 +219,21 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
 
             <Popconfirm
               title={t('editor.deleteNode')}
-              description={t('editor.confirmDeleteNode')}
+              description={
+                <div className="py-1">
+                  <div className="mb-2">{t('editor.confirmDeleteNode')}</div>
+                  {childNodesTree && childNodesTree.length > 0 && (
+                    <div className="text-xs text-orange-500">
+                      <div className="mb-1 font-medium">
+                        {t('editor.willDeleteChildren') || '将同时删除以下子标题：'}
+                      </div>
+                      <div className="max-h-24 overflow-y-auto rounded bg-orange-50 p-2 dark:bg-orange-900/20">
+                        {renderTreeNodes(childNodesTree)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              }
               onConfirm={handleDelete}
               onCancel={() => message.info(t('editor.cancelledDelete'))}
               okText={t('common.ok')}
