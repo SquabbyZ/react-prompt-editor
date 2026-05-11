@@ -129,9 +129,9 @@ Use the `dependencies` field to establish relationships between nodes. When runn
 - ✅ Locked nodes display the **"Locked"** indicator
 - ✅ When **unlocking** a node, it is **automatically removed** from other nodes' dependency lists
 - ✅ In the dependency dropdown, **only locked nodes can be selected** (only locked nodes can be dependencies)
-- ✅ When a node is locked, it **cannot edit dependency tasks** (dependency section is disabled)
+- ✅ When a node is locked, it **cannot edit dependency tasks** (dependency section is disabled, selected dependency tags cannot be removed)
 - ✅ When a node is locked, the **Run** and **AI Optimize** buttons are disabled
-- ✅ When a node is locked, the text editor is in read-only state
+- ✅ When a node is locked, the text editor is in read-only state, undo/redo buttons are hidden
 
 <code src="./examples/dependencies.tsx"></code>
 

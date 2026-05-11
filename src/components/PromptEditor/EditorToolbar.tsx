@@ -13,6 +13,7 @@ interface EditorToolbarProps {
   locale?: Locale;
   theme?: ThemeMode;
   inline?: boolean;
+  isLocked?: boolean;
 }
 
 /**
@@ -29,6 +30,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = memo(
     locale,
     theme = 'system',
     inline = false,
+    isLocked = false,
   }) => {
     // 国际化 Hook
     const { t } = useI18n(locale);
@@ -44,6 +46,11 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = memo(
     const buttonClassName = isDarkMode
       ? 'flex h-7 w-7 items-center justify-center p-0 text-slate-300 hover:bg-slate-800/80 hover:text-slate-100 disabled:text-slate-600'
       : 'flex h-7 w-7 items-center justify-center p-0 text-gray-600 hover:bg-gray-100 hover:text-gray-900 disabled:text-gray-400';
+
+    // 锁定状态下不显示工具栏
+    if (isLocked) {
+      return null;
+    }
 
     return (
       <div className={toolbarClassName}>

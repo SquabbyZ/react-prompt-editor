@@ -264,8 +264,12 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
               {selectedDeps.map((dep) => (
                 <Tag
                   key={dep.id}
-                  closable
-                  onClose={() => handleRemoveDependency(dep.id)}
+                  closable={!isLocked}
+                  onClose={() => {
+                    if (!isLocked) {
+                      handleRemoveDependency(dep.id);
+                    }
+                  }}
                   color="blue"
                   className="max-w-[200px]"
                 >

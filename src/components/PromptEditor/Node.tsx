@@ -881,6 +881,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
                       locale={locale}
                       theme={theme}
                       inline
+                      isLocked={nodeData.isLocked}
                     />
 
                     {renderNodeActions ? (
