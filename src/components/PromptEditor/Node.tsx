@@ -884,7 +884,8 @@ export const Node: React.FC<CustomNodeProps> = memo(
                       isLocked={nodeData.isLocked}
                     />
 
-                    {renderNodeActions ? (
+                    <div className={nodeData.isLocked ? 'ml-auto' : ''}>
+                      {renderNodeActions ? (
                       renderNodeActions({
                         node: {
                           ...nodeData,
@@ -942,6 +943,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
                         </Tooltip>
                       </div>
                     )}
+                    </div>
                   </div>
                 )}
 
