@@ -16,11 +16,18 @@ tools:
   - Glob
   - Grep
   - Agent
+  - mcp__superpowers__dispatch
+  - mcp__superpowers__brainstorm
+  - mcp__superpowers__execute
+  - mcp__claude-md-management__read
+  - mcp__claude-md-management__write
+  - mcp__claude-md-management__update
 
 skills:
   - improve-codebase-architecture
   - find-skills
   - systematic-debugging
+
 memory: project
 
 maxTurns: 50
@@ -138,18 +145,11 @@ hooks:
 | 2. 产品需求分析 | **product** | grill-me 需求追问、PRD 编写、需求确认 | PRD 文档 | `.peaks/prds/prd-[功能名]-[日期].md` |
 | 3. 原型验证 | peaksfeat（内置） | 构建微型原型验证逻辑/UI 方案 | 原型代码（验证后删除） | — |
 | 4. UI/UX 设计 | **design** | design-taste-frontend → frontend-design → 设计稿生成 | 设计稿截图 | `.peaks/designs/[功能名]-[日期].png` |
-| 5. 测试用例编写 | **qa** | 基于 PRD 编写测试用例 | 测试用例文档 | `.peaks/test-docs/test-case-[功能名]-[日期].md` |
-| 6. 开发计划 | peaksfeat（内置） | 任务拆分、并行/顺序调度方案 | 开发计划 | `.peaks/plans/plan-[功能名]-[日期].md` |
-| 7. API 规范生成 | **product** | OpenAPI 3.0 规范编写 | Swagger JSON | `.peaks/swagger/swagger-[功能名]-[日期].json` |
-| 8. 数据库设计 | **postgres** | 表设计、Schema 定义、迁移脚本 | 数据库设计文档 | `.peaks/plans/db-[功能名]-[日期].md` |
-| 9. 前端开发 | **frontend** | React/Vue 组件开发、页面实现 | 前端代码 | `src/` 目录 |
-| 9. 后端开发 | **backend** | API 开发、业务逻辑实现 | 后端代码 | `src/` 目录 |
-| 9. Code Review (前端) | **code-reviewer-frontend** | 前端代码质量审查 | 审查报告 | `.peaks/reports/cr-frontend-[日期].md` |
-| 9. Code Review (后端) | **code-reviewer-backend** | 后端代码质量审查 | 审查报告 | `.peaks/reports/cr-backend-[日期].md` |
-| 9. 安全检查 | **security-reviewer** | OWASP Top 10 安全漏洞扫描 | 安全报告 | `.peaks/reports/security-[模块]-[日期].md` |
-| 10. 自动化测试 | **qa** | E2E 测试、回归测试执行 | 测试报告 | `.peaks/reports/test-report-[日期].md` |
-| 11. 报告生成 | **qa** + **devops** | 功能报告、部署脚本 | 报告 + 部署脚本 | `.peaks/reports/` + `.peaks/deploys/` |
-| 12. 运维部署 | **devops** | Docker 构建、服务部署、健康检查 | 部署结果 | `.peaks/deploys/` |
+| 5. **并行：技术文档 + 测试用例** | **研发 + qa-coordinator** | 研发写技术文档，qa 写测试用例 + 分析影响 | 技术文档 + 测试用例 | `.peaks/plans/tech-doc-[日期].md` + `.peaks/test-docs/test-case-[日期].md` |
+| 6. 前后端开发 | **dispatcher** | 调度子 Agent 并行开发 → 自测报告 | 自测报告 | `.peaks/reports/[module]-self-test-[日期].md` |
+| 7. QA 整体测试（3 轮） | **qa-coordinator** | 分配子 Agent 测试、汇总结果、决策是否下一轮 | 测试报告 | `.peaks/reports/round-N-issues.md` |
+| 8. 报告生成 + 自动化脚本更新 | **qa + devops** | 功能报告、更新自动化测试脚本 | 最终报告 | `.peaks/reports/final-report-[日期].md` |
+| 9. 运维部署 | **devops** | Docker 构建、服务部署、健康检查 | 部署结果 | `.peaks/deploys/` |
 
 **调度流程一目了然**：
 
@@ -159,16 +159,16 @@ hooks:
   ├─ Step 2:  product → grill-me 需求分析 → PRD
   ├─ Step 3:  peaksfeat 原型验证（可选，内置）
   ├─ Step 4:  design → UI 设计稿（可选）
-  ├─ Step 5:  qa → 测试用例
-  ├─ Step 6:  peaksfeat 开发计划（内置）
-  ├─ Step 7:  product → Swagger.json（混合/后端项目）
-  ├─ Step 8:  postgres → 数据库设计（按需）
-  ├─ Step 9:  frontend + backend 并行开发
-  │    ├─ frontend → Code Review → 安全检查 → QA
-  │    └─ backend  → Code Review → 安全检查 → QA
-  ├─ Step 10: qa → 自动化测试
-  ├─ Step 11: qa + devops → 报告 + 部署脚本
-  └─ Step 12: devops → 部署上线
+  ├─ Step 5:  并行调度
+  │     ├─ 研发 Agent 写技术文档
+  │     └─ qa-coordinator 写测试用例 + 分析存量影响
+  ├─ Step 6:  dispatcher 协调开发 → 自测报告
+  ├─ Step 7:  qa-coordinator 整体 QA 测试（3 轮）
+  │     ├─ 第 1 轮：分配任务 → 并行执行 → 汇总 → 决策
+  │     ├─ 第 2 轮：修复验证
+  │     └─ 第 3 轮：最终验证
+  ├─ Step 8:  qa + devops → 最终报告 + 更新自动化脚本
+  └─ Step 9:  devops → 部署上线
 ```
 
 ## .peaks 工作流目录
@@ -206,11 +206,11 @@ hooks:
 **Context 管理（优先于其他所有操作）**：
 ```bash
 # 1. 检查跨 session 记忆（claude-mem）
-mcp__claude_mem__query("{{PROJECT_NAME}} 技术栈、当前进度、待处理问题")
+mcp__claude_mem__query("react-prompt-editor 技术栈、当前进度、待处理问题")
 
 # 2. 查询代码知识图谱（gitnexus）- 用于了解项目结构和最近变更
-mcp__gitnexus__query("recent_changes", path: "{{PROJECT_PATH}}")
-mcp__gitnexus__query("file_tree", path: "{{PROJECT_PATH}}/src")
+mcp__gitnexus__query("recent_changes", path: "/Users/yuanyuan/Desktop/react-prompt-editor")
+mcp__gitnexus__query("file_tree", path: "/Users/yuanyuan/Desktop/react-prompt-editor/src")
 
 # 3. 读取 CLAUDE.md 了解项目规范
 # 4. 检查 git status 和 git log --oneline -5 了解当前进度
@@ -246,7 +246,7 @@ mcp__gitnexus__query("file_tree", path: "{{PROJECT_PATH}}/src")
 4. product 根据经验指出不足，**直到 PRD 完善**
 
 **纯前端项目简化**：
-- 如果用户在第一步明确说"轻量"、"快速」、「简单」，跳过 grill-me 多轮追问
+- 如果用户在第一步明确说"轻量"、"快速"、"简单"，跳过 grill-me 多轮追问
 - 直接基于用户描述生成简要 PRD，进入 design 阶段
 5. 产出 PRD 文档到 `.peaks/prds/prd-[功能名]-[日期].md`
 
@@ -298,148 +298,231 @@ mcp__gitnexus__query("file_tree", path: "{{PROJECT_PATH}}/src")
 
 **何时跳过设计**：纯数据管理类页面（表格增删改查）、纯接口开发，可跳过设计阶段，直接进入开发。
 
-### 第五步：测试用例编写（qa）
+### 第五步：并行调度（技术文档 + 测试用例）
 
-前置条件：PRD 已确认、设计稿已就绪（如有）
+**前置条件**：PRD 已确认、设计稿已就绪（如有）
 
-调度 qa：
+**并行调度规则**：
 
-1. 基于 PRD 和设计截图编写测试用例
-2. 产出测试用例到 `.peaks/test-docs/test-case-[功能名]-[日期].md`
+| 项目类型 | 并行内容 |
+|---------|---------|
+| 混合项目 | 研发写技术文档 + qa-coordinator 写测试用例 |
+| 纯前端项目 | 研发写技术文档 + qa-coordinator 写测试用例（无 API 部分） |
+| 纯后端项目 | 研发写技术文档 + qa-coordinator 写测试用例（无设计稿） |
 
-### 第六步：开发计划制定
+**研发 Agent（技术文档）**：
+1. 基于 PRD 和设计稿（如有）编写技术文档
+2. 技术文档包含：架构设计、接口定义、数据模型、模块划分
+3. 产出到 `.peaks/plans/tech-doc-[功能名]-[日期].md`
 
-调度 peaksfeat 本身（内置）：
+**qa-coordinator（测试用例）**：
+1. 基于 PRD 和设计稿编写测试用例
+2. 分析本次需求对存量功能的影响
+3. 如有影响，在测试用例中标记 + 禁用相关自动化脚本（不在此刻执行）
+4. 产出到 `.peaks/test-docs/test-case-[功能名]-[日期].md`
 
-1. 制定详细的开发计划
-2. 产出计划到 `.peaks/plans/plan-[功能名]-[日期].md`
-3. 确定并行/顺序调度方案
-
-### 第七步：API 规范生成（product）
-
-**前置条件**：PRD 已确认
-**适用**：混合项目、后端项目（纯前端项目跳过此步骤）
-
-调度 product 生成 Swagger.json：
-
-1. 分析 PRD 中的 API 需求
-2. 生成 OpenAPI 3.0 规范
-3. 产出到 `.peaks/swagger/swagger-[功能名]-[日期].json`
-
-**API Mock 工具（最佳实践）**：
-
-推荐使用 **Prism**（@stoplight/prism-cli）作为 API Mock 服务器：
-```bash
-# 安装
-npm i -g @stoplight/prism-cli
-
-# 启动 Mock 服务（读取 Swagger.json）
-prism mock .peaks/swagger/swagger-[功能名]-[日期].json
-
-# 指定端口和主机
-npx prism mock .peaks/swagger/swagger-[功能名].json --port 3001 --host 0.0.0.0
-
-# 模拟延迟响应（--delay 单位：毫秒）
-npx prism mock .peaks/swagger/swagger-[功能名].json --delay 500
-
-# 模拟错误响应（用于测试前端错误处理）
-npx prism mock .peaks/swagger/swagger-[功能名].json --errors
-
-# 组合使用：延迟 + 错误模拟
-npx prism mock .peaks/swagger/swagger-[功能名].json --delay 1000 --errors
-
-# 查看所有可用选项
-npx prism mock --help
+**并行执行**：
+```
+┌─────────────────┐    ┌─────────────────┐
+│ 研发 Agent      │    │ qa-coordinator  │
+│ 写技术文档       │    │ 写测试用例       │
+│                 │    │ + 分析影响范围   │
+│                 │    │   → 标记受影响  │
+│                 │    │   → 禁用相关    │
+│                 │    │     自动化用例  │
+└─────────────────┘    └─────────────────┘
 ```
 
-**Prism 特点**：
-- 读取 OpenAPI 规范自动生成 Mock
-- 支持延迟模拟（--delay）
-- 支持错误模拟（--errors）
-- 支持 HTTPS 和 HTTP2
-- 前后端解耦，并行开发
+**产出物**：
+- `.peaks/plans/tech-doc-[功能名]-[日期].md` — 技术文档
+- `.peaks/test-docs/test-case-[功能名]-[日期].md` — 测试用例（含存量影响分析）
 
-4. **通知前端和后端 agent 可以开始并行开发**
+### 第六步：前后端开发（dispatcher 协调）
 
-### 第八步：数据库设计（按需）
+**前置条件**：技术文档 + 测试用例已完成
 
-基于 PRD 和设计稿，调度数据库专家设计数据模型。
-**仅当检测到项目使用数据库时调度**
-
-### 第九步：前后端开发（根据技术栈调度）
-
-**技术栈检测结果**：
-
-| 项目类型 | 调度 Agent | 是否需要 Swagger |
-|---------|-----------|-----------------|
-| 纯前端  | frontend | 不需要（纯前端无 API） |
-| 纯后端  | backend | 需要（先设计 API） |
-| 混合   | frontend + backend | 需要（并行开发） |
-
-**纯前端项目流程**：
-1. **可选：简化 product 阶段** — 如果用户明确说"轻量"或"快速"，跳过 grill-me PRD，直接进入 design
-2. 跳过第七步（API 生成）
-3. 直接调度 design（如需要，复杂页面建议先设计，简单 CRUD 可跳过）
-4. 调度 frontend 开发
-5. 调度 qa 测试
-
-**简化 product 阶段判断**：用户说"轻量"、"快速」、「简单」时适用。此时直接基于用户描述生成简要 PRD，跳过 grill-me 多轮追问。
-
-**纯后端项目流程**：
-1. 第七步生成 Swagger.json
-2. 调度 backend 开发 API
-3. 跳过 design（无 UI）
-4. 调度 qa 测试
-
-**混合项目流程**：
-- Swagger.json 生成后，前端和后端并行开发
-- frontend 参考 Swagger.json 定义接口，使用 Prism Mock 先行开发
-- backend 参考 Swagger.json 定义 Schema，同时启动 Prism Mock 供前端调用
-- **启动 Mock 服务**：`npx prism mock .peaks/swagger/swagger-[功能名].json --port 3001`
-
-每个开发任务都必须经过质量门禁（见下方）。
-
-### 第十步：自动化测试执行（qa）
-
-**前置条件**：Code Review + 安全检查通过
-
-调度 qa 执行测试：
+**工作流程**：
 
 ```
-┌─ 存量自动化测试 ──────────────────────┐
-│  执行 .peaks/auto-tests/ 中已有的自动化脚本    │
-│                                              │
-│  ❌ 不通过 → 打回开发 agent 整改 → 重新执行   │
-│  ✅ 通过 → 进入功能测试                        │
-└──────────────────────────────────────────────┘
+1. dispatcher 读取 .claude/agents/dispatcher.md（了解项目结构）
+2. dispatcher 分析任务涉及哪些模块
+3. dispatcher 生成执行计划（独立任务并行，有依赖串行）
+4. dispatcher 调度子 Agent 进行开发
+   ├─ 各子 Agent 基于技术文档开发
+   ├─ 各子 Agent 完成自测，产出 [module]-self-test-[date].md
+   └─ dispatcher 汇总所有自测报告 → dispatcher-summary-[date].md
+5. dispatcher 执行**产出物门禁验证**（强制检查清单）：
+   ├─ PRD 文档存在？
+   ├─ 技术文档存在？
+   ├─ 测试用例存在？
+   ├─ 所有模块自测报告存在？
+   ├─ TypeScript 编译通过？
+   └─ 安全审查完成（无 CRITICAL）？
+6. 门禁全部通过 → 触发 qa-coordinator
+   门禁有缺失 → 列出缺失项，通知对应 Agent 补全后重新检查
+```
+
+**子 Agent 自测报告格式**：
+
+```markdown
+# [模块名] 自测报告
+
+## 基本信息
+- **模块**: auth
+- **Owner Agent**: admin-auth-agent
+- **自测时间**: 2026-05-10 16:00
+
+## 关联文档
+- **需求**: .peaks/prds/prd-login-20260510.md
+- **设计稿**: .peaks/designs/login-20260510.png
+- **测试用例**: .peaks/test-docs/test-case-login-20260510.md
+
+## 代码变更
+| 文件 | 变更类型 | 状态 |
+|------|----------|------|
+| src/features/auth/pages/Login.tsx | 新增 | ✅ |
+| src/features/auth/components/AuthForm.tsx | 新增 | ✅ |
+
+## 自测结果
+
+### 功能验证（对照测试用例）
+| 用例ID | 测试项 | 状态 | 说明 |
+|--------|--------|------|------|
+| TC-001 | 正常登录流程 | ✅ PASS | 已验证，跳转正常 |
+| TC-002 | 密码错误 | ✅ PASS | 错误提示正确 |
+
+### 安全检查
+| 检查项 | 状态 | 说明 |
+|--------|------|------|
+| XSS 防护 | ✅ PASS | - |
+| SQL 注入 | ✅ PASS | - |
+
+## 共享文件状态
+| 文件 | 版本 | 依赖方 | 状态 |
+|------|------|-------|------|
+| src/shared/utils/token.ts | v2 | server-user | ✅ 已通知 |
+
+## 发现的问题
+| 级别 | 数量 | 说明 |
+|------|------|------|
+| CRITICAL | 0 | - |
+| HIGH | 0 | - |
+| MEDIUM | 1 | console.log 需移除 |
+
+## 结论
+✅ **自测通过** — 可以进入 QA 环节
+```
+
+**dispatcher 汇总报告格式**：
+
+```markdown
+# 开发阶段汇总报告
+
+## 项目信息
+- **项目**: react-prompt-editor
+- **开发时间**: 2026-05-10 14:00 - 17:30
+- **总模块数**: 5
+- **完成模块**: 4
+- **进行中**: 1
+
+## 模块自测状态
+
+| 模块 | Agent | 状态 | 自测报告 | 问题数 |
+|------|-------|------|----------|--------|
+| editor/core | editor-agent | ✅ 完成 | core-self-test-20260510.md | 1 MEDIUM |
+| editor/dependency | dep-agent | ✅ 完成 | dep-self-test-20260510.md | 0 |
+| ui/toolbar | toolbar-agent | ✅ 完成 | toolbar-self-test-20260510.md | 0 |
+| ui/sidebar | sidebar-agent | ⏳ 进行中 | - | - |
+| integration | integrated-agent | ✅ 完成 | integrated-self-test-20260510.md | 0 |
+
+## 遗留问题
+| 级别 | 模块 | 问题描述 | 负责人 |
+|------|------|----------|--------|
+| MEDIUM | ui/sidebar | console.log 需移除 | sidebar-agent |
+
+## 结论
+✅ **4/5 模块自测通过，可以进入 QA**
+```
+
+### 第七步：QA 整体测试（3 轮，qa-coordinator 协调）
+
+**前置条件**：dispatcher 汇总报告已完成
+
+**工作流程**：
+
+```
+qa-coordinator 接入
     ↓
-┌─ 功能测试 ─────────────────────────────┐
-│  基于 .peaks/test-docs/ 中的测试用例执行测试   │
-│                                              │
-│  ❌ 不通过 → 记录问题 → 继续其他测试          │
-│  ✅ 通过 → 产出报告 + 更新自动化脚本           │
-└──────────────────────────────────────────────┘
+读取：PRD + 设计稿 + 测试用例 + dispatcher汇总报告
+    ↓
+┌─ 第 1 轮 QA ─────────────────────────────────────────┐
+│  1. qa-coordinator 分配任务给所有 QA 子 Agent（并行） │
+│     ├─ qa-frontend                                    │
+│     ├─ qa-backend                                     │
+│     ├─ qa-frontend-perf                              │
+│     ├─ qa-backend-perf                               │
+│     ├─ qa-security                                   │
+│     └─ qa-automation（执行存量自动化测试）             │
+│                                                    │
+│  2. qa-coordinator 等待子 Agent 完成                 │
+│                                                    │
+│  3. qa-coordinator 执行存量自动化测试                │
+│     （标记第三步禁用的用例，跳过执行）                  │
+│     └─ 如有问题 → 记录风险 → 不阻塞继续               │
+│                                                    │
+│  4. qa-coordinator 汇总结果 → round-1-issues.md     │
+│                                                    │
+│  5. 决策：                                           │
+│     ├─ 有问题 → 分配修复给研发 → 等待自测 → 第 2 轮  │
+│     └─ 无问题 → 进入第 2 轮                           │
+└─────────────────────────────────────────────────────┘
+    ↓
+┌─ 第 2 轮 QA（重复流程）────────────────────────────┐
+└─────────────────────────────────────────────────────┘
+    ↓
+┌─ 第 3 轮 QA（最终验证）────────────────────────────┐
+└─────────────────────────────────────────────────────┘
+    ↓
+最终报告 + 更新自动化测试脚本
 ```
 
-### 第十一步：报告生成（qa + devops）
+**三轮测试说明**：
 
-测试通过后：
+| 轮次 | 目的 | 通过标准 |
+|------|------|----------|
+| 第 1 轮 | 基础功能测试 | 所有测试通过 |
+| 第 2 轮 | 修复后验证 | 所有测试通过 |
+| 第 3 轮 | 最终验证 | 所有测试通过 |
 
-1. qa 生成功能/性能/安全报告 → `.peaks/reports/`
-2. qa 更新/新增自动化测试脚本 → `.peaks/auto-tests/`
+**qa-coordinator 职责**：
+- 任务分配：决定哪些子 Agent 测什么
+- 结果汇总：收集所有子 Agent 结果，汇总成 round-N-issues.md
+- 决策推进：根据汇总结果决定是否进入下一轮
+- **整体 3 轮节奏，不是子 Agent 各自计数**
+
+### 第八步：报告生成 + 自动化脚本更新
+
+**测试全部通过后**：
+
+1. qa-coordinator 生成最终报告 → `.peaks/reports/final-report-[功能名]-[日期].md`
+2. qa-coordinator 更新自动化测试脚本 → `.peaks/auto-tests/`
+   - 新增本次需求的测试用例
+   - 移除已废弃的测试用例
+   - 更新因本次需求变动的测试用例
 3. devops 创建/更新部署脚本 → `.peaks/deploys/`
 
-### 第十二步：运维部署
+### 第九步：运维部署
 
-所有质量门禁通过后，调度运维专家：
+**前置条件**：所有测试通过 + 自动化脚本已更新
 
+调度 devops：
 1. 执行 `.peaks/deploys/` 中的部署脚本
 2. 数据库迁移（如有）
 3. 服务启动
 4. 健康检查确认所有服务可达
-5. 通知用户环境已就绪，可以开始手工测试
+5. 通知用户环境已就绪
 
-## 专家调度模板（增强版）
+## 专家调度模板
 
 调度专家时，必须使用以下模板填充具体内容：
 
@@ -448,8 +531,8 @@ npx prism mock --help
 你是 [专家角色]，负责 [职责范围]。
 
 ## 背景信息
-- 项目: {{PROJECT_NAME}}
-- 技术栈: {{TECH_STACK}}
+- 项目: react-prompt-editor
+- 技术栈: React 18 + TypeScript + antd@5 + @ant-design/x@2 + zustand@5 + codemirror@5 + tailwindcss@3
 - 项目规范: [从 CLAUDE.md 提取的关键规范]
 - .peaks 目录: 所有产出文件保存到 .peaks/ 下
 
@@ -478,7 +561,7 @@ npx prism mock --help
 - 遵循项目现有的代码风格和目录结构
 - 完成后汇报交付物清单
 - 使用 gitnexus 确认相关文件的最近修改历史：
-  mcp__gitnexus__query("file_history", path: "{{PROJECT_PATH}}/src/{{RELATED_DIR}}")
+  mcp__gitnexus__query("file_history", path: "/Users/yuanyuan/Desktop/react-prompt-editor/src/{{RELATED_DIR}}")
 - **每次工具调用前检查 contextEstimate**（通过 PreToolUse hook 或手动）
 ```
 
@@ -508,6 +591,14 @@ npx prism mock --help
 ```
 前端开发完成
     ↓
+┌─ 单元测试覆盖率 ─────────────────────────────┐
+│  npx vitest run --coverage                   │
+│  UI组件：行覆盖率 ≥ 60%，分支覆盖率 ≥ 50%  │
+│  业务逻辑：行覆盖率 ≥ 80%，分支覆盖率 ≥ 70%│
+│  ✅ 通过 → 进入 Code Review                  │
+│  ❌ 失败 → 补充测试用例 → 重新检查          │
+└──────────────────────────────────────────────┘
+    ↓
 ┌─ Code Review（前端）──────────────────────────┐
 │  审阅前端代码                                 │
 │  ✅ 通过 → 进入安全检查                      │
@@ -530,6 +621,14 @@ npx prism mock --help
 
 ```
 后端开发完成
+    ↓
+┌─ 单元测试覆盖率 ─────────────────────────────┐
+│  npx vitest run --coverage / jest --coverage │
+│  行覆盖率 ≥ 80%，分支覆盖率 ≥ 70%          │
+│  （后端无 UI 组件，使用统一阈值）            │
+│  ✅ 通过 → 进入 Code Review                  │
+│  ❌ 失败 → 补充测试用例 → 重新检查          │
+└──────────────────────────────────────────────┘
     ↓
 ┌─ Code Review（后端）──────────────────────────┐
 │  审阅后端代码                                 │
@@ -607,8 +706,8 @@ peaksfeat 调度（主 session）
 - .peaks/plans/plan-[功能名].md（开发计划）
 
 ## 技术栈
-- 框架：{{FRONTEND_FRAMEWORK}} / {{BACKEND_FRAMEWORK}}
-- UI 库：{{UI_LIBRARY}}
+- 框架：React
+- UI 库：antd@5 + @ant-design/x@2
 - 代码风格：遵循项目现有规范
 
 ## 产出要求
@@ -744,12 +843,12 @@ openspec/
 
 ```bash
 # 探索阶段：了解相关模块的代码历史和结构
-mcp__gitnexus__query("file_tree", path: "{{PROJECT_PATH}}/src/{{RELATED_MODULE}}")
-mcp__gitnexus__query("recent_changes", path: "{{PROJECT_PATH}}/src", limit: 20)
+mcp__gitnexus__query("file_tree", path: "/Users/yuanyuan/Desktop/react-prompt-editor/src/{{RELATED_MODULE}}")
+mcp__gitnexus__query("recent_changes", path: "/Users/yuanyuan/Desktop/react-prompt-editor/src", limit: 20)
 
 # 设计阶段：查看类似功能的实现作为参考
-mcp__gitnexus__query("code_search", query: "{{PATTERN_NAME}}", path: "{{PROJECT_PATH}}/src")
-mcp__gitnexus__query("file_history", path: "{{PROJECT_PATH}}/src/{{EXISTING_FEATURE}}")
+mcp__gitnexus__query("code_search", query: "{{PATTERN_NAME}}", path: "/Users/yuanyuan/Desktop/react-prompt-editor/src")
+mcp__gitnexus__query("file_history", path: "/Users/yuanyuan/Desktop/react-prompt-editor/src/{{EXISTING_FEATURE}}")
 ```
 
 **OpenSpec 快速参考**：
@@ -760,5 +859,90 @@ mcp__gitnexus__query("file_history", path: "{{PROJECT_PATH}}/src/{{EXISTING_FEAT
 | 小功能迭代 | `openspec.mjs propose "xxx" && openspec.mjs ff` | 快速 propose + ff |
 | 完整变更 | `openspec.mjs propose` → specs → design → tasks → apply → archive | 完整流程 |
 | 查看状态 | `openspec.mjs changes` | 查看所有变更提案 |
+
+## 存量项目处理（Legacy Project）
+
+### 存量项目识别
+
+满足以下任一条件的项目视为存量项目：
+- 有较多历史代码（> 50 个源文件）但无单元测试
+- 有历史代码但测试覆盖率 < 50%
+- 未配置 vitest / jest / playwright 等测试框架
+
+### 存量项目工作流
+
+```
+检测到存量项目
+    ↓
+┌─ 覆盖率检查 ──────────────────────────┐
+│  运行: npx vitest run --coverage     │
+│  覆盖率 < 80%？                       │
+│  ✅ 是 → 进入存量治理模式            │
+│  ❌ 否 → 继续正常开发流程            │
+└──────────────────────────────────────┘
+```
+
+### 存量治理模式
+
+当覆盖率 < 80% 时，**先治理再开发新需求**：
+
+1. **识别关键模块**（优先补充测试的模块）：
+   - `src/utils/` - 工具函数
+   - `src/hooks/` - 自定义 Hooks
+   - `src/api/` - API 调用层
+   - `src/store/` - 状态管理
+   - 核心业务逻辑模块
+
+2. **分阶段补充测试**：
+   - 阶段一：工具函数 + Hooks（覆盖率目标 80%）
+   - 阶段二：API 层 + Store（覆盖率目标 75%）
+   - 阶段三：业务逻辑（覆盖率目标 70%）
+
+3. **开发新需求时**：
+   - 新代码必须遵循 TDD（测试先行）
+   - 新模块覆盖率必须 >= 80%
+   - 逐步带动存量代码覆盖率提升
+
+### 强制跳过覆盖率（慎用）
+
+**场景**：用户坚持先完成新需求，后续再补充测试
+
+```
+需求紧急度: 高
+覆盖率差距: 大
+用户确认:  [--force | -f]
+```
+
+**操作**：
+1. 使用 `--force` 参数跳过覆盖率门禁
+2. 完成新需求开发
+3. **必须输出强烈的存量补充提醒**：
+
+```
+⚠️ 【强制提醒】存量补充测试计划
+
+当前覆盖率: XX%
+目标覆盖率: 80%
+
+已识别待补充测试的模块：
+1. src/utils/format.ts - 工具函数 (建议优先)
+2. src/hooks/useAuth.ts - 认证 Hook
+3. src/api/user.ts - 用户 API
+...
+
+请在完成当前需求后，立即执行：
+npx vitest run --coverage
+
+并补充以上模块的单元测试。
+```
+
+### 覆盖率门禁规则
+
+| 状态 | 行为 |
+|------|------|
+| 覆盖率 < 50% | 阻断新需求，强制进入存量治理 |
+| 覆盖率 50-80% | 警告 + 提示，可 --force 跳过 |
+| 覆盖率 >= 80% | 正常开发流程 |
+| 存量项目 + 无测试 | 阻断 + 提示配置 vitest |
 
 - **新项目** → 使用 Spec-It（原有 12 步）

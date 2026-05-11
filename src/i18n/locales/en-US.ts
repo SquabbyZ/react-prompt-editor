@@ -36,6 +36,8 @@ export default {
     lockedCannotAddChild: 'Node is locked, cannot add child nodes',
     lockedCannotDelete: 'Node is locked, cannot delete',
     lockedCannotEdit: 'Node is locked, cannot edit',
+    lockedCannotRun: 'Node is locked, cannot run',
+    lockedCannotOptimize: 'Node is locked, cannot optimize',
     previewModeNoEdit: 'Cannot edit in preview mode',
     notRun: 'Not Run',
     canLock: 'Can be locked',
@@ -77,6 +79,7 @@ export default {
     noDependencies:
       'No dependencies yet. Click below to add (only locked predecessor nodes)',
     locked: 'Locked',
+    lockedCannotEdit: 'Node is locked, cannot edit dependencies',
   },
 
   // AI Optimization Modal

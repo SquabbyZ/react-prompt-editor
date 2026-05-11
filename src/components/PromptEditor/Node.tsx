@@ -864,6 +864,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
                     onUpdateDependencies={onUpdateDependencies}
                     getNodeNumber={getNodeNumber}
                     availableNodes={availableNodes}
+                    isLocked={nodeData.isLocked}
                     locale={locale}
                     theme={theme}
                   />
@@ -917,21 +918,23 @@ export const Node: React.FC<CustomNodeProps> = memo(
                           </Tooltip>
                         )}
 
-                        <Tooltip title={t('editor.run')}>
+                        <Tooltip title={nodeData.isLocked ? t('editor.lockedCannotRun') : t('editor.run')}>
                           <Button
                             type="primary"
                             icon={<PlayCircle size={14} />}
                             onClick={handleRun}
                             size="small"
+                            disabled={nodeData.isLocked}
                             aria-label={t('editor.run')}
                           />
                         </Tooltip>
 
-                        <Tooltip title={t('editor.aiOptimize')}>
+                        <Tooltip title={nodeData.isLocked ? t('editor.lockedCannotOptimize') : t('editor.aiOptimize')}>
                           <Button
                             icon={<Zap size={14} />}
                             onClick={handleOptimize}
                             size="small"
+                            disabled={nodeData.isLocked}
                             aria-label={t('editor.aiOptimize')}
                             className={secondaryActionButtonClassName}
                           />

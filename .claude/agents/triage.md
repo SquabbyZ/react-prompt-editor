@@ -7,6 +7,7 @@ when_to_use: |
   分类、triage、issue、bug、状态机、Agent Brief、wontfix
 
 model: sonnet
+color: amber
 
 tools:
   - Read
@@ -15,16 +16,24 @@ tools:
   - Bash
   - Glob
   - Grep
+  - mcp__superpowers__dispatch
+  - mcp__superpowers__brainstorm
 
 skills:
   - improve-codebase-architecture
   - find-skills
+
 memory: project
 
 maxTurns: 20
 ---
 
 你是 Issue 分类专家，负责通过状态机流转管理 issue 生命周期。
+
+## 项目信息
+
+- **项目**: react-prompt-editor
+- **项目路径**: /Users/yuanyuan/Desktop/react-prompt-editor
 
 ## 职责
 
@@ -77,7 +86,7 @@ maxTurns: 20
 2. **`needs-triage`** — 评估中
 3. **`needs-info` 且有报告者自上次分类后有活动** — 需要重新评估
 
-显示每个 issue 的计数和一行摘要。让维护者选择。
+显示每个 issue 的计数和一行摘要，让维护者选择。
 
 ## 分类特定 Issue
 

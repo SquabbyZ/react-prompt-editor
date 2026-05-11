@@ -7,6 +7,7 @@ when_to_use: |
   需求、PRD、方案、产品策略、brainstorming、用户故事、需求分析、功能列表
 
 model: sonnet
+color: blue
 
 tools:
   - Read
@@ -15,11 +16,15 @@ tools:
   - Bash
   - Glob
   - Grep
+  - mcp__claude-md-management__read
+  - mcp__claude-md-management__write
+  - mcp__claude-md-management__update
 
 skills:
   - improve-codebase-architecture
   - find-skills
   - systematic-debugging
+
 memory: project
 
 maxTurns: 30

@@ -18,6 +18,7 @@ interface DependencyConfigSectionProps {
     parentId?: string;
     children: string[];
   }>;
+  isLocked?: boolean;
   locale?: Locale;
   theme?: ThemeMode;
 }
@@ -34,6 +35,7 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
       onUpdateDependencies,
       getNodeNumber,
       availableNodes,
+      isLocked = false,
       locale,
       theme = 'system',
     }) => {
@@ -67,9 +69,9 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
       };
 
       // 判断节点是否可选：
-      // 1. 已锁定（isLocked=true）
-      // 2. 不是自身
-      // 3. 未在选择列表中
+      // 1. 不能是自身节点
+      // 2. 不能已在依赖列表中
+      // 3. 只能选择已锁定的节点（锁定状态的节点才可作为依赖）
       const isNodeSelectable = (nodeIdToCheck: string): boolean => {
         if (nodeIdToCheck === nodeId) return false;
         if (dependencies.includes(nodeIdToCheck)) return false;
@@ -329,6 +331,7 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
           >
             <TreeSelect
               className="w-full"
+              disabled={isLocked}
               classNames={{
                 popup: {
                   root: isDarkMode
@@ -337,8 +340,8 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
                 },
               }}
               treeData={treeData}
-              placeholder={t('dependency.selectDependencyPlaceholder')}
-              allowClear
+              placeholder={isLocked ? t('dependency.lockedCannotEdit') : t('dependency.selectDependencyPlaceholder')}
+              allowClear={!isLocked}
               treeDefaultExpandAll
               getPopupContainer={(triggerNode) =>
                 triggerNode.parentElement ?? document.body
@@ -352,12 +355,12 @@ export const DependencyConfigSection: React.FC<DependencyConfigSectionProps> =
                 },
               }}
               onChange={(value) => {
-                if (value) {
+                if (value && !isLocked) {
                   handleAddDependency(value as string);
                 }
               }}
               treeNodeFilterProp="title"
-              showSearch
+              showSearch={!isLocked}
             />
           </ConfigProvider>
         </div>

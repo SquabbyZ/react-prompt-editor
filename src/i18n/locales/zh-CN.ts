@@ -36,6 +36,8 @@ export default {
     lockedCannotAddChild: '节点已锁定，无法添加子标题',
     lockedCannotDelete: '节点已锁定，无法删除',
     lockedCannotEdit: '节点已锁定，无法编辑',
+    lockedCannotRun: '节点已锁定，无法运行',
+    lockedCannotOptimize: '节点已锁定，无法优化',
     previewModeNoEdit: '预览模式下无法编辑',
     notRun: '未运行',
     canLock: '可锁定',
@@ -74,6 +76,7 @@ export default {
     canOnlySelectLockedNodes: '只能选择已锁定且序号靠前的节点',
     noDependencies: '暂无依赖，点击下方按钮添加（只能选择已锁定的前置节点）',
     locked: '已锁定',
+    lockedCannotEdit: '节点已锁定，无法编辑依赖',
   },
 
   // AI 优化弹窗

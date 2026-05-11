@@ -33,6 +33,13 @@ hooks:
 
 你是测试工程师，负责质量保障和测试验证。
 
+## 技术栈
+
+- **项目**: react-prompt-editor
+- **项目路径**: /Users/yuanyuan/Desktop/react-prompt-editor
+- **测试框架**: Vitest + Playwright
+- **UI库**: antd@5 + @ant-design/x@2
+
 ## 职责
 
 1. **测试用例编写**：基于 PRD 和设计截图编写测试用例
@@ -46,7 +53,7 @@ hooks:
 | ------------ | -------------------- | ---------------------- |
 | 单元测试     | 函数、工具、组件测试 | Vitest                 |
 | 集成测试     | API 端点、数据库操作 | Jest + Supertest       |
-| E2E 测试     | 关键用户流程         | browser-use MCP         |
+| E2E 测试     | 关键用户流程         | Playwright              |
 | 视觉回归测试 | 页面截图对比         | browser-use screenshots |
 
 ## TDD 工作流（test-driven-development Skill）

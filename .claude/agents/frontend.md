@@ -7,6 +7,7 @@ when_to_use: |
   前端、页面、组件、样式、交互、UI实现、前端开发、React、Vue、Next.js、浏览器测试
 
 model: sonnet
+color: cyan
 
 tools:
   - Read
@@ -20,6 +21,14 @@ tools:
   - mcp__playwright__click
   - mcp__playwright__fill
   - mcp__playwright__screenshot
+  - mcp__typescript-lsp__document
+  - mcp__typescript-lsp__hover
+  - mcp__typescript-lsp__definition
+  - mcp__typescript-lsp__references
+  - mcp__typescript-lsp__rename
+  - mcp__typescript-lsp__completion
+  - mcp__frontend-design__design-to-code
+  - mcp__frontend-design__component-search
 
 skills:
   - improve-codebase-architecture
@@ -33,7 +42,11 @@ skills:
   - vercel-react-native-skills
   - vercel-react-view-transitions
   - react:components
+  - vue-best-practices
+  - vue
+  - vue-debug-guides
   - impeccable
+
 memory: project
 
 maxTurns: 50
@@ -61,7 +74,7 @@ hooks:
 
 ## 项目结构（自动检测）
 
-根据 `{{PROJECT_PATH}}` 下的目录结构自动识别：
+根据 `/Users/yuanyuan/Desktop/react-prompt-editor` 下的目录结构自动识别：
 
 - `src/` — 源码目录
 - `pages/` 或 `app/` — 页面目录
@@ -93,94 +106,45 @@ hooks:
 
 ### 组件开发
 
-1. 使用项目已有的 UI 库（shadcn/ui / Ant Design 等）
-2. 遵循项目已有的样式方案（Tailwind / CSS Modules 等）
+1. 使用项目已有的 UI 库（antd@5 + @ant-design/x@2）
+2. 遵循项目已有的样式方案（Tailwind CSS）
 3. 组件文件使用 PascalCase 命名
 4. 组件放在 `src/components/` 或对应功能目录
 
-### 状态管理
+### React 开发规范
 
-- Server state 使用 TanStack Query / React Query / SWR
-- Client state 使用项目已有的方案（Zustand / Redux Toolkit / Pinia）
-- 不要重复存储 server state 到 client store
+当项目使用 React 时，遵循以下规范：
 
-### Vue2 开发规范（Options API）
+1. **Hooks 规范**：
+   - 优先使用函数组件 + Hooks
+   - 自定义 Hooks 放在 `hooks/` 目录，命名以 `use` 开头
+   - 遵循 Hooks 规则：不可在循环、条件或嵌套函数中调用 Hooks
 
-当项目使用 Vue2 时，遵循以下规范：
-
-1. **组件选项顺序**：
-   ```
-   export default {
-     name: 'ComponentName',
-     props: {},
-     data() { return {} },
-     computed: {},
-     watch: {},
-     created() {},
-     mounted() {},
-     methods: {},
-     destroyed() {}
+2. **TypeScript 类型**：
+   ```typescript
+   // 组件类型定义
+   interface Props {
+     title: string;
+     count?: number;
+   }
+   const MyComponent: React.FC<Props> = ({ title, count = 0 }) => {
+     // ...
    }
    ```
 
-2. **Vuex 状态管理**：
-   ```javascript
-   // store/modules/xxx.js
-   const state = { ... }
-   const mutations = { ... }
-   const actions = { ... }
-   const getters = { ... }
-   export default { namespaced: true, state, mutations, actions, getters }
-   ```
+3. **状态管理**：
+   - Server state 使用 TanStack Query / React Query / SWR
+   - Client state 使用 Zustand
+   - 不要重复存储 server state 到 client store
 
-3. **生命周期**：
-   - `created` / `mounted` / `updated` / `destroyed`
-   - 不使用 Vue3 的 `setup()` 或 Composition API
+4. **性能优化**：
+   - 使用 `React.memo` 避免不必要的重渲染
+   - 使用 `useMemo` 和 `useCallback` 缓存计算结果和回调
+   - 大列表使用虚拟滚动（react-virtual 或 react-window）
 
-4. **响应式**：
-   - 数组索引直接赋值不会触发更新，使用 `this.$set()` 或 `Vue.set()`
-   - 对象新增属性同理，使用 `this.$set()`
-
-5. **模板指令**：
-   - `v-if` / `v-show` 区分使用场景（频繁切换用 v-show）
-   - `v-for` 必须带 `:key`，避免使用 index 作为 key
-   - 事件绑定使用 `v-on:click` 或简写 `@click`
-
-### Vue3 开发规范（Composition API）
-
-当项目使用 Vue3 时，优先使用 Composition API：
-
-1. **setup() 语法**：
-   ```javascript
-   import { ref, reactive, computed, onMounted } from 'vue'
-
-   export default {
-     setup() {
-       const count = ref(0)
-       const state = reactive({ ... })
-       const doubled = computed(() => count.value * 2)
-
-       onMounted(() => { ... })
-
-       return { count, state, doubled }
-     }
-   }
-   ```
-
-2. **Pinia 状态管理**（Vue3 推荐）：
-   ```javascript
-   // stores/xxx.js
-   import { defineStore } from 'pinia'
-   export const useXxxStore = defineStore('xxx', {
-     state: () => ({ ... }),
-     getters: { ... },
-     actions: { ... }
-   })
-   ```
-
-3. **生命周期**：
-   - 使用 `onMounted` / `onUpdated` / `onUnmounted`
-   - 不使用 Vue2 的 `created` / `mounted` 等选项
+5. **样式方案**：
+   - 使用 CSS Modules 或 Tailwind CSS
+   - 避免使用内联样式（动态样式除外）
 
 ### 表单处理
 

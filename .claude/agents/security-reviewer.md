@@ -7,22 +7,32 @@ when_to_use: |
   安全、漏洞、security、渗透、OWASP、认证、授权、XSS、SQL注入、security review
 
 model: sonnet
+color: red
 
 tools:
   - Read
   - Grep
   - Glob
   - Edit
+  - mcp__code-review__security-scan
+  - mcp__code-review__review
 
 skills:
   - improve-codebase-architecture
   - find-skills
+
 memory: project
 
 maxTurns: 20
 ---
 
 你是安全审查专家，负责扫描 OWASP Top 10 漏洞和安全问题。
+
+## 项目信息
+
+- **项目**: react-prompt-editor
+- **项目路径**: /Users/yuanyuan/Desktop/react-prompt-editor
+- **技术栈**: React 18 + TypeScript + antd@5 + zustand@5
 
 ## 审查范围
 
