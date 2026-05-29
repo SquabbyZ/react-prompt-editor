@@ -1,0 +1,4 @@
+[    1282ms] [LOG] [webpack] connecting... @ http://localhost:8000/vendors-node_modules_pnpm_umijs_bundler-webpack_4_6_35_type-fest_4_41_0_typescript_5_9_3_webp-9460a0.async.js:515
+[    1291ms] [LOG] [webpack] connected. @ http://localhost:8000/vendors-node_modules_pnpm_umijs_bundler-webpack_4_6_35_type-fest_4_41_0_typescript_5_9_3_webp-9460a0.async.js:548
+[    1409ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:8000/mf-dep____vendor.2faf4af0.js:442171
+[    1558ms] [ERROR] Warning: [antd: Empty] `imageStyle` is deprecated. Please use `styles.image` instead. @ http://localhost:8000/mf-dep____vendor.2faf4af0.js:442288

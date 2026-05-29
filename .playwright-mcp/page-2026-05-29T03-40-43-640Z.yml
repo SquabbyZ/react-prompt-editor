@@ -1,0 +1,141 @@
+- generic [ref=e11]:
+  - generic [ref=e13]:
+    - link "RPEditor RPEditor" [ref=e15] [cursor=pointer]:
+      - /url: /
+      - img "RPEditor" [ref=e16]
+      - text: RPEditor
+    - generic [ref=e17]:
+      - list [ref=e18]:
+        - listitem [ref=e19]:
+          - link "国际化 (i18n)" [ref=e20] [cursor=pointer]:
+            - /url: /i18n
+        - listitem [ref=e21]:
+          - link "快速测试" [active] [ref=e22] [cursor=pointer]:
+            - /url: /test
+        - listitem [ref=e23]:
+          - link "RPEditor 提示词编辑器" [ref=e24] [cursor=pointer]:
+            - /url: /components/prompt-editor
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - img [ref=e27]
+          - textbox "输入关键字搜索..." [ref=e29]
+          - generic: ⌘ K
+        - link "English" [ref=e30] [cursor=pointer]:
+          - /url: /en-US/test
+        - generic [ref=e31]:
+          - img [ref=e32]
+          - combobox [ref=e34] [cursor=pointer]:
+            - option "亮色模式" [selected]
+            - option "暗色模式"
+            - option "跟随系统"
+        - link [ref=e35] [cursor=pointer]:
+          - /url: https://github.com/SquabbyZ/react-prompt-editor
+          - img [ref=e36]
+  - main [ref=e79]:
+    - definition [ref=e260]:
+      - link "快速测试" [ref=e261] [cursor=pointer]:
+        - /url: /test
+      - list [ref=e262]:
+        - listitem [ref=e263]:
+          - link "使用建议" [ref=e264] [cursor=pointer]:
+            - /url: /test#%E4%BD%BF%E7%94%A8%E5%BB%BA%E8%AE%AE
+        - listitem [ref=e265]:
+          - link "测试 Demo" [ref=e266] [cursor=pointer]:
+            - /url: /test#%E6%B5%8B%E8%AF%95-demo
+    - generic [ref=e81]:
+      - article [ref=e82]:
+        - generic [ref=e267]:
+          - heading "最小集成测试" [level=1] [ref=e268]:
+            - link [ref=e269] [cursor=pointer]:
+              - /url: "#最小集成测试"
+            - text: 最小集成测试
+          - paragraph [ref=e270]: 这是一个最小化的验证页面，用于快速确认组件样式、运行时依赖和基础渲染是否正常。
+          - heading "使用建议" [level=2] [ref=e271]:
+            - link [ref=e272] [cursor=pointer]:
+              - /url: "#使用建议"
+            - text: 使用建议
+          - list [ref=e273]:
+            - listitem [ref=e274]: 当你怀疑样式文件未生效时，先打开这个页面检查最基础的渲染结果
+            - listitem [ref=e275]: 当你在调试 dumi 文档环境时，可以用它隔离复杂示例带来的干扰
+            - listitem [ref=e276]: 当你改动主题或文档包装样式时，可以快速确认基础 Demo 是否仍然可用
+          - heading "测试 Demo" [level=2] [ref=e277]:
+            - link [ref=e278] [cursor=pointer]:
+              - /url: "#测试-demo"
+            - text: 测试 Demo
+        - generic [ref=e279]:
+          - iframe [ref=e281]:
+            - generic [ref=f2e4]:
+              - button "添加标题" [ref=f2e6] [cursor=pointer]:
+                - img [ref=f2e8]
+                - generic [ref=f2e9]: 添加标题
+              - list [ref=f2e11]:
+                - generic [ref=f2e16]:
+                  - generic [ref=f2e17]:
+                    - button "展开子节点" [ref=f2e18] [cursor=pointer]:
+                      - generic [ref=f2e19]: ▶
+                    - generic "第一步：需求分析" [ref=f2e22]:
+                      - generic [ref=f2e23]: "1"
+                      - generic "第一步：需求分析" [ref=f2e24] [cursor=pointer]
+                  - generic [ref=f2e28]:
+                    - button "展开编辑器" [ref=f2e29] [cursor=pointer]:
+                      - img [ref=f2e31]
+                    - generic [ref=f2e34]:
+                      - button "添加子标题" [ref=f2e35] [cursor=pointer]:
+                        - img [ref=f2e37]
+                      - button "请先运行" [disabled] [ref=f2e38]:
+                        - generic:
+                          - img
+                      - button "删除节点" [ref=f2e39] [cursor=pointer]:
+                        - img [ref=f2e41]
+                - generic [ref=f2e48]:
+                  - generic "第二步：方案设计" [ref=f2e53]:
+                    - generic [ref=f2e54]: "2"
+                    - generic "第二步：方案设计" [ref=f2e55] [cursor=pointer]
+                  - generic [ref=f2e59]:
+                    - button "展开编辑器" [ref=f2e60] [cursor=pointer]:
+                      - img [ref=f2e62]
+                    - generic [ref=f2e65]:
+                      - button "添加子标题" [ref=f2e66] [cursor=pointer]:
+                        - img [ref=f2e68]
+                      - button "请先运行" [disabled] [ref=f2e69]:
+                        - generic:
+                          - img
+                      - button "删除节点" [ref=f2e70] [cursor=pointer]:
+                        - img [ref=f2e72]
+          - generic [ref=e283]:
+            - button [ref=e284] [cursor=pointer]:
+              - img [ref=e285]
+            - button [ref=e287] [cursor=pointer]:
+              - img [ref=e288]
+            - link [ref=e290] [cursor=pointer]:
+              - /url: /~demos/docs-test-demo-basic
+              - img [ref=e291]
+            - button [ref=e294] [cursor=pointer]:
+              - img [ref=e295]
+      - generic [ref=e236]:
+        - definition [ref=e237]:
+          - img [ref=e238]
+          - text: 最后更新时间：
+          - time [ref=e241]: 2026/4/14 18:22
+        - definition [ref=e242]:
+          - link "帮助改进此文档" [ref=e243] [cursor=pointer]:
+            - /url: https://github.com/SquabbyZ/react-prompt-editor/edit/main/docs/test.md
+            - img [ref=e244]
+            - text: 帮助改进此文档
+      - generic [ref=e246]:
+        - generic [ref=e247]:
+          - strong [ref=e248]: RPEditor
+          - generic [ref=e249]: 面向结构化 Prompt 编排、执行与 AI 优化的工程化工作台。
+        - generic [ref=e250]:
+          - generic [ref=e251]:
+            - link "首页" [ref=e252] [cursor=pointer]:
+              - /url: /
+            - link "组件文档" [ref=e253] [cursor=pointer]:
+              - /url: /components/prompt-editor
+            - link "国际化" [ref=e254] [cursor=pointer]:
+              - /url: /i18n
+            - link "GitHub" [ref=e255] [cursor=pointer]:
+              - /url: https://github.com/SquabbyZ/react-prompt-editor
+          - generic [ref=e256]: Copyright © 2026 RPEditor
+        - link "由 SquabbyZ 构建" [ref=e257] [cursor=pointer]:
+          - /url: https://github.com/SquabbyZ/react-prompt-editor

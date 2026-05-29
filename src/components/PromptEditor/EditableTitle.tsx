@@ -9,9 +9,7 @@ interface EditableTitleProps {
   title: string;
   number: string;
   isLocked: boolean;
-  content: string;
   onTitleChange: (id: string, title: string) => void;
-  onContentChange: (id: string, content: string) => void;
   onClick?: () => void;
   previewMode?: boolean;
   locale?: Locale;
@@ -22,7 +20,6 @@ interface EditableTitleProps {
  * 可编辑标题组件
  * - 单击展开/折叠子节点
  * - 双击编辑标题
- * - 自动同步更新 Markdown 内容中的标题
  */
 export const EditableTitle: React.FC<EditableTitleProps> = memo(
   ({
@@ -30,9 +27,7 @@ export const EditableTitle: React.FC<EditableTitleProps> = memo(
     title,
     number,
     isLocked,
-    content,
     onTitleChange,
-    onContentChange,
     onClick,
     previewMode = false,
     locale,
@@ -86,26 +81,6 @@ export const EditableTitle: React.FC<EditableTitleProps> = memo(
       if (trimmed) {
         // 更新标题
         onTitleChange(nodeId, trimmed);
-
-        // 同步更新编辑器内容中的标题
-        const lines = content.split('\n');
-
-        // 检查第一行是否是 Markdown 标题
-        if (lines.length > 0 && lines[0].startsWith('#')) {
-          // 提取标题级别（# 的数量）
-          const match = lines[0].match(/^(#+)\s*/);
-          if (match) {
-            const level = match[1]; // 例如: "#", "##", "###"
-            // 替换为新标题
-            lines[0] = `${level} ${trimmed}`;
-            const newContent = lines.join('\n');
-            onContentChange(nodeId, newContent);
-          }
-        } else {
-          // 如果第一行不是标题，在第一行插入标题
-          const newContent = `# ${trimmed}\n${content}`;
-          onContentChange(nodeId, newContent);
-        }
         message.success(t('editor.titleUpdated'));
       } else {
         message.warning('标题不能为空');

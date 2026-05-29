@@ -178,7 +178,10 @@ export const Node: React.FC<CustomNodeProps> = memo(
       if (!isInternal || !availableNodes) return null;
 
       // 递归收集所有子孙节点
-      function collectTree(nodeId: string, level: number): {
+      function collectTree(
+        nodeId: string,
+        level: number,
+      ): {
         id: string;
         title: string;
         level: number;
@@ -197,12 +200,17 @@ export const Node: React.FC<CustomNodeProps> = memo(
       }
 
       const tree = nodeData.children
-        .map((childId: string) => collectTree(childId,1))
+        .map((childId: string) => collectTree(childId, 1))
         .filter(Boolean) as Array<{
         id: string;
         title: string;
         level: number;
-        children: Array<{ id: string; title: string; level: number; children: any[] }>;
+        children: Array<{
+          id: string;
+          title: string;
+          level: number;
+          children: any[];
+        }>;
       }>;
 
       return tree.length > 0 ? tree : null;
@@ -737,9 +745,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
                       title={nodeData.title}
                       number={getNodeNumber(nodeData.id)}
                       isLocked={nodeData.isLocked}
-                      content={nodeData.content}
                       onTitleChange={onUpdateTitle}
-                      onContentChange={onContentChange}
                       previewMode={previewMode}
                       locale={locale}
                       theme={theme}
@@ -886,63 +892,75 @@ export const Node: React.FC<CustomNodeProps> = memo(
 
                     <div className={nodeData.isLocked ? 'ml-auto' : ''}>
                       {renderNodeActions ? (
-                      renderNodeActions({
-                        node: {
-                          ...nodeData,
-                          children: nodeData.children.map(
-                            (childId: string) => ({
-                              id: childId,
-                              title: '',
-                              content: '',
-                              isLocked: false,
-                              hasRun: false,
-                            }),
-                          ),
-                        },
-                        defaultActions: {
-                          handleOpenDataSelector,
-                          handleRun,
-                          handleOptimize,
-                        },
-                        isDarkMode,
-                      })
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        {dataSelector && (
-                          <Tooltip title={t('editor.insertVariable')}>
+                        renderNodeActions({
+                          node: {
+                            ...nodeData,
+                            children: nodeData.children.map(
+                              (childId: string) => ({
+                                id: childId,
+                                title: '',
+                                content: '',
+                                isLocked: false,
+                                hasRun: false,
+                              }),
+                            ),
+                          },
+                          defaultActions: {
+                            handleOpenDataSelector,
+                            handleRun,
+                            handleOptimize,
+                          },
+                          isDarkMode,
+                        })
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          {dataSelector && (
+                            <Tooltip title={t('editor.insertVariable')}>
+                              <Button
+                                icon={<Variable size={14} />}
+                                onClick={handleOpenDataSelector}
+                                size="small"
+                                aria-label={t('editor.insertVariable')}
+                                className={secondaryActionButtonClassName}
+                              />
+                            </Tooltip>
+                          )}
+
+                          <Tooltip
+                            title={
+                              nodeData.isLocked
+                                ? t('editor.lockedCannotRun')
+                                : t('editor.run')
+                            }
+                          >
                             <Button
-                              icon={<Variable size={14} />}
-                              onClick={handleOpenDataSelector}
+                              type="primary"
+                              icon={<PlayCircle size={14} />}
+                              onClick={handleRun}
                               size="small"
-                              aria-label={t('editor.insertVariable')}
+                              disabled={nodeData.isLocked}
+                              aria-label={t('editor.run')}
+                            />
+                          </Tooltip>
+
+                          <Tooltip
+                            title={
+                              nodeData.isLocked
+                                ? t('editor.lockedCannotOptimize')
+                                : t('editor.aiOptimize')
+                            }
+                          >
+                            <Button
+                              icon={<Zap size={14} />}
+                              onClick={handleOptimize}
+                              size="small"
+                              disabled={nodeData.isLocked}
+                              aria-label={t('editor.aiOptimize')}
                               className={secondaryActionButtonClassName}
                             />
                           </Tooltip>
-                        )}
-
-                        <Tooltip title={nodeData.isLocked ? t('editor.lockedCannotRun') : t('editor.run')}>
-                          <Button
-                            type="primary"
-                            icon={<PlayCircle size={14} />}
-                            onClick={handleRun}
-                            size="small"
-                            disabled={nodeData.isLocked}
-                            aria-label={t('editor.run')}
-                          />
-                        </Tooltip>
-
-                        <Tooltip title={nodeData.isLocked ? t('editor.lockedCannotOptimize') : t('editor.aiOptimize')}>
-                          <Button
-                            icon={<Zap size={14} />}
-                            onClick={handleOptimize}
-                            size="small"
-                            disabled={nodeData.isLocked}
-                            aria-label={t('editor.aiOptimize')}
-                            className={secondaryActionButtonClassName}
-                          />
-                        </Tooltip>
-                      </div>
-                    )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
