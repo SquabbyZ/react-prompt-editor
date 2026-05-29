@@ -133,6 +133,8 @@ Use the `dependencies` field to establish relationships between nodes. When runn
 - ✅ When a node is locked, the **Run** and **AI Optimize** buttons are disabled
 - ✅ When a node is locked, the text editor is in read-only state, undo/redo buttons are hidden
 
+<code src="./examples/all-nodes-locked.tsx"></code>
+
 <code src="./examples/dependencies.tsx"></code>
 
 ## Preview Render Mode Comparison
@@ -245,6 +247,7 @@ const AppDark = () => <PromptEditor theme="dark" />;
 | onNodeRun         | Node run completion callback (user calls after completing run request to notify component)                             | `(nodeId: string, result: RunTaskResponse) => void`  | -       |
 | onNodeOptimize    | Node optimize completion callback (user calls after completing optimize request)                                       | `(nodeId: string, result: OptimizeResponse) => void` | -       |
 | onNodeLock        | Node lock callback                                                                                                     | `(nodeId: string, isLocked: boolean) => void`        | -       |
+| onAllNodesLocked  | Fires when all nodes are locked (at least one node exists and all `isLocked` are `true`)                              | `() => void`                                         | -       |
 | onTreeChange      | Tree change callback                                                                                                   | `(tree: TaskNode[]) => void`                         | -       |
 | onLike            | AI optimization message like callback                                                                                  | `(messageId: string) => void`                        | -       |
 | onDislike         | AI optimization message dislike callback                                                                               | `(messageId: string) => void`                        | -       |

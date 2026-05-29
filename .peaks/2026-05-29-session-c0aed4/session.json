@@ -4,6 +4,7 @@
   "createdAt": "2026-05-29T03:46:28.264Z",
   "skill": "peaks-qa",
   "mode": "full-auto",
-  "gate": "verdict-issued",
-  "lastActivity": "2026-05-29T03:46:28.269Z"
+  "gate": "startup",
+  "lastActivity": "2026-05-29T05:07:03.417Z",
+  "title": "添加全部标题锁定状态回调"
 }

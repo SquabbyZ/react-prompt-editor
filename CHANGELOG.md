@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.9] - 2026-05-29
+
+### Added
+
+- `onAllNodesLocked` 回调 prop：全部节点锁定时触发，适用于发布版本等场景
+
 ## [1.0.7] - 2026-05-09
 
 ### Fixed

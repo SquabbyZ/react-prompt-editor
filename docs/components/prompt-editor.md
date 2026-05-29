@@ -139,6 +139,8 @@ pnpm add antd @ant-design/x
 - ✅ 锁定状态的节点，**运行** 和 **AI 优化** 按钮处于禁用状态
 - ✅ 锁定状态的节点，文本编辑器处于只读状态，撤销/重做按钮隐藏
 
+<code src="./examples/all-nodes-locked.tsx"></code>
+
 <code src="./examples/dependencies.tsx"></code>
 
 ## 预览渲染模式对比
@@ -477,6 +479,7 @@ const renderCustomActions = ({ node, defaultActions, isDarkMode }) => {
 | onNodeRun         | 节点运行完成回调（用户执行完运行请求后调用，通知组件更新状态）                            | `(nodeId: string, result: RunTaskResponse) => void`  | -      |
 | onNodeOptimize    | 节点优化完成回调（用户执行完优化请求后调用，通知组件）                                    | `(nodeId: string, result: OptimizeResponse) => void` | -      |
 | onNodeLock        | 节点锁定回调                                                                              | `(nodeId: string, isLocked: boolean) => void`        | -      |
+| onAllNodesLocked  | 全部节点锁定回调（至少存在一个节点且全部 `isLocked` 为 `true` 时触发）                    | `() => void`                                         | -      |
 | onTreeChange      | 树变化回调                                                                                | `(tree: TaskNode[]) => void`                         | -      |
 | onLike            | AI 优化消息点赞回调                                                                       | `(messageId: string) => void`                        | -      |
 | onDislike         | AI 优化消息点踩回调                                                                       | `(messageId: string) => void`                        | -      |

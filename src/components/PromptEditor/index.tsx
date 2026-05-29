@@ -34,6 +34,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   onOptimizeApply,
   optimizeCustomContent = null,
   onNodeLock,
+  onAllNodesLocked,
   className,
   style,
   renderToolbar,
@@ -224,9 +225,18 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       }
 
       onNodeLock?.(nodeId, newLocked);
+
+      // 检查是否所有节点都已锁定（仅在锁定操作时检查）
+      if (newLocked && onAllNodesLocked) {
+        const all = store.getState().getAllNodes();
+        if (all.length > 0 && all.every((n) => n.isLocked)) {
+          onAllNodesLocked();
+        }
+      }
+
       onChange?.(store.getState().getTree());
     },
-    [updateNode, onNodeLock, onChange, store, t],
+    [updateNode, onNodeLock, onAllNodesLocked, onChange, store, t],
   );
 
   const handleDelete = useCallback(

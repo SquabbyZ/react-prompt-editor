@@ -64,6 +64,8 @@ export default function App() {
 | `theme` | 主题模式，支持 `system` / `light` / `dark` |
 | `locale` | 国际化语言包 |
 | `renderToolbar` | 自定义顶部工具栏渲染函数 |
+| `onNodeLock` | 节点锁定/解锁回调 |
+| `onAllNodesLocked` | 全部节点锁定时触发（无节点时不触发） |
 | `dataSelector` | 数据选择器组件，支持 `@` 变量插入功能 |
 
 

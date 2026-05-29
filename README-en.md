@@ -64,6 +64,8 @@ export default function App() {
 | `theme` | Theme mode: `system` / `light` / `dark` |
 | `locale` | Internationalization locale |
 | `renderToolbar` | Custom top toolbar render function |
+| `onNodeLock` | Node lock/unlock callback |
+| `onAllNodesLocked` | Fires when all nodes are locked (not fired when no nodes exist) |
 | `dataSelector` | Data selector component for `@` variable insertion |
 
 ## Additional Exports

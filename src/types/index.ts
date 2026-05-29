@@ -219,6 +219,12 @@ export interface PromptEditorProps {
    */
   optimizeCustomContent?: React.ReactNode | null;
   onNodeLock?: (nodeId: string, isLocked: boolean) => void;
+  /**
+   * 全部节点锁定回调
+   * 当编辑器中所有节点（至少存在一个节点）的 isLocked 全部为 true 时触发
+   * 可用于触发后续操作，如保存版本、发布等
+   */
+  onAllNodesLocked?: () => void;
   onTreeChange?: (tree: TaskNode[]) => void;
   className?: string;
   style?: React.CSSProperties;
