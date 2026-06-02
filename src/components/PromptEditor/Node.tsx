@@ -307,8 +307,8 @@ export const Node: React.FC<CustomNodeProps> = memo(
       ? 'border-indigo-500 bg-indigo-900/20'
       : 'border-indigo-500 bg-indigo-50';
     const headerClassName = isDarkMode
-      ? 'prompt-editor-node-header relative z-3 flex items-center justify-between gap-2 rounded-md bg-[rgba(29,44,72,0.92)] px-3 py-2 text-[#e5edf9] shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition-colors hover:bg-[rgba(35,52,84,0.96)]'
-      : 'prompt-editor-node-header relative z-3 flex items-center justify-between gap-2 rounded-md bg-gray-100 px-3 py-2 text-gray-900 transition-colors hover:bg-gray-200';
+      ? 'prompt-editor-node-header relative z-3 flex items-center justify-between gap-2 rounded-md bg-[rgba(29,44,72,0.92)] px-4 py-2 text-[#e5edf9] shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition-colors hover:bg-[rgba(35,52,84,0.96)]'
+      : 'prompt-editor-node-header relative z-3 flex items-center justify-between gap-2 rounded-md bg-gray-100 px-4 py-2 text-gray-900 transition-colors hover:bg-gray-200';
     const caretButtonClassName = isDarkMode
       ? 'flex h-5 w-5 flex-shrink-0 cursor-pointer items-center justify-center rounded border-none bg-transparent text-slate-400 transition-all hover:bg-slate-800/80'
       : 'flex h-5 w-5 flex-shrink-0 cursor-pointer items-center justify-center rounded border-none bg-transparent text-gray-500 transition-all hover:bg-gray-100';
@@ -329,8 +329,8 @@ export const Node: React.FC<CustomNodeProps> = memo(
       ? 'prompt-editor-markdown-preview m-2 rounded-md border border-blue-500/10 bg-[rgba(7,16,31,1)] p-4 text-slate-100'
       : 'prompt-editor-markdown-preview m-2 rounded-md border border-gray-200 bg-white p-4 text-gray-900';
     const footerClassName = isDarkMode
-      ? 'prompt-editor-editor-footer flex items-center justify-between gap-3 border-t border-indigo-900/40 bg-[rgba(7,16,31,1)] px-3 py-2'
-      : 'prompt-editor-editor-footer flex items-center justify-between gap-3 border-t border-gray-200 bg-white px-3 py-2';
+      ? 'prompt-editor-editor-footer flex items-center justify-between gap-3 border-t border-indigo-900/40 bg-[rgba(7,16,31,1)] px-4 py-2'
+      : 'prompt-editor-editor-footer flex items-center justify-between gap-3 border-t border-gray-200 bg-white px-4 py-2';
     const secondaryActionButtonClassName = isDarkMode
       ? 'border-slate-600 bg-slate-900 text-slate-200 hover:border-indigo-400 hover:text-slate-50'
       : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400 hover:text-gray-900';

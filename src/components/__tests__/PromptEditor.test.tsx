@@ -220,4 +220,50 @@ describe('PromptEditor', () => {
     ).toBeTruthy();
     expect(screen.queryByLabelText('Mock CodeMirror Editor')).toBeNull();
   });
+
+  it('does not indent level-1 (root) nodes (regression for h1-padding-left-fix)', () => {
+    // 根节点 (level=1) 的 paddingLeft 必须是 0px,这是该 bugfix 的核心断言。
+    // 子节点默认折叠,不在本测试范围内 — 实现是单行 (level-1) * 16,根=0。
+    const tree: TaskNode[] = [
+      {
+        id: 'r',
+        title: 'Root',
+        content: '# Root',
+        isLocked: false,
+        hasRun: false,
+        dependencies: [],
+        children: [
+          {
+            id: 'c',
+            title: 'Child',
+            content: '## Child',
+            isLocked: false,
+            hasRun: false,
+            dependencies: [],
+            children: [],
+          },
+        ],
+      },
+    ];
+
+    render(
+      <div style={{ height: 800 }}>
+        <PromptEditor initialValue={tree} locale={enUS} theme="light" />
+      </div>,
+    );
+
+    const rootNode = document.querySelector('[data-node-id="r"]') as HTMLElement;
+    expect(rootNode).toBeTruthy();
+
+    // Node 把 data-node-id 和 style 放在同一个 div 上,style 应含 paddingLeft
+    // (实际渲染: <div data-node-id="r" style="padding-left: 0px; box-sizing: border-box;">)
+    expect(rootNode.style.paddingLeft).toBe('0px');
+    expect(rootNode.style.boxSizing).toBe('border-box');
+
+    // 回归:Node header 的水平 padding 应为 px-4(16px),与 toolbar 的 px-4 对齐,
+    // 避免出现"一级标题与添加标题按钮左右不对齐 4px"的问题。
+    const header = rootNode.querySelector('.prompt-editor-node-header');
+    expect(header).toBeTruthy();
+    expect(header!.className).toContain('px-4');
+  });
 });

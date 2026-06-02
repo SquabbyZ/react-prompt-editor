@@ -588,7 +588,8 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
           level: node.level,
         },
         style: {
-          paddingLeft: `${node.level * 16}px`,
+          // 根节点 (level===1) 不缩进,子节点每级 +16px。flattenVisibleNodes 以 1 为根层级起点。
+          paddingLeft: `${Math.max(0, node.level - 1) * 16}px`,
           boxSizing: 'border-box' as const,
         },
         dragHandle: null,
