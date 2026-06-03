@@ -20,6 +20,7 @@ import {
 } from '../../utils/virtual-tree';
 import { Node } from './Node';
 import { PromptEditorProps } from './PromptEditor.types';
+import { fireAllLockedCallbacks, sameSet, FireAllLockedResult } from './lockCallbacks';
 
 export const PromptEditor: React.FC<PromptEditorProps> = ({
   initialValue = [],
@@ -35,6 +36,8 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   optimizeCustomContent = null,
   onNodeLock,
   onAllNodesLocked,
+  onAllLeafNodesLocked,
+  onAllNonEmptyContentNodesLocked,
   className,
   style,
   renderToolbar,
@@ -49,7 +52,9 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   renderNodeActions,
   renderNodeTopSlot,
   maxChildLevel,
+  highlightUnlocked = false,
 }) => {
+  const lockedCallbacks = useMemo(() => ({ onAllNodesLocked, onAllLeafNodesLocked, onAllNonEmptyContentNodesLocked }), [onAllNodesLocked, onAllLeafNodesLocked, onAllNonEmptyContentNodesLocked]);
   // 国际化 Hook
   const { t } = useI18n(locale);
   const { isDarkMode } = useResolvedTheme(theme);
@@ -78,7 +83,6 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
     return store.getState().getTree();
   }, [storeMapRef]);
 
-  // 当受控模式下 value 变化时，同步到 store
   useEffect(() => {
     if (isControlled && value) {
       store.getState().initialize(value);
@@ -89,27 +93,68 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   const [expandedEditorId, setExpandedEditorId] = useState<string | null>(null);
   // 子节点展开状态：可以多节点同时展开
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+  // 高亮未锁定节点 + 自动展开（004）
+  const [unlockedHighlightIds, setUnlockedHighlightIds] = useState<Set<string>>(new Set());
+  const unlockedHighlightIdsRef = useRef<Set<string>>(new Set());
+  const hasAnyLockedCallback =
+    !!onAllNodesLocked || !!onAllLeafNodesLocked || !!onAllNonEmptyContentNodesLocked;
+  // union 未变则 no-op，保证幂等 + 无反馈循环
+  const applyHighlightAndExpand = useCallback((result: FireAllLockedResult) => {
+    const next = new Set<string>([
+      ...result.unlockedAllIds,
+      ...result.unlockedLeafIds,
+      ...result.unlockedNonEmptyIds,
+    ]);
+    if (sameSet(next, unlockedHighlightIdsRef.current)) return;
+    unlockedHighlightIdsRef.current = next;
+    setUnlockedHighlightIds(next);
+    setExpandedNodes((prev) => {
+      let changed = false;
+      const nextExp = new Set(prev);
+      next.forEach((id) => {
+        if (!nextExp.has(id)) { nextExp.add(id); changed = true; }
+      });
+      return changed ? nextExp : prev;
+    });
+  }, []);
+
+  // 004：树变化时重新计算高亮 union
+  useEffect(() => {
+    // 008：当 highlightUnlocked 关闭时，主动清空高亮集合，让红框立即消失
+    // (之前因为 unlockedHighlightIds 不被清空，节点会残留红框直到下一次计算)
+    if (!highlightUnlocked || !hasAnyLockedCallback) {
+      if (unlockedHighlightIdsRef.current.size > 0) {
+        unlockedHighlightIdsRef.current = new Set();
+        setUnlockedHighlightIds(new Set());
+      }
+      return;
+    }
+    const all = store.getState().getAllNodes();
+    const next = new Set<string>([
+      ...all.filter((n) => !n.isLocked).map((n) => n.id),
+      ...all.filter((n) => n.children.length === 0 && !n.isLocked).map((n) => n.id),
+      ...all.filter((n) => n.content.trim() !== '' && !n.isLocked).map((n) => n.id),
+    ]);
+    if (sameSet(next, unlockedHighlightIdsRef.current)) return;
+    unlockedHighlightIdsRef.current = next;
+    setUnlockedHighlightIds(next);
+  }, [tree, highlightUnlocked, hasAnyLockedCallback, store]);
 
   // 虚拟滚动相关状态
-  const [containerHeight, setContainerHeight] = useState(600); // 容器高度
+  const [containerHeight, setContainerHeight] = useState(600);
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<any>(null);
-  const nodeHeightsRef = useRef<Map<string, number>>(new Map()); // 节点高度缓存
+  const nodeHeightsRef = useRef<Map<string, number>>(new Map());
   const [heightVersion, setHeightVersion] = useState(0);
 
-  // 监听容器高度变化
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setContainerHeight(entry.contentRect.height);
-      }
+    const ro = new ResizeObserver((entries) => {
+      for (const e of entries) setContainerHeight(e.contentRect.height);
     });
-
-    resizeObserver.observe(container);
-    return () => resizeObserver.disconnect();
+    ro.observe(container);
+    return () => ro.disconnect();
   }, []);
 
   const handleContentChange = useCallback(
@@ -124,11 +169,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
     (nodeId: string, height: number) => {
       const nextHeight = Math.ceil(height);
       const prevHeight = nodeHeightsRef.current.get(nodeId);
-
-      if (prevHeight === nextHeight) {
-        return;
-      }
-
+      if (prevHeight === nextHeight) return;
       nodeHeightsRef.current.set(nodeId, nextHeight);
       setHeightVersion((version) => version + 1);
     },
@@ -156,10 +197,8 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       const node = store.getState().getNode(nodeId);
       if (!node) return;
 
-      // 获取节点序号
       const nodeNumber = store.getState().getNodeNumber(nodeId);
 
-      // 构建依赖节点详细信息
       const dependenciesContent = node.dependencies.map((depId) => {
         const depNode = store.getState().getNode(depId);
         const depNodeNumber = store.getState().getNodeNumber(depId);
@@ -172,7 +211,6 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
         };
       });
 
-      // 触发运行请求回调，由用户自行处理异步请求
       onRunRequest({
         nodeId,
         nodeNumber,
@@ -194,7 +232,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       const newLocked = !node.isLocked;
       updateNode(nodeId, { isLocked: newLocked });
 
-      // 解锁时，自动清除其他节点对该节点的依赖引用
+      // 解锁时自动清除其他节点对该节点的依赖引用
       if (!newLocked) {
         const allNodes = store.getState().getAllNodes();
         const updates: { nodeId: string; dependencies: string[] }[] = [];
@@ -208,11 +246,9 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
           }
         });
 
-        // 批量更新依赖
         updates.forEach(({ nodeId: depNodeId, dependencies: depValue }) => {
           updateNode(depNodeId, { dependencies: depValue });
         });
-
         if (updates.length > 0) {
           message.info(
             `${t('editor.nodeUnlocked')}，已自动清除 ${updates.length} 个节点的依赖引用`,
@@ -225,20 +261,29 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       }
 
       onNodeLock?.(nodeId, newLocked);
-
-      // 检查是否所有节点都已锁定（仅在锁定操作时检查）
-      if (newLocked && onAllNodesLocked) {
-        const all = store.getState().getAllNodes();
-        if (all.length > 0 && all.every((n) => n.isLocked)) {
-          onAllNodesLocked();
+      if (newLocked) {
+        const result = fireAllLockedCallbacks(
+          store.getState().getAllNodes(),
+          lockedCallbacks,
+        );
+        if (highlightUnlocked && hasAnyLockedCallback) {
+          applyHighlightAndExpand(result);
         }
       }
-
       onChange?.(store.getState().getTree());
     },
-    [updateNode, onNodeLock, onAllNodesLocked, onChange, store, t],
+    [
+      updateNode,
+      onNodeLock,
+      lockedCallbacks,
+      onChange,
+      store,
+      t,
+      hasAnyLockedCallback,
+      highlightUnlocked,
+      applyHighlightAndExpand,
+    ],
   );
-
   const handleDelete = useCallback(
     (nodeId: string) => {
       removeNode(nodeId);
@@ -251,9 +296,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   const handleAddChild = useCallback(
     (parentId: string) => {
       const newNodeId = addChild(parentId);
-      // 自动展开新节点的编辑器
       setExpandedEditorId(newNodeId);
-      // 同时展开父节点的子节点列表
       setExpandedNodes((prev) => {
         const next = new Set(prev);
         next.add(parentId);
@@ -267,7 +310,6 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
 
   const handleAddRootNode = useCallback(() => {
     const newNodeId = addRootNode();
-    // 自动展开新节点的编辑器
     setExpandedEditorId(newNodeId);
     message.success(t('editor.rootTitleAdded'));
     onChange?.(store.getState().getTree());
@@ -298,15 +340,10 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
 
   // 获取所有可用节点列表（用于依赖选择）
   const getAvailableNodes = useCallback(() => {
-    const allNodes = store.getState().getAllNodes();
-    return allNodes.map((node) => ({
-      id: node.id,
-      title: node.title,
-      number: getNodeNumber(node.id),
-      hasRun: node.hasRun,
-      isLocked: node.isLocked,
-      parentId: node.parentId,
-      children: node.children,
+    return store.getState().getAllNodes().map((node) => ({
+      id: node.id, title: node.title, number: getNodeNumber(node.id),
+      hasRun: node.hasRun, isLocked: node.isLocked,
+      parentId: node.parentId, children: node.children,
     }));
   }, [store, getNodeNumber]);
 
@@ -320,7 +357,6 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       if (prev === nodeId) {
         return null;
       }
-      // 否则展开新节点（自动折叠其他节点）
       return nodeId;
     });
   }, []);
@@ -345,14 +381,12 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
     'before' | 'after' | 'inside' | null
   >(null);
 
-  // 处理拖拽开始
   const handleDragStart = useCallback((nodeId: string, e: React.DragEvent) => {
     setDraggingNodeId(nodeId);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', nodeId);
   }, []);
 
-  // 处理拖拽结束
   const handleDragEnd = useCallback(() => {
     setDraggingNodeId(null);
     setDragOverNodeId(null);
@@ -360,63 +394,52 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   }, []);
 
   // 处理拖拽经过
-  const handleDragOver = useCallback(
-    (nodeId: string, e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
+  const handleDragOver = useCallback((nodeId: string, e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-      if (draggingNodeId === nodeId) return;
+    if (draggingNodeId === nodeId) return;
 
-      setDragOverNodeId(nodeId);
+    setDragOverNodeId(nodeId);
 
-      // 判断拖拽位置：before, after, 或 inside
-      const rect = e.currentTarget.getBoundingClientRect();
-      const y = e.clientY - rect.top;
-      const height = rect.height;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const height = rect.height;
 
-      // 检查是否允许放入当前节点（不能放入自己或自己的子节点）
-      const targetNode = store.getState().getNode(nodeId);
-      const draggedNode = store.getState().getNode(draggingNodeId!);
+    const targetNode = store.getState().getNode(nodeId);
+    const draggedNode = store.getState().getNode(draggingNodeId!);
 
-      if (!targetNode || !draggedNode) return;
+    if (!targetNode || !draggedNode) return;
 
-      // 检查是否会形成循环依赖
-      function isDescendant(parentId: string, targetId: string): boolean {
-        const parent = store.getState().getNode(parentId);
-        if (!parent) return false;
-        if (parent.children.includes(targetId)) return true;
-        return parent.children.some((childId) =>
-          isDescendant(childId, targetId),
-        );
-      }
+    // 检查是否会形成循环依赖
+    function isDescendant(parentId: string, targetId: string): boolean {
+      const parent = store.getState().getNode(parentId);
+      if (!parent) return false;
+      if (parent.children.includes(targetId)) return true;
+      return parent.children.some((childId) =>
+        isDescendant(childId, targetId),
+      );
+    }
 
-      const canDropInside = !isDescendant(draggingNodeId!, nodeId);
+    const canDropInside = !isDescendant(draggingNodeId!, nodeId);
 
-      if (y < height * 0.35) {
-        // 上方 35%
-        setDragPosition('before');
-      } else if (y > height * 0.65) {
-        // 下方 35%
-        setDragPosition('after');
-      } else if (canDropInside) {
-        // 中间 30%（只有当不会形成循环时才允许放入）
-        setDragPosition('inside');
-      } else {
-        // 如果不能放入，则根据位置决定 before 或 after
-        setDragPosition(y < height / 2 ? 'before' : 'after');
-      }
-    },
-    [draggingNodeId, store],
-  );
+    if (y < height * 0.35) {
+      setDragPosition('before');
+    } else if (y > height * 0.65) {
+      setDragPosition('after');
+    } else if (canDropInside) {
+      setDragPosition('inside');
+    } else {
+      setDragPosition(y < height / 2 ? 'before' : 'after');
+    }
+  }, [draggingNodeId, store]);
 
   // 处理拖拽离开
   const handleDragLeave = useCallback(
     (nodeId: string, e: React.DragEvent) => {
-      // 只有当真正离开元素时才清除状态
       const rect = e.currentTarget.getBoundingClientRect();
       const x = e.clientX;
       const y = e.clientY;
-
       if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
         if (dragOverNodeId === nodeId) {
           setDragOverNodeId(null);
@@ -450,12 +473,9 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
         return;
       }
 
-      // 根据拖拽位置决定新的父节点和索引
       if (dragPosition === 'inside') {
-        // 放入目标节点内部，作为最后一个子节点
         moveNode(sourceNodeId, targetNodeId, targetNode.children.length);
       } else if (dragPosition === 'before') {
-        // 在目标节点之前
         if (targetNode.parentId) {
           const parent = store.getState().getNode(targetNode.parentId);
           if (parent) {
@@ -469,7 +489,6 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
           moveNode(sourceNodeId, null, index);
         }
       } else if (dragPosition === 'after') {
-        // 在目标节点之后
         if (targetNode.parentId) {
           const parent = store.getState().getNode(targetNode.parentId);
           if (parent) {
@@ -496,41 +515,23 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
     return flattenVisibleNodes(tree, expandedNodes);
   }, [tree, expandedNodes]);
 
-  // 获取节点高度的回调函数
   const getItemSize = useCallback(
     (index: number) => {
       const node = visibleNodes[index];
       if (!node) return 48;
-
-      const cachedHeight = getNodeActualHeight(
-        node.id,
-        expandedEditorId,
-        nodeHeightsRef,
-        {
-          previewMode,
-          previewRenderMode,
-        },
-      );
+      const opts = { previewMode, previewRenderMode };
+      const cachedHeight = getNodeActualHeight(node.id, expandedEditorId, nodeHeightsRef, opts);
       const estimatedHeight = estimateNodeHeight(
         node,
         expandedEditorId === node.id,
-        {
-          previewMode,
-          previewRenderMode,
-          hasTopSlot: !!renderNodeTopSlot,
-        },
+        { ...opts, hasTopSlot: !!renderNodeTopSlot },
       );
-
-      if (nodeHeightsRef.current.has(node.id)) {
-        return cachedHeight;
-      }
-
+      if (nodeHeightsRef.current.has(node.id)) return cachedHeight;
       return estimatedHeight;
     },
     [visibleNodes, expandedEditorId, heightVersion],
   );
 
-  // 渲染单个节点项
   const RowComponent = useCallback(
     ({
       index,
@@ -573,9 +574,14 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       dataSelector,
       renderNodeActions,
       renderNodeTopSlot,
+      maxChildLevel: maxLevel,
+      unlockedHighlightIds: highlightSet,
     }: any) => {
       const node = nodes[index];
       if (!node) return null;
+      const isHighlightedFlag = highlightSet
+        ? highlightSet.has(node.id)
+        : false;
 
       const nodeProps = {
         node: {
@@ -588,12 +594,11 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
           level: node.level,
         },
         style: {
-          // 根节点 (level===1) 不缩进,子节点每级 +16px。flattenVisibleNodes 以 1 为根层级起点。
+          // 根节点 (level===1) 不缩进,子节点每级 +16px
           paddingLeft: `${Math.max(0, node.level - 1) * 16}px`,
           boxSizing: 'border-box' as const,
         },
         dragHandle: null,
-        // 拖拽相关 props
         isDragging: dragNode === node.id,
         isDragOver: dragOver === node.id,
         dragPosition: dragPos,
@@ -638,7 +643,8 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
             dataSelector={dataSelector}
             renderNodeActions={renderNodeActions}
             renderNodeTopSlot={renderNodeTopSlot}
-            maxChildLevel={maxChildLevel}
+            maxChildLevel={maxLevel}
+            isHighlighted={isHighlightedFlag}
           />
         </div>
       );
@@ -646,7 +652,6 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
     [],
   );
 
-  // 准备 rowProps
   const rowProps = useMemo(
     () => ({
       visibleNodes,
@@ -687,6 +692,8 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       dataSelector,
       renderNodeActions,
       renderNodeTopSlot,
+      maxChildLevel,
+      unlockedHighlightIds,
     }),
     [
       visibleNodes,
@@ -727,6 +734,8 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       dataSelector,
       renderNodeActions,
       renderNodeTopSlot,
+      maxChildLevel,
+      unlockedHighlightIds,
     ],
   );
 
@@ -751,7 +760,6 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       style={style}
       data-theme={theme === 'system' ? undefined : theme}
     >
-      {/* 顶部工具栏 - 预览模式下隐藏 */}
       {!previewMode && (
         <div className={toolbarClassName}>
           {renderToolbar ? (
@@ -778,10 +786,10 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
         {/* @ts-ignore - react-window v2 API requires rowProps */}
         <List
           listRef={listRef}
-          defaultHeight={containerHeight - 32} // 减去 padding
+          defaultHeight={containerHeight - 32}
           rowCount={visibleNodes.length}
           rowHeight={(index) => getItemSize(index)}
-          overscanCount={5} // 预渲染 5 个额外节点
+          overscanCount={5}
           className="prompt-editor-list scroll-thin"
           style={{
             width: 'calc(100% - 32px)',

@@ -223,8 +223,24 @@ export interface PromptEditorProps {
    * 全部节点锁定回调
    * 当编辑器中所有节点（至少存在一个节点）的 isLocked 全部为 true 时触发
    * 可用于触发后续操作，如保存版本、发布等
+   * @param unlockedNodeIds 当回调触发时（所有节点已锁定），该参数为 []（用于 API 一致性）
+   *                      该参数在其他上下文下表示未锁定的节点 ID 列表
    */
-  onAllNodesLocked?: () => void;
+  onAllNodesLocked?: (unlockedNodeIds: string[]) => void;
+  /**
+   * 全部叶子节点锁定回调
+   * 当编辑器中所有叶子节点（children.length === 0 的节点，至少存在一个）的 isLocked 全部为 true 时触发
+   * 可用于触发后续操作，如保存版本、发布等
+   * @param unlockedNodeIds 当回调触发时（所有叶子节点已锁定），该参数为 []（用于 API 一致性）
+   */
+  onAllLeafNodesLocked?: (unlockedNodeIds: string[]) => void;
+  /**
+   * 全部内容非空节点锁定回调
+   * 当编辑器中所有 content.trim() !== '' 的节点（至少存在一个）的 isLocked 全部为 true 时触发
+   * 可用于触发后续操作，如保存版本、发布等
+   * @param unlockedNodeIds 当回调触发时（所有非空内容节点已锁定），该参数为 []（用于 API 一致性）
+   */
+  onAllNonEmptyContentNodesLocked?: (unlockedNodeIds: string[]) => void;
   onTreeChange?: (tree: TaskNode[]) => void;
   className?: string;
   style?: React.CSSProperties;
@@ -314,4 +330,13 @@ export interface PromptEditorProps {
    * @remarks 该值必须大于 0，否则配置无效
    */
   maxChildLevel?: number;
+  /**
+   * 是否高亮未锁定节点并自动展开
+   * 当设置为 true 且至少提供了 onAllNodesLocked / onAllLeafNodesLocked / onAllNonEmptyContentNodesLocked
+   * 之一时,组件会自动为那些在三种"未锁定集合"并集中的节点标题添加红色边框,并将这些节点加入
+   * expandedNodes 集合(自动展开其子节点)以便用户看到上下文。
+   * 当为 false（默认）或未提供任何上述回调时,此 prop 不生效(零开销)。
+   * @default false
+   */
+  highlightUnlocked?: boolean;
 }

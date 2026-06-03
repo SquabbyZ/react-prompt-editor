@@ -14,6 +14,8 @@ interface EditableTitleProps {
   previewMode?: boolean;
   locale?: Locale;
   theme?: ThemeMode;
+  /** 编辑态变化回调(进入/退出 Input 编辑) */
+  onEditingChange?: (editing: boolean) => void;
 }
 
 /**
@@ -32,6 +34,7 @@ export const EditableTitle: React.FC<EditableTitleProps> = memo(
     previewMode = false,
     locale,
     theme = 'system',
+    onEditingChange,
   }) => {
     // 国际化 Hook
     const { t } = useI18n(locale);
@@ -73,6 +76,7 @@ export const EditableTitle: React.FC<EditableTitleProps> = memo(
       }
       setTitleValue(title);
       setIsEditing(true);
+      onEditingChange?.(true);
     };
 
     // 保存标题
@@ -86,12 +90,14 @@ export const EditableTitle: React.FC<EditableTitleProps> = memo(
         message.warning('标题不能为空');
       }
       setIsEditing(false);
+      onEditingChange?.(false);
     };
 
     // 取消编辑
     const handleCancel = () => {
       setTitleValue(title);
       setIsEditing(false);
+      onEditingChange?.(false);
       message.info('已取消编辑');
     };
 

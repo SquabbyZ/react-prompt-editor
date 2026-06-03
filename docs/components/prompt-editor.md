@@ -107,6 +107,66 @@ pnpm add antd @ant-design/x
 - ✅ 显示每个节点的直接子节点数量
 - ✅ 锁定状态的节点不可删除
 
+## 锁定状态回调
+
+组件提供 3 个"全部节点已锁定"系列回调，用于在用户把所有节点（或子集）锁定后触发后续动作（保存版本、发布、跳转等）。所有 3 个回调统一采用 `(unlockedNodeIds: string[]) => void` 签名：当条件满足（全部已锁定）时，参数为 `[]`；当条件不满足时，参数为当前"未锁定"节点的 ID 列表。这种统一形态让上层业务可以无缝接入"列出未锁定节点"和"全部锁定完成"两种场景。
+
+- `onAllNodesLocked` — 当编辑器中所有节点（至少存在一个节点）的 `isLocked` 全部为 `true` 时触发
+- `onAllLeafNodesLocked` — 当所有叶子节点（`children.length === 0`，至少存在一个）的 `isLocked` 全部为 `true` 时触发
+- `onAllNonEmptyContentNodesLocked` — 当所有 `content.trim() !== ''` 的节点（至少存在一个）的 `isLocked` 全部为 `true` 时触发
+
+此外，`highlightUnlocked` 是一个 opt-in 的视觉提示开关：当 `true` 且至少提供了上述 3 个回调之一时，组件会：
+
+- 为那些**叶子节点（`children.length === 0`）且 CodeMirror 内容非空（`content.trim() !== ''`）**且当前未锁定的节点的整行添加 `border-2 border-red-500` 红色描边
+- 将这些节点加入 `expandedNodes` 集合，自动展开其子节点
+
+> 内部节点（有子节点的容器）或空内容叶子即使未锁定也不会显示红色描边——只有真正「未完成可锁定的内容」才标红。
+
+当全部节点都已锁定时，并集为空 → 没有红色描边。
+
+进入标题编辑态（双击标题）时，该描边会自动消失，退出编辑后若节点仍未锁定则恢复。
+
+### 全部节点锁定
+
+<code src="../examples/all-nodes-locked.tsx"></code>
+
+### 叶子节点 / 非空内容节点锁定
+
+<code src="../examples/leaf-and-content-locked.tsx"></code>
+
+### 锁定状态视觉提示
+
+<code src="../examples/locked-state-visual-cue.tsx"></code>
+
+### 代码示例
+
+```tsx | pure
+<PromptEditor
+  value={value}
+  onChange={setValue}
+  // 全部节点锁定:触发时 unlockedNodeIds 为 []
+  onAllNodesLocked={(unlockedIds) => {
+    if (unlockedIds.length === 0) {
+      console.log('所有节点都已锁定,可以发布');
+    } else {
+      console.log('还有节点未锁定:', unlockedIds);
+    }
+  }}
+  // 全部叶子节点锁定
+  onAllLeafNodesLocked={(unlockedLeafIds) => {
+    /* ... */
+  }}
+  // 全部非空内容节点锁定
+  onAllNonEmptyContentNodesLocked={(unlockedNonEmptyIds) => {
+    /* ... */
+  }}
+  // 开启视觉提示:未锁定节点标题红框 + 自动展开
+  highlightUnlocked={true}
+/>
+```
+
+> 💡 `highlightUnlocked` 默认为 `false`，零开销。只有当 `true` 且至少提供了一个上述回调时才会生效。
+
 ## 受控与非受控模式
 
 组件支持两种数据管理方式：**受控模式**（`value` + `onChange`）和**非受控模式**（`initialValue`）。受控模式适合需要在外部同步状态的场景，非受控模式适合简单的独立使用：
@@ -468,6 +528,7 @@ const renderCustomActions = ({ node, defaultActions, isDarkMode }) => {
 | renderNodeActions     | 自定义节点底部操作按钮区域（提供此项可完全替换默认的变量/运行/AI优化按钮）            | `(props) => ReactNode`                            | -                   |
 | renderNodeTopSlot     | 自定义节点头部下方、内容区上方插槽（支持渲染任意 ReactNode）                          | `(props) => ReactNode`                            | -                   |
 | maxChildLevel         | 最大子标题层级限制（控制可以添加的最大子标题层级深度，根节点为第 1 层，该值必须大于 0）                                | `number`                                          | `undefined`         |
+| highlightUnlocked     | 是否高亮未锁定节点（红色边框）并自动展开其子节点；需配合 `onAllNodesLocked` / `onAllLeafNodesLocked` / `onAllNonEmptyContentNodesLocked` 之一使用                                | `boolean`                                         | `false`         |
 
 #### 事件 (Events)
 
@@ -479,7 +540,9 @@ const renderCustomActions = ({ node, defaultActions, isDarkMode }) => {
 | onNodeRun         | 节点运行完成回调（用户执行完运行请求后调用，通知组件更新状态）                            | `(nodeId: string, result: RunTaskResponse) => void`  | -      |
 | onNodeOptimize    | 节点优化完成回调（用户执行完优化请求后调用，通知组件）                                    | `(nodeId: string, result: OptimizeResponse) => void` | -      |
 | onNodeLock        | 节点锁定回调                                                                              | `(nodeId: string, isLocked: boolean) => void`        | -      |
-| onAllNodesLocked  | 全部节点锁定回调（至少存在一个节点且全部 `isLocked` 为 `true` 时触发）                    | `() => void`                                         | -      |
+| onAllNodesLocked  | 全部节点锁定回调（至少存在一个节点且全部 `isLocked` 为 `true` 时触发；触发时 `unlockedNodeIds` 为 `[]`）                    | `(unlockedNodeIds: string[]) => void`                                         | -      |
+| onAllLeafNodesLocked  | 全部叶子节点锁定回调（所有 `children.length === 0` 的节点全部 `isLocked` 为 `true` 时触发；触发时 `unlockedNodeIds` 为 `[]`）                    | `(unlockedNodeIds: string[]) => void`                                         | -      |
+| onAllNonEmptyContentNodesLocked  | 全部非空内容节点锁定回调（所有 `content.trim() !== ''` 的节点全部 `isLocked` 为 `true` 时触发；触发时 `unlockedNodeIds` 为 `[]`）                    | `(unlockedNodeIds: string[]) => void`                                         | -      |
 | onTreeChange      | 树变化回调                                                                                | `(tree: TaskNode[]) => void`                         | -      |
 | onLike            | AI 优化消息点赞回调                                                                       | `(messageId: string) => void`                        | -      |
 | onDislike         | AI 优化消息点踩回调                                                                       | `(messageId: string) => void`                        | -      |

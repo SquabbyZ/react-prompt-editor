@@ -5,6 +5,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import enUS from '../../i18n/locales/en-US';
 import { TaskNode } from '../../types';
 import { PromptEditor } from '../PromptEditor';
+import {
+  baseValue,
+  getNode,
+  renderPromptEditor,
+} from './promptEditorTestHelpers';
 
 const { messageApi } = vi.hoisted(() => ({
   messageApi: {
@@ -65,41 +70,6 @@ vi.mock('../AIOptimizeModal/MarkdownRenderer', () => ({
     content: string;
   }) => <div data-testid="mock-markdown-renderer">{content}</div>,
 }));
-
-const baseValue: TaskNode[] = [
-  {
-    id: '1',
-    title: 'Root Node',
-    content: '# Root Node',
-    isLocked: false,
-    hasRun: false,
-    dependencies: [],
-    children: [],
-  },
-];
-
-function renderPromptEditor(
-  props: Partial<React.ComponentProps<typeof PromptEditor>> = {},
-) {
-  return render(
-    <div style={{ height: 800 }}>
-      <PromptEditor
-        initialValue={baseValue}
-        locale={enUS}
-        theme="light"
-        {...props}
-      />
-    </div>,
-  );
-}
-
-function getNode(nodeId: string) {
-  const element = document.querySelector(`[data-node-id="${nodeId}"]`);
-  if (!element) {
-    throw new Error(`Node ${nodeId} not found`);
-  }
-  return within(element as HTMLElement);
-}
 
 describe('PromptEditor', () => {
   beforeEach(() => {
@@ -265,5 +235,312 @@ describe('PromptEditor', () => {
     const header = rootNode.querySelector('.prompt-editor-node-header');
     expect(header).toBeTruthy();
     expect(header!.className).toContain('px-4');
+  });
+
+  // -----------------------------------------------------------------------
+  // 003-leaf-and-content-locked-callbacks
+  // 覆盖 A1 / A2 / A4 / A5 / A6 / A7 / A8
+  // -----------------------------------------------------------------------
+
+  it('calls onAllLeafNodesLocked once when all leaf nodes are locked (A1)', async () => {
+    const user = userEvent.setup();
+    const onAllLeafNodesLocked = vi.fn();
+    // root + 2 leaf children: leaves are the two children
+    const tree: TaskNode[] = [
+      {
+        id: 'r',
+        title: 'Root',
+        content: '# Root',
+        isLocked: false,
+        hasRun: true,
+        dependencies: [],
+        children: [
+          {
+            id: 'c1',
+            title: 'Child 1',
+            content: 'child one',
+            isLocked: false,
+            hasRun: true,
+            dependencies: [],
+            children: [],
+          },
+          {
+            id: 'c2',
+            title: 'Child 2',
+            content: 'child two',
+            isLocked: false,
+            hasRun: true,
+            dependencies: [],
+            children: [],
+          },
+        ],
+      },
+    ];
+
+    renderPromptEditor({ initialValue: tree, onAllLeafNodesLocked });
+
+    // Expand the root so its children (the leaves) become visible.
+    await user.click(getNode('r').getByLabelText('Expand Children'));
+    // Add child nodes are not visible until the parent is expanded, but the
+    // leaves (c1, c2) are always rendered (root is collapsed-by-default,
+    // children appear under the root via flattenVisibleNodes).
+    await user.click(getNode('c1').getByLabelText('Lock Node'));
+    await user.click(getNode('c2').getByLabelText('Lock Node'));
+
+    expect(onAllLeafNodesLocked).toHaveBeenCalledTimes(1);
+    expect(onAllLeafNodesLocked).toHaveBeenLastCalledWith([]);
+  });
+
+  it('does not call onAllLeafNodesLocked when at least one leaf is unlocked (A2)', async () => {
+    const user = userEvent.setup();
+    const onAllLeafNodesLocked = vi.fn();
+    const tree: TaskNode[] = [
+      {
+        id: 'r',
+        title: 'Root',
+        content: '# Root',
+        isLocked: false,
+        hasRun: true,
+        dependencies: [],
+        children: [
+          {
+            id: 'c1',
+            title: 'Child 1',
+            content: 'child one',
+            isLocked: false,
+            hasRun: true,
+            dependencies: [],
+            children: [],
+          },
+          {
+            id: 'c2',
+            title: 'Child 2',
+            content: 'child two',
+            isLocked: false,
+            hasRun: true,
+            dependencies: [],
+            children: [],
+          },
+        ],
+      },
+    ];
+
+    renderPromptEditor({ initialValue: tree, onAllLeafNodesLocked });
+
+    // Expand the root so c1 becomes visible.
+    await user.click(getNode('r').getByLabelText('Expand Children'));
+    // Lock only c1; c2 is still unlocked.
+    await user.click(getNode('c1').getByLabelText('Lock Node'));
+
+    expect(onAllLeafNodesLocked).not.toHaveBeenCalled();
+  });
+
+  it('calls onAllNonEmptyContentNodesLocked once when all non-empty content nodes are locked (A4)', async () => {
+    const user = userEvent.setup();
+    const onAllNonEmptyContentNodesLocked = vi.fn();
+    const tree: TaskNode[] = [
+      {
+        id: 'a',
+        title: 'A',
+        content: 'content a',
+        isLocked: false,
+        hasRun: true,
+        dependencies: [],
+        children: [],
+      },
+      {
+        id: 'b',
+        title: 'B',
+        content: 'content b',
+        isLocked: false,
+        hasRun: true,
+        dependencies: [],
+        children: [],
+      },
+    ];
+
+    renderPromptEditor({
+      initialValue: tree,
+      onAllNonEmptyContentNodesLocked,
+    });
+
+    await user.click(getNode('a').getByLabelText('Lock Node'));
+    await user.click(getNode('b').getByLabelText('Lock Node'));
+
+    expect(onAllNonEmptyContentNodesLocked).toHaveBeenCalledTimes(1);
+    expect(onAllNonEmptyContentNodesLocked).toHaveBeenLastCalledWith([]);
+  });
+
+  it('does not call onAllNonEmptyContentNodesLocked when at least one non-empty content node is unlocked (A5)', async () => {
+    const user = userEvent.setup();
+    const onAllNonEmptyContentNodesLocked = vi.fn();
+    const tree: TaskNode[] = [
+      {
+        id: 'a',
+        title: 'A',
+        content: 'content a',
+        isLocked: false,
+        hasRun: true,
+        dependencies: [],
+        children: [],
+      },
+      {
+        id: 'b',
+        title: 'B',
+        content: 'content b',
+        isLocked: false,
+        hasRun: true,
+        dependencies: [],
+        children: [],
+      },
+    ];
+
+    renderPromptEditor({
+      initialValue: tree,
+      onAllNonEmptyContentNodesLocked,
+    });
+
+    await user.click(getNode('a').getByLabelText('Lock Node'));
+
+    expect(onAllNonEmptyContentNodesLocked).not.toHaveBeenCalled();
+  });
+
+  it('does not call onAllNonEmptyContentNodesLocked when no node has non-empty content (A6)', async () => {
+    const user = userEvent.setup();
+    const onAllNonEmptyContentNodesLocked = vi.fn();
+    const tree: TaskNode[] = [
+      {
+        id: 'a',
+        title: 'A',
+        content: '   ',
+        isLocked: false,
+        hasRun: true,
+        dependencies: [],
+        children: [],
+      },
+      {
+        id: 'b',
+        title: 'B',
+        content: '',
+        isLocked: false,
+        hasRun: true,
+        dependencies: [],
+        children: [],
+      },
+    ];
+
+    renderPromptEditor({
+      initialValue: tree,
+      onAllNonEmptyContentNodesLocked,
+    });
+
+    await user.click(getNode('a').getByLabelText('Lock Node'));
+    await user.click(getNode('b').getByLabelText('Lock Node'));
+
+    expect(onAllNonEmptyContentNodesLocked).not.toHaveBeenCalled();
+  });
+
+  it('re-fires leaf and non-empty-content callbacks after a new node is locked (A7)', async () => {
+    const user = userEvent.setup();
+    const onAllLeafNodesLocked = vi.fn();
+    const onAllNonEmptyContentNodesLocked = vi.fn();
+    // 2 flat (sibling) root nodes, both leaves.
+    const tree: TaskNode[] = [
+      {
+        id: 'a',
+        title: 'A',
+        content: 'content a',
+        isLocked: false,
+        hasRun: true,
+        dependencies: [],
+        children: [],
+      },
+      {
+        id: 'b',
+        title: 'B',
+        content: 'content b',
+        isLocked: false,
+        hasRun: true,
+        dependencies: [],
+        children: [],
+      },
+    ];
+
+    renderPromptEditor({
+      initialValue: tree,
+      onAllLeafNodesLocked,
+      onAllNonEmptyContentNodesLocked,
+    });
+
+    // Lock a only. b is still unlocked → no fire.
+    await user.click(getNode('a').getByLabelText('Lock Node'));
+    expect(onAllLeafNodesLocked).not.toHaveBeenCalled();
+    expect(onAllNonEmptyContentNodesLocked).not.toHaveBeenCalled();
+
+    // Lock b. All leaves (a, b) and all non-empty content nodes (a, b) locked → both fire.
+    await user.click(getNode('b').getByLabelText('Lock Node'));
+    expect(onAllLeafNodesLocked).toHaveBeenCalledTimes(1);
+    expect(onAllNonEmptyContentNodesLocked).toHaveBeenCalledTimes(1);
+    expect(onAllLeafNodesLocked).toHaveBeenLastCalledWith([]);
+    expect(onAllNonEmptyContentNodesLocked).toHaveBeenLastCalledWith([]);
+
+    // Unlock b (predicate broken) — callbacks should NOT fire on unlock path
+    // (unlock path is guarded by `newLocked === true`).
+    await user.click(getNode('b').getByLabelText('Unlock Node'));
+    expect(onAllLeafNodesLocked).toHaveBeenCalledTimes(1);
+    expect(onAllNonEmptyContentNodesLocked).toHaveBeenCalledTimes(1);
+
+    // Re-lock b → predicate healed → both callbacks re-fire.
+    await user.click(getNode('b').getByLabelText('Lock Node'));
+    expect(onAllLeafNodesLocked).toHaveBeenCalledTimes(2);
+    expect(onAllNonEmptyContentNodesLocked).toHaveBeenCalledTimes(2);
+    expect(onAllLeafNodesLocked).toHaveBeenLastCalledWith([]);
+    expect(onAllNonEmptyContentNodesLocked).toHaveBeenLastCalledWith([]);
+  });
+
+  it('fires all three all-locked callbacks independently in the same lock cycle (A8)', async () => {
+    const user = userEvent.setup();
+    const onAllNodesLocked = vi.fn();
+    const onAllLeafNodesLocked = vi.fn();
+    const onAllNonEmptyContentNodesLocked = vi.fn();
+    // Flat tree of 2 leaves with non-empty content. In this tree:
+    //   - all nodes = leaves = non-empty content (all three subsets coincide)
+    const tree: TaskNode[] = [
+      {
+        id: 'a',
+        title: 'A',
+        content: 'content a',
+        isLocked: false,
+        hasRun: true,
+        dependencies: [],
+        children: [],
+      },
+      {
+        id: 'b',
+        title: 'B',
+        content: 'content b',
+        isLocked: false,
+        hasRun: true,
+        dependencies: [],
+        children: [],
+      },
+    ];
+
+    renderPromptEditor({
+      initialValue: tree,
+      onAllNodesLocked,
+      onAllLeafNodesLocked,
+      onAllNonEmptyContentNodesLocked,
+    });
+
+    await user.click(getNode('a').getByLabelText('Lock Node'));
+    await user.click(getNode('b').getByLabelText('Lock Node'));
+
+    expect(onAllNodesLocked).toHaveBeenCalledTimes(1);
+    expect(onAllLeafNodesLocked).toHaveBeenCalledTimes(1);
+    expect(onAllNonEmptyContentNodesLocked).toHaveBeenCalledTimes(1);
+    expect(onAllNodesLocked).toHaveBeenLastCalledWith([]);
+    expect(onAllLeafNodesLocked).toHaveBeenLastCalledWith([]);
+    expect(onAllNonEmptyContentNodesLocked).toHaveBeenLastCalledWith([]);
   });
 });

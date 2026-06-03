@@ -6,20 +6,19 @@ import { DemoWrapper } from '../demo-wrapper';
 import { message } from 'antd';
 
 /**
- * 全部节点锁定示例 (request 005 API)
+ * 叶子节点 / 非空内容节点 锁定回调示例 (request 005 + 008)
  *
- * - `onAllNodesLocked` 接收 `(unlockedNodeIds: string[]) => void` 签名,
- *   当所有节点已锁定时参数为 `[]` (用于 API 一致性)。
- * - `highlightUnlocked={true}` 开启后,组件会为三种"未锁定集合"并集中的
- *   节点标题添加红色描边 (`outline outline-2 outline-red-500 outline-offset-1`),
- *   并将它们自动展开。当全部节点都锁定时,没有红色描边 (因为并集为空)。
+ * 演示两个新增的回调:
+ * - `onAllLeafNodesLocked`: 当所有 children.length === 0 的节点 (至少 1 个) 全部锁定时触发
+ * - `onAllNonEmptyContentNodesLocked`: 当所有 content.trim() !== '' 的节点 (至少 1 个) 全部锁定时触发
  *
- * "校验" 按钮 (request 006): 手动触发"当前未锁定集合"的检查, 与
+ * 同样采用新的 `(unlockedIds: string[]) => void` 签名,触发时参数为 []。
+ *
+ * "校验" 按钮 (request 006 + 008): 手动触发"当前未锁定集合"的检查, 与
  * `src/components/PromptEditor/lockCallbacks.ts` 内部 `fireAllLockedCallbacks`
- * 完全相同的三个谓词:
- *   - allLocked: 所有节点 isLocked === true
- *   - leavesLocked: 所有 children.length === 0 的节点 isLocked === true
- *   - contentLocked: 所有 content.trim() !== '' 的节点 isLocked === true
+ * 完全相同的三个谓词, 同时把 `highlightUnlocked={true}` 切到 PromptEditor
+ * 上, 让未锁定的叶子 + 非空内容节点显示红框。点击 Reset / 全部锁定时
+ * 关闭红框, 点击 全部解锁 时重新打开。
  */
 
 interface ValidationNodeRef {
@@ -39,9 +38,6 @@ interface ValidationResult {
 /**
  * 镜像 `src/components/PromptEditor/lockCallbacks.ts` 中的三个判定条件,
  * 递归遍历当前 value 树, 返回各谓词当前是否满足、以及各自未锁定的节点列表。
- *
- * 注意: 这里把 `TaskNode.children` 视作 `TaskNode[] | undefined`, 因此
- * `children.length === 0` 的"叶子"语义等同于 `(children ?? []).length === 0`。
  */
 function validateLockState(nodes: TaskNode[]): ValidationResult {
   const all: TaskNode[] = [];
@@ -72,19 +68,36 @@ function validateLockState(nodes: TaskNode[]): ValidationResult {
 }
 
 export default () => {
-  const [value, setValue] = React.useState<TaskNode[]>([
+  const initialValue: TaskNode[] = [
     {
       id: '1',
-      title: '第一步：需求分析',
-      content: '# 需求分析\n\n分析用户需求，拆解核心功能。',
-      children: [],
+      title: '第一步：项目总览',
+      content: '# 项目总览\n\n作为非叶子节点(有 1.1 / 1.2 子节点),它本身不会被算作"叶子节点",但属于"非空内容节点"。',
+      children: [
+        {
+          id: '1.1',
+          title: '1.1 需求分析',
+          content: '叶子节点:非空内容',
+          children: [],
+          isLocked: false,
+          hasRun: true,
+        },
+        {
+          id: '1.2',
+          title: '1.2 方案评审',
+          content: '叶子节点:非空内容',
+          children: [],
+          isLocked: false,
+          hasRun: true,
+        },
+      ],
       isLocked: false,
       hasRun: true,
     },
     {
       id: '2',
-      title: '第二步：方案设计',
-      content: '# 方案设计\n\n基于需求设计技术方案。',
+      title: '第二步：开发实施',
+      content: '# 开发实施\n\n叶子节点,且 content 非空。',
       children: [],
       isLocked: false,
       hasRun: true,
@@ -92,64 +105,89 @@ export default () => {
     {
       id: '3',
       title: '第三步：发布上线',
-      content: '# 发布上线\n\n所有节点锁定后执行发布。',
+      content: '# 发布上线\n\n叶子节点,且 content 非空。',
       children: [],
       isLocked: false,
       hasRun: true,
     },
-  ]);
+  ];
 
-  const [allLocked, setAllLocked] = React.useState(false);
+  const [value, setValue] = React.useState<TaskNode[]>(initialValue);
+  const [allLeavesLocked, setAllLeavesLocked] = React.useState(false);
+  const [allContentLocked, setAllContentLocked] = React.useState(false);
   const [validation, setValidation] = React.useState<ValidationResult | null>(null);
+  // 校验 / 全部解锁 → 开启红框高亮；全部锁定 / Reset → 关闭
+  const [highlightUnlocked, setHighlightUnlocked] = React.useState(false);
 
-  // 新的 (unlockedIds) => void 签名。
-  // 当全部锁定时,unlockedIds 始终为 [] (用于 API 一致性)。
-  const handleAllNodesLocked = (unlockedIds: string[]) => {
-    setAllLocked(true);
+  const handleAllLeafNodesLocked = (unlockedLeafIds: string[]) => {
+    setAllLeavesLocked(true);
     message.success(
-      `全部节点已锁定 (未锁定: ${unlockedIds.length}, 可发布版本了!)`,
+      `全部叶子节点已锁定 (未锁定: ${unlockedLeafIds.length}, 共 3 个叶子)`,
     );
   };
 
-  const handleNodeLock = (nodeId: string, isLocked: boolean) => {
-    if (!isLocked) {
-      setAllLocked(false);
-    }
+  const handleAllNonEmptyContentNodesLocked = (
+    unlockedNonEmptyIds: string[],
+  ) => {
+    setAllContentLocked(true);
+    message.success(
+      `全部非空内容节点已锁定 (未锁定: ${unlockedNonEmptyIds.length}, 共 4 个)`,
+    );
   };
+
+  const handleNodeLock = () => {
+    // 任何节点解锁都重置两个 flag
+    setAllLeavesLocked(false);
+    setAllContentLocked(false);
+  };
+
+  const setLockedDeep = (
+    nodes: TaskNode[],
+    locked: boolean,
+  ): TaskNode[] =>
+    nodes.map((n) => ({
+      ...n,
+      isLocked: locked,
+      hasRun: true,
+      children: setLockedDeep(n.children ?? [], locked),
+    }));
 
   const handleLockAll = () => {
-    setValue((prev) =>
-      prev.map((n) => ({ ...n, isLocked: true, hasRun: true })),
-    );
+    setValue((prev) => setLockedDeep(prev, true));
     setValidation(null);
+    setHighlightUnlocked(false);
     // 全部锁定 button bypasses the per-node lock button, so manually invoke
-    // the all-locked callback with `[]` to mirror what fireAllLockedCallbacks
-    // would have computed. This keeps the demo's persistent indicator in sync.
-    handleAllNodesLocked([]);
-    message.info(`已锁定 ${value.length} 个节点`);
+    // the two all-locked callbacks with `[]` to mirror what
+    // fireAllLockedCallbacks would have computed.
+    handleAllLeafNodesLocked([]);
+    handleAllNonEmptyContentNodesLocked([]);
+    message.info('已锁定全部节点');
   };
 
   const handleUnlockAll = () => {
-    setValue((prev) =>
-      prev.map((n) => ({ ...n, isLocked: false, hasRun: true })),
-    );
-    setAllLocked(false);
+    setValue((prev) => setLockedDeep(prev, false));
+    setAllLeavesLocked(false);
+    setAllContentLocked(false);
     setValidation(null);
-    message.info(`已解锁 ${value.length} 个节点`);
+    setHighlightUnlocked(true);
+    message.info('已解锁全部节点');
   };
 
-  const handleReset = () => {
-    setValue((prev) => prev.map((n) => ({ ...n, isLocked: false, hasRun: true })));
-    setAllLocked(false);
+  const reset = () => {
+    setValue(initialValue);
+    setAllLeavesLocked(false);
+    setAllContentLocked(false);
     setValidation(null);
+    setHighlightUnlocked(false);
   };
 
   const handleValidate = () => {
     setValidation(validateLockState(value));
+    setHighlightUnlocked(true);
   };
 
   return (
-    <DemoWrapper height="560px">
+    <DemoWrapper height="620px">
       <Space style={{ marginBottom: 12 }}>
         <Button
           size="small"
@@ -166,8 +204,8 @@ export default () => {
         >
           全部解锁
         </Button>
-        <Button size="small" onClick={handleReset} data-test-button="reset">
-          重置
+        <Button size="small" onClick={reset} data-test-button="reset">
+          Reset
         </Button>
         <Button
           size="small"
@@ -181,23 +219,38 @@ export default () => {
         value={value}
         onChange={setValue}
         onNodeLock={handleNodeLock}
-        onAllNodesLocked={handleAllNodesLocked}
-        highlightUnlocked={true}
+        onAllLeafNodesLocked={handleAllLeafNodesLocked}
+        onAllNonEmptyContentNodesLocked={handleAllNonEmptyContentNodesLocked}
+        highlightUnlocked={highlightUnlocked}
       />
-      {/* 持久化指示器,供 E2E 断言;不依赖 antd message 弹窗 */}
+      {/* 持久化指示器 */}
       <div
-        data-test-message="all-locked"
+        data-test-message="leaf-locked"
         style={{
           marginTop: 12,
           padding: '8px 12px',
           borderRadius: 4,
-          background: allLocked ? '#f6ffed' : '#fafafa',
-          border: allLocked ? '1px solid #b7eb8f' : '1px solid #d9d9d9',
-          color: allLocked ? '#389e0d' : '#999',
-          display: allLocked ? 'block' : 'none',
+          background: allLeavesLocked ? '#f6ffed' : '#fafafa',
+          border: allLeavesLocked ? '1px solid #b7eb8f' : '1px solid #d9d9d9',
+          color: allLeavesLocked ? '#389e0d' : '#999',
+          display: allLeavesLocked ? 'block' : 'none',
         }}
       >
-        全部节点已锁定,可以发布版本了!
+        全部叶子节点已锁定 (3 个叶子)
+      </div>
+      <div
+        data-test-message="content-locked"
+        style={{
+          marginTop: 8,
+          padding: '8px 12px',
+          borderRadius: 4,
+          background: allContentLocked ? '#e6f4ff' : '#fafafa',
+          border: allContentLocked ? '1px solid #91caff' : '1px solid #d9d9d9',
+          color: allContentLocked ? '#1677ff' : '#999',
+          display: allContentLocked ? 'block' : 'none',
+        }}
+      >
+        全部非空内容节点已锁定 (4 个)
       </div>
       {/* 校验结果面板 (request 006) */}
       <div

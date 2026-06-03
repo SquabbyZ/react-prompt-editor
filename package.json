@@ -1,6 +1,6 @@
 {
   "name": "react-prompt-editor",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "A powerful tree-structured prompt editor for complex AI workflows, featuring Markdown editing, AI optimization with streaming responses, dependency management, and node execution tracking.",
   "license": "MIT",
   "exports": {
@@ -22,6 +22,7 @@
   "scripts": {
     "build": "father build && node scripts/build-css.js",
     "build:css": "node scripts/build-css.js",
+    "build:css:watch": "npx tailwindcss -i ./src/styles/tailwind.css -o ./dist/styles/index.css --watch",
     "build:prod": "father build && node scripts/build-css.js && node scripts/remove-console.js && node scripts/compress-js.js",
     "build:watch": "father dev",
     "build:analyze": "pnpm build && node scripts/analyze-bundle.js",
@@ -29,6 +30,8 @@
     "analyze:deps": "node scripts/analyze-dependency-impact.js",
     "clean-cache": "rm -rf .dumi/tmp",
     "dev": "dumi dev",
+    "dev:css": "node scripts/build-css.js && npx tailwindcss -i ./src/styles/tailwind.css -o ./dist/styles/index.css --watch",
+    "dev:test-harness": "node scripts/build-css.js && cd e2e/_test-harness && npx vite --port 5173 --host 127.0.0.1 --strictPort",
     "docs:build": "dumi build",
     "docs:preview": "dumi preview",
     "doctor": "father doctor",

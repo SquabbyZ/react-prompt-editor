@@ -118,6 +118,8 @@ interface CustomNodeProps {
   }) => React.ReactNode;
   /** 最大子标题层级限制 */
   maxChildLevel?: number;
+  /** 是否应用未锁定高亮（红色边框） */
+  isHighlighted?: boolean;
 }
 
 export const Node: React.FC<CustomNodeProps> = memo(
@@ -162,11 +164,14 @@ export const Node: React.FC<CustomNodeProps> = memo(
     renderNodeActions,
     renderNodeTopSlot,
     maxChildLevel,
+    isHighlighted = false,
   }) => {
     // 国际化 Hook
     const { t } = useI18n(locale);
     const { isDarkMode } = useResolvedTheme(theme);
     const nodeData = node.data;
+    // 标题是否处于编辑态(从 EditableTitle 内部 state 上行同步) —— 编辑态时挂起红色描边
+    const [titleEditing, setTitleEditing] = React.useState(false);
     // 判断是否是内部节点（有子节点）
     const isInternal = nodeData.children.length > 0;
     // 判断编辑器是否展开（互斥）
@@ -688,9 +693,19 @@ export const Node: React.FC<CustomNodeProps> = memo(
         <div className="relative mt-[6px] flex h-full w-full flex-col transition-all">
           {/* 节点头部和编辑器容器 */}
           <div
-            className={`flex h-full flex-col gap-2 rounded-lg border-2 border-transparent transition-all ${
+            className={`flex h-full flex-col gap-2 rounded-lg border-2 transition-all ${
+              isHighlighted && !nodeData.isLocked && !titleEditing && !isInternal && nodeData.content.trim() !== ''
+                ? 'border-red-500'
+                : 'border-transparent'
+            } ${
               isDragOver && dragPosition === 'inside' ? dragInsideClassName : ''
             }`}
+            data-testid="node-row"
+            data-is-highlighted={
+              isHighlighted && !nodeData.isLocked && !titleEditing && !isInternal && nodeData.content.trim() !== ''
+                ? 'true'
+                : 'false'
+            }
             onDragOver={draggable ? onDragOver : undefined}
             onDragLeave={draggable ? onDragLeave : undefined}
             onDrop={draggable ? onDrop : undefined}
@@ -739,13 +754,22 @@ export const Node: React.FC<CustomNodeProps> = memo(
 
                 {/* 节点序号和标题 */}
                 <div className="flex min-w-0 flex-1 items-center gap-1.5">
-                  <div className="min-w-0 flex-1">
+                  <div
+                    className="min-w-0 flex-1"
+                    data-is-highlighted={
+                      isHighlighted && !nodeData.isLocked && !titleEditing && !isInternal && nodeData.content.trim() !== ''
+                        ? 'true'
+                        : 'false'
+                    }
+                    data-testid="node-title"
+                  >
                     <EditableTitle
                       nodeId={nodeData.id}
                       title={nodeData.title}
                       number={getNodeNumber(nodeData.id)}
                       isLocked={nodeData.isLocked}
                       onTitleChange={onUpdateTitle}
+                      onEditingChange={setTitleEditing}
                       previewMode={previewMode}
                       locale={locale}
                       theme={theme}
