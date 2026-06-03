@@ -1,0 +1,21 @@
+:root {
+  --rpe-site-bg: #f7f9fc;
+  --rpe-surface: rgba(255, 255, 255, 88%);
+  --rpe-surface-strong: #fff;
+  --rpe-surface-soft: #f8fafc;
+  --rpe-border: rgba(15, 23, 42, 8%);
+  --rpe-border-strong: rgba(15, 23, 42, 12%);
+  --rpe-text: #0f172a;
+  --rpe-text-secondary: #475569;
+  --rpe-text-muted: #64748b;
+  --rpe-primary: #2563eb;
+  --rpe-primary-strong: #1d4ed8;
+  --rpe-primary-soft: rgba(37, 99, 235, 10%);
+  --rpe-shadow-sm: 0 10px 30px rgba(15, 23, 42, 6%);
+  --rpe-shadow-md: 0 20px 60px rgba(15, 23, 42, 8%);
+  --rpe-radius-lg: 24px;
+  --rpe-radius-md: 18px;
+  --rpe-content-width: 1320px;
+  --rpe-doc-width: 960px;
+  --rpe-home-width: 1120px;
+}
