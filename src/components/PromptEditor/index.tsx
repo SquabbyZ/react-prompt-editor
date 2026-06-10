@@ -286,7 +286,11 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   );
   const handleDelete = useCallback(
     (nodeId: string) => {
-      removeNode(nodeId);
+      // 004-parent-deletion-blocked-by-child-lock:
+      // 防御性检查 — 节点自身或任意后代被锁定时拒绝删除。
+      // UI 层应在调用前已禁用按钮，但这里作为最后一道防线，捕获编程式调用与 Ctrl+Z 路径。
+      const ok = removeNode(nodeId);
+      if (!ok) return;
       message.success(t('editor.nodeDeleted'));
       onChange?.(store.getState().getTree());
     },

@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { create } from 'zustand';
 import { NodeStore, TaskNode, TaskNodeMinimal } from '../types';
-import { arrayToMap, mapToArray } from '../utils/tree-utils';
+import { arrayToMap, hasLockedDescendant, mapToArray } from '../utils/tree-utils';
 
 /**
  * 编辑器 Store 接口
@@ -14,7 +14,19 @@ export interface EditorStore {
   // 基础操作
   initialize: (nodes: TaskNode[]) => void;
   updateNode: (nodeId: string, updates: Partial<TaskNodeMinimal>) => void;
-  removeNode: (nodeId: string) => void;
+  /**
+   * 删除一个节点。
+   *
+   * 防御性约束（004-parent-deletion-blocked-by-child-lock）：
+   * - 若被删节点的任意后代 `isLocked === true`，则拒绝执行并返回 `false`。
+   * - 节点不存在时返回 `false`。
+   * - 节点不存在锁定后代时正常删除并返回 `true`。
+   *
+   * 注意：此约束只针对"后代被锁定"，不针对"节点自身被锁定"——
+   * 节点自身被锁定的规则在 UI 层处理（参考 NodeActions 的 disabled + tooltip）。
+   * 这样 store 与 UI 各司其职，签名不互相耦合。
+   */
+  removeNode: (nodeId: string) => boolean;
   addChild: (parentId: string) => string;
   addRootNode: () => string;
   moveNode: (nodeId: string, parentId: string | null, index: number) => void;
@@ -58,12 +70,22 @@ export function createEditorStore(initialValue: TaskNode[] = []) {
 
     // 删除节点
     removeNode: (nodeId) => {
-      set((state) => {
-        const store = new Map(state.store);
-        const node = store.get(nodeId);
+      // 防御性检查：被删节点或其任意后代若被锁定，直接拒绝
+      // 规则本身不带副作用，仅返回 boolean 即可
+      const state = get();
+      const node = state.store.get(nodeId);
+      if (!node) return false;
+      if (hasLockedDescendant(null, state.store, nodeId)) {
+        return false;
+      }
 
-        if (node?.parentId) {
-          const parent = store.get(node.parentId);
+      set((s) => {
+        const store = new Map(s.store);
+        const target = store.get(nodeId);
+        if (!target) return s;
+
+        if (target.parentId) {
+          const parent = store.get(target.parentId);
           if (parent) {
             parent.children = parent.children.filter((id) => id !== nodeId);
           }
@@ -71,9 +93,9 @@ export function createEditorStore(initialValue: TaskNode[] = []) {
 
         // 递归删除子节点
         function deleteChildren(id: string) {
-          const node = store.get(id);
-          if (node) {
-            node.children.forEach(deleteChildren);
+          const n = store.get(id);
+          if (n) {
+            n.children.forEach(deleteChildren);
             store.delete(id);
           }
         }
@@ -81,6 +103,7 @@ export function createEditorStore(initialValue: TaskNode[] = []) {
         deleteChildren(nodeId);
         return { store };
       });
+      return true;
     },
 
     // 添加子标题

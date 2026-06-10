@@ -35,6 +35,7 @@ export default {
     deleteNode: 'Delete Node',
     lockedCannotAddChild: 'Node is locked, cannot add child nodes',
     lockedCannotDelete: 'Node is locked, cannot delete',
+    parentDeletionBlockedByChildLock: 'A child node is locked, cannot delete this parent',
     lockedCannotEdit: 'Node is locked, cannot edit',
     lockedCannotRun: 'Node is locked, cannot run',
     lockedCannotOptimize: 'Node is locked, cannot optimize',

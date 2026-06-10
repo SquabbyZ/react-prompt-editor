@@ -55,6 +55,12 @@ export interface NodeActionsProps {
       children: any[];
     }>;
   }> | null;
+  /**
+   * 004-parent-deletion-blocked-by-child-lock:
+   * 当前节点的任意后代是否被锁定。是 true 时，删除按钮必须 disabled 并显示 i18n tooltip。
+   * 默认为 false（向后兼容），上层（Node.tsx）应通过 store 选择器计算后传入。
+   */
+  hasLockedDescendant?: boolean;
 }
 
 /**
@@ -80,6 +86,7 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
     currentLevel,
     maxChildLevel,
     childNodesTree = null,
+    hasLockedDescendant = false,
   }) => {
     const { t } = useI18n(locale);
     const { isDarkMode } = useResolvedTheme(theme);
@@ -238,13 +245,15 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
               onCancel={() => message.info(t('editor.cancelledDelete'))}
               okText={t('common.ok')}
               cancelText={t('common.cancel')}
-              disabled={nodeData.isLocked}
+              disabled={nodeData.isLocked || hasLockedDescendant}
             >
               <Tooltip
                 title={
                   nodeData.isLocked
                     ? t('editor.lockedCannotDelete')
-                    : t('editor.deleteNode')
+                    : hasLockedDescendant
+                      ? t('editor.parentDeletionBlockedByChildLock')
+                      : t('editor.deleteNode')
                 }
               >
                 <Button
@@ -252,7 +261,7 @@ export const NodeActions: React.FC<NodeActionsProps> = memo(
                   size="small"
                   danger
                   icon={<Trash2 size={14} />}
-                  disabled={nodeData.isLocked}
+                  disabled={nodeData.isLocked || hasLockedDescendant}
                   aria-label={t('editor.deleteNode')}
                   className={dangerButtonClassName}
                 />

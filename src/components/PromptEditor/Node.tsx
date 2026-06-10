@@ -613,6 +613,28 @@ export const Node: React.FC<CustomNodeProps> = memo(
       return node.level < maxChildLevel;
     }, [node.level, maxChildLevel]);
 
+    // 004-parent-deletion-blocked-by-child-lock:
+    // 计算当前节点的任意后代是否被锁定。
+    // 用 availableNodes（已包含整棵树的扁平化数据）递归子图判断。
+    // 复杂度 O(subtree)，React.memo 父组件保证只在 nodeData/availableNodes 变化时重算。
+    const hasLockedDescendant = React.useMemo<boolean>(() => {
+      if (!availableNodes || availableNodes.length === 0) return false;
+      const byId = new Map<string, (typeof availableNodes)[number]>();
+      for (const n of availableNodes) byId.set(n.id, n);
+      const visited = new Set<string>();
+      const stack: string[] = [...(nodeData.children || [])];
+      while (stack.length > 0) {
+        const cid = stack.pop()!;
+        if (visited.has(cid)) continue;
+        visited.add(cid);
+        const child = byId.get(cid);
+        if (!child) continue;
+        if (child.isLocked) return true;
+        for (const grand of child.children || []) stack.push(grand);
+      }
+      return false;
+    }, [nodeData.children, availableNodes]);
+
     // 下拉菜单项
     const menuItems = [
       ...(shouldShowAddChildButton
@@ -647,7 +669,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
         label: t('editor.deleteNode'),
         icon: <Trash2 size={14} />,
         danger: true,
-        disabled: nodeData.isLocked,
+        disabled: nodeData.isLocked || hasLockedDescendant,
         onClick: (info: any) => {
           info.domEvent.stopPropagation();
           Modal.confirm({
@@ -813,6 +835,7 @@ export const Node: React.FC<CustomNodeProps> = memo(
                   currentLevel={node.level}
                   maxChildLevel={maxChildLevel}
                   childNodesTree={childNodesTree}
+                  hasLockedDescendant={hasLockedDescendant}
                 />
               )}
             </div>

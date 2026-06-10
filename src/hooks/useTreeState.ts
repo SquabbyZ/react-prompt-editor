@@ -1,18 +1,34 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { NodeStore, TaskNode, TaskNodeMinimal } from '../types';
-import { arrayToMap, mapToArray } from '../utils/tree-utils';
+import {
+  arrayToMap,
+  hasLockedDescendant,
+  mapToArray,
+} from '../utils/tree-utils';
 
 export interface UseTreeStateReturn {
   store: NodeStore;
   tree: TaskNode[];
   expandedNodes: Set<string>;
   toggleExpand: (nodeId: string) => void;
-  removeNode: (nodeId: string) => void;
+  /**
+   * 删除节点。返回 boolean：
+   * - true: 实际执行了删除
+   * - false: 节点不存在，或被删节点存在锁定后代（防御性拒绝）
+   */
+  removeNode: (nodeId: string) => boolean;
   addChild: (parentId: string) => string; // 返回新节点的 ID
   addRootNode: () => string; // 添加根节点，返回新节点的 ID
   updateNode: (nodeId: string, updates: Partial<TaskNodeMinimal>) => void;
   getNodeNumber: (nodeId: string) => string;
+  /**
+   * 004-parent-deletion-blocked-by-child-lock:
+   * 给定 id，查询该节点的任意后代是否被锁定。
+   * 用于 UI 层（TreeNode / NodeActions）判断"祖先链是否要禁用删除"。
+   * 复杂度 O(subtree)，不要在每节点重扫整棵树——上层应在 useMemo 中调用。
+   */
+  hasLockedDescendant: (nodeId: string) => boolean;
 }
 
 export function useTreeState(
@@ -20,6 +36,10 @@ export function useTreeState(
 ): UseTreeStateReturn {
   const [store, setStore] = useState<NodeStore>(() => arrayToMap(initialValue));
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+
+  // 始终指向最新 store，避免 useCallback 闭包过期
+  const storeRef = useRef<NodeStore>(store);
+  storeRef.current = store;
 
   // 转换为树形数组（用于渲染）
   const tree = useMemo(() => mapToArray(store), [store]);
@@ -92,12 +112,18 @@ export function useTreeState(
   }, []);
 
   // 删除节点
-  const removeNode = useCallback((nodeId: string) => {
+  const removeNode = useCallback((nodeId: string): boolean => {
+    // 防御性拒绝：节点不存在 / 自身或后代被锁定时直接返回 false
+    const current = storeRef.current;
+    if (!current.has(nodeId)) return false;
+    if (hasLockedDescendant(null, current, nodeId)) return false;
+
     setStore((prev) => {
       const next = new Map(prev);
       const node = next.get(nodeId);
+      if (!node) return prev;
 
-      if (node?.parentId) {
+      if (node.parentId) {
         const parent = next.get(node.parentId);
         if (parent) {
           parent.children = parent.children.filter((id) => id !== nodeId);
@@ -106,9 +132,9 @@ export function useTreeState(
 
       // 递归删除子节点
       function deleteChildren(id: string) {
-        const node = next.get(id);
-        if (node) {
-          node.children.forEach(deleteChildren);
+        const n = next.get(id);
+        if (n) {
+          n.children.forEach(deleteChildren);
           next.delete(id);
         }
       }
@@ -116,6 +142,7 @@ export function useTreeState(
       deleteChildren(nodeId);
       return next;
     });
+    return true;
   }, []);
 
   // 更新节点
@@ -153,6 +180,17 @@ export function useTreeState(
     }
   };
 
+  /**
+   * 004-parent-deletion-blocked-by-child-lock:
+   * 给定 id，查询该节点的任意后代是否被锁定。
+   * 复杂度 O(subtree)；调用方应自行 memo，避免每节点扫整棵树。
+   * 未使用 useCallback 包装：函数依赖当前 store，引用频繁变化无意义，
+   * 由 React 渲染时直接调用即可。
+   */
+  const hasLockedDescendantFn = (nodeId: string): boolean => {
+    return hasLockedDescendant(null, store, nodeId);
+  };
+
   return {
     store,
     tree,
@@ -163,5 +201,6 @@ export function useTreeState(
     addRootNode,
     updateNode,
     getNodeNumber,
+    hasLockedDescendant: hasLockedDescendantFn,
   };
 }

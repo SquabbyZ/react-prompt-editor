@@ -35,6 +35,7 @@ export default {
     deleteNode: '删除节点',
     lockedCannotAddChild: '节点已锁定，无法添加子标题',
     lockedCannotDelete: '节点已锁定，无法删除',
+    parentDeletionBlockedByChildLock: '子节点已锁定，无法删除此父节点',
     lockedCannotEdit: '节点已锁定，无法编辑',
     lockedCannotRun: '节点已锁定，无法运行',
     lockedCannotOptimize: '节点已锁定，无法优化',

@@ -15,6 +15,8 @@ export const TreeNode: React.FC<TreeNodeProps> = memo(
     onLock,
     onOptimize,
     onDelete,
+    hasLockedDescendant = false,
+    deleteTooltip,
   }) => {
     const [editorLoaded, setEditorLoaded] = useState(false);
 
@@ -24,6 +26,19 @@ export const TreeNode: React.FC<TreeNodeProps> = memo(
         setEditorLoaded(true);
       }
     }, [editorLoaded]);
+
+    // 004-parent-deletion-blocked-by-child-lock:
+    // 自身被锁 或 任意后代被锁 时,删除按钮统一禁用。
+    // 删除按钮的 title 属性作为简单 tooltip（不依赖 antd 工具），
+    // 优先显示"子节点已锁定"提示，否则显示通用删除文案。
+    const deleteDisabled = isLocked || hasLockedDescendant;
+    const resolvedDeleteTooltip =
+      deleteTooltip ??
+      (isLocked
+        ? '节点已锁定，无法删除'
+        : hasLockedDescendant
+          ? '子节点已锁定，无法删除此父节点'
+          : '删除');
 
     return (
       <div className="my-2 rounded-lg border border-gray-300 bg-white p-3 dark:border-gray-600 dark:bg-gray-900">
@@ -76,7 +91,9 @@ export const TreeNode: React.FC<TreeNodeProps> = memo(
             <button
               type="button"
               onClick={onDelete}
-              disabled={isLocked}
+              disabled={deleteDisabled}
+              title={resolvedDeleteTooltip}
+              aria-label={resolvedDeleteTooltip}
               className="rounded bg-red-500 px-2 py-1 text-sm text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:bg-gray-300 dark:disabled:bg-gray-700"
             >
               删除

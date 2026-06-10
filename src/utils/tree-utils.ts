@@ -82,3 +82,62 @@ export function mapToArray(store: NodeStore, rootOrder?: string[]): TaskNode[] {
 
   return roots;
 }
+
+/**
+ * 判断一个节点的"任意后代"是否被锁定（自身 isLocked 不会被这个函数判断——那是父规则）。
+ *
+ * 重要语义：
+ * - 只检查 node.children 这个子图。
+ * - 不包含 node 自身（即使 node.isLocked === true），因为父规则的"自身被锁定"
+ *   已有独立的 UI 路径处理；本函数专用于"被锁定后代的祖先链禁用删除"这一行为约束。
+ * - 使用 visited 集合防止循环引用导致栈溢出。
+ *
+ * 支持两种调用形式：
+ * 1. 直接传一个树形 TaskNode：hasLockedDescendant(node)
+ * 2. 在 store 索引里按 id 查询：hasLockedDescendant(null, store, id)
+ *    这种形式适用于每节点 O(1) 检查某个 id 的子树。
+ */
+export function hasLockedDescendant(
+  node: TaskNode | null | undefined,
+  lookup?: NodeStore,
+  rootId?: string,
+): boolean {
+  if (lookup && rootId !== undefined) {
+    const root = lookup.get(rootId);
+    if (!root) return false;
+    return walkWithStore(root, lookup, new Set<string>());
+  }
+  if (!node) return false;
+  return walkNode(node, new Set<string>());
+}
+
+function walkNode(node: TaskNode, visited: Set<string>): boolean {
+  if (visited.has(node.id)) return false;
+  visited.add(node.id);
+
+  if (!node.children || node.children.length === 0) return false;
+
+  for (const child of node.children) {
+    if (!child) continue;
+    if (child.isLocked) return true;
+    if (walkNode(child, visited)) return true;
+  }
+  return false;
+}
+
+function walkWithStore(
+  node: TaskNodeMinimal,
+  store: NodeStore,
+  visited: Set<string>,
+): boolean {
+  if (visited.has(node.id)) return false;
+  visited.add(node.id);
+
+  for (const childId of node.children) {
+    const child = store.get(childId);
+    if (!child) continue;
+    if (child.isLocked) return true;
+    if (walkWithStore(child, store, visited)) return true;
+  }
+  return false;
+}
